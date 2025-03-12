@@ -1,0 +1,83 @@
+.deckContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+}
+
+.deckTitle {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #333;
+}
+
+.deck {
+  position: relative;
+  width: 80px;
+  height: 120px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.deck:hover {
+  transform: translateY(-5px);
+}
+
+.deck.drawing {
+  animation: draw 0.5s ease;
+}
+
+@keyframes draw {
+  0% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
+
+.empire {
+  background: linear-gradient(45deg, #4a69bd, #6a89cc);
+  box-shadow: 0 5px 15px rgba(74, 105, 189, 0.3);
+}
+
+.chance {
+  background: linear-gradient(45deg, #eb3b5a, #fc5c65);
+  box-shadow: 0 5px 15px rgba(235, 59, 90, 0.3);
+}
+
+.cardBack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.empire .cardBack {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.1) 10px,
+    rgba(255, 255, 255, 0.2) 10px,
+    rgba(255, 255, 255, 0.2) 20px
+  );
+}
+
+.chance .cardBack {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.1) 10px,
+    rgba(255, 255, 255, 0.2) 10px,
+    rgba(255, 255, 255, 0.2) 20px
+  );
+}

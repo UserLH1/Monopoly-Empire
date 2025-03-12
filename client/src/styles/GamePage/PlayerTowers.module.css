@@ -1,0 +1,162 @@
+.towersContainer {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+}
+
+.towersTitle {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.towers {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+}
+
+.towerWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.activeTower {
+  transform: scale(1.05);
+}
+
+.activeTower::after {
+  content: '👑';
+  position: absolute;
+  top: -15px;
+  font-size: 20px;
+}
+
+.towerHeader {
+  width: 60px;
+  padding: 5px 0;
+  border-radius: 5px 5px 0 0;
+  text-align: center;
+  z-index: 2;
+}
+
+.playerName {
+  font-size: 0.8rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tower {
+  position: relative;
+  width: 60px;
+  height: 350px; /* Height for up to 8 brands + base */
+}
+
+.towerBase {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 30px;
+  background: #333;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playerToken {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.emptySlot {
+  position: absolute;
+  width: 100%;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px dashed #ccc;
+  box-sizing: border-box;
+}
+
+.brandBlock {
+  position: absolute;
+  width: 100%;
+  height: 40px; /* Height of each brand block */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 5;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.brandBlock:hover {
+  transform: translateX(5px) scale(1.05);
+  z-index: 10;
+}
+
+.brandLogo {
+  width: 80%;
+  height: 80%;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.brandTooltip {
+  position: absolute;
+  left: 70px;
+  background: white;
+  border-radius: 5px;
+  padding: 5px 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  display: none;
+  flex-direction: column;
+  width: 120px;
+  z-index: 100;
+}
+
+.brandBlock:hover .brandTooltip {
+  display: flex;
+}
+
+.brandName {
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.brandValue {
+  color: #2ecc71;
+  font-size: 0.8rem;
+}
+
+/* Animation for adding a new brand */
+@keyframes addBrand {
+  0% { transform: translateY(-20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.brandBlock.new {
+  animation: addBrand 0.5s ease forwards;
+}

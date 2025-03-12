@@ -1,0 +1,88 @@
+.panel {
+  position: absolute;
+  width: 250px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 12px;
+  color: #333;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.topLeft {
+  top: 20px;
+  left: 20px;
+}
+
+.topRight {
+  top: 20px;
+  right: 20px;
+}
+
+.bottomLeft {
+  bottom: 20px;
+  left: 20px;
+}
+
+.bottomRight {
+  bottom: 20px;
+  right: 20px;
+}
+
+.active {
+  box-shadow: 0 0 0 3px #e94560, 0 5px 15px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.money {
+  margin-left: auto;
+  font-weight: bold;
+  color: #2ecc71;
+  font-size: 1.2rem;
+}
+
+.content {
+  display: flex;
+  gap: 12px;
+}
+
+.cardCount {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.cardType {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  background: #f0f0f0;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+
+.count {
+  font-weight: bold;
+  color: #e94560;
+}

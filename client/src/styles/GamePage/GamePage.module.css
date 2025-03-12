@@ -1,0 +1,106 @@
+.gamePageContainer {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #1d2b53 0%, #2d3f6f 100%);
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.towerArea {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.gameContent {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  height: calc(100vh - 40px);
+  margin: 0 auto;
+}
+
+.boardArea {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 800px;
+  z-index: 10;
+}
+
+.cardDecks {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  gap: 100px;
+  bottom: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.controlsArea {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 20;
+}
+
+/* Player panel positions */
+:global(.playerTopLeft) {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 30;
+}
+
+:global(.playerTopRight) {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 30;
+}
+
+:global(.playerBottomLeft) {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 30;
+}
+
+:global(.playerBottomRight) {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 30;
+}
+
+/* Animation for dice rolling */
+@keyframes diceRoll {
+  0% { transform: rotateX(0) rotateY(0) rotateZ(0); }
+  25% { transform: rotateX(180deg) rotateY(90deg) rotateZ(45deg); }
+  50% { transform: rotateX(360deg) rotateY(180deg) rotateZ(90deg); }
+  75% { transform: rotateX(180deg) rotateY(270deg) rotateZ(135deg); }
+  100% { transform: rotateX(0) rotateY(360deg) rotateZ(0); }
+}
+
+.diceRolling {
+  animation: diceRoll 1s ease;
+}

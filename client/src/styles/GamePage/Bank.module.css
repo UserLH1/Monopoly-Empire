@@ -1,0 +1,68 @@
+.bankContainer {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bankHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bankHeader h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.totalMoney {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #2ecc71;
+}
+
+.transactions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transactionInfo {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin: 0;
+}
+
+.bankLogo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bankLogo span:first-child {
+  background: #ffd700;
+  color: #000;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.bankName {
+  font-size: 0.75rem;
+  color: #aaa;
+}

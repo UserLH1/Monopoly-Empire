@@ -1,0 +1,290 @@
+.gameBoardContainer {
+  position: relative;
+  width: 800px;
+  height: 800px;
+}
+
+.gameBoard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f8d568, #ffca28);
+  border: 12px solid #1a1a1a;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.boardCenter {
+  position: absolute;
+  top: 88.9px;
+  left: 88.9px;
+  width: calc(100% - 177.8px);
+  height: calc(100% - 177.8px);
+  background: linear-gradient(135deg, #ffca28, #ffa000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.boardLogo {
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-45deg);
+}
+
+.boardLogo img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* When no image is available, use text fallback */
+.boardLogo:empty::before {
+  content: "MONOPOLY EMPIRE";
+  font-family: 'Impact', sans-serif;
+  font-size: 48px;
+  color: #1a1a1a;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+/* Tile styles */
+.tile {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #fff;
+  transition: transform 0.3s;
+  z-index: 10;
+}
+
+.tile:hover {
+  transform: scale(1.05);
+  z-index: 15;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.cornerTile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f8f8;
+  z-index: 11;
+  font-weight: bold;
+}
+
+.cornerTileContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  text-align: center;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* GO corner styles */
+.goArrow {
+  font-size: 24px;
+  font-weight: bold;
+  color: #e53935;
+}
+
+.goText {
+  font-size: 20px;
+  font-weight: bold;
+  color: #e53935;
+  margin: 0;
+}
+
+.goCollect {
+  font-size: 7px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Jail corner styles */
+.jailSection {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.justVisiting {
+  font-size: 10px;
+  transform: rotate(-45deg);
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
+.jailImage {
+  width: 60%;
+  height: 60%;
+  background-image: url('/assets/jail.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0 auto;
+}
+
+.jailImage:empty::before {
+  content: "🔒";
+  font-size: 20px;
+}
+
+.jail {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.tileContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+/* Brand tile specific styling */
+.brandTile {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.tileBanner {
+  width: 100%;
+  height: 25%;
+  border-bottom: 1px solid #000;
+}
+
+.tileName {
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  padding: 3px 0;
+}
+
+.tileLogo {
+  flex: 1;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 40px;
+  margin: 3px 0;
+}
+
+.tileValue {
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  padding: 3px;
+  background: #f2f2f2;
+  border-top: 1px solid #ddd;
+}
+
+/* Chance and Empire card tiles */
+.chanceTile,
+.empireTile {
+  background-color: #fff;
+  text-align: center;
+}
+
+.cardIcon {
+  font-size: 20px;
+  font-weight: bold;
+  height: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 5px auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: white;
+}
+
+/* Utility and Tax tiles */
+.utilityTile,
+.taxTile {
+  background-color: #f2f2f2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+}
+
+.taxIcon, .rivalIcon {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.taxValue {
+  font-size: 8px;
+  font-weight: bold;
+  margin-top: 3px;
+}
+
+/* Bottom row tiles */
+.bottomTile {
+  border-top-width: 2px;
+}
+
+/* Left column tiles */
+.leftTile {
+  border-right-width: 2px;
+}
+
+/* Top row tiles */
+.topTile {
+  border-bottom-width: 2px;
+}
+
+/* Right column tiles */
+.rightTile {
+  border-left-width: 2px;
+}
+
+/* Player token */
+.playerToken {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+  transform-origin: center;
+  transition: top 0.5s, left 0.5s;
+}
+
+.movingToken {
+  animation: bounceToken 1s ease;
+  z-index: 100;
+}
+
+@keyframes bounceToken {
+  0% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.3) translateY(-30px); }
+  100% { transform: scale(1) translateY(0); }
+}
