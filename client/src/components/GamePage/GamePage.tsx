@@ -349,6 +349,7 @@ export default function GamePage() {
         {/* Game board */}
         <div className={styles.boardArea}>
           <GameBoard
+            //@ts-ignore
             tiles={monopolyEmpireTiles}
             currentPlayer={currentPlayerIndex}
             players={players}

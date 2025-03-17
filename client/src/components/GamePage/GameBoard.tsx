@@ -24,7 +24,7 @@ interface Brand {
 interface Tile {
   id: string;
   position: number;
-  type: "brand" | "corner" | "chance" | "empire" | "utility" | "tax";
+  type: "corner" | "brand" | "empire" | "utility" | "chance" | "tax";
   name: string;
   color?: string;
   value?: number;
