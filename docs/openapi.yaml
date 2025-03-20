@@ -1,0 +1,469 @@
+openapi: 3.0.3
+info:
+  title: Monopoly Empire API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+tags:
+  - name: joc
+    description: Gestionarea informațiilor despre joc
+  - name: jucator
+    description: Gestionarea informațiilor despre jucători
+  - name: card
+    description: Gestionarea informațiilor despre carduri
+  - name: panou
+    description: Gestionarea informațiilor despre panou (proprietăți)
+  - name: turn
+    description: Gestionarea informațiilor despre turnul jucătorului
+  - name: cardActiv
+    description: Gestionarea cardurilor active (cine deține ce card)
+
+paths:
+  /joc:
+    get:
+      tags:
+        - joc
+      summary: Listare jocuri existente
+      operationId: listJocuri
+      responses:
+        '200':
+          description: Lista tuturor jocurilor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Joc'
+    post:
+      tags:
+        - joc
+      summary: Creare joc nou
+      operationId: createJoc
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JocInput'
+      responses:
+        '201':
+          description: Joc creat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Joc'
+  /joc/{jocId}:
+    get:
+      tags:
+        - joc
+      summary: Detalii despre un joc
+      operationId: getJocById
+      parameters:
+        - name: jocId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datele jocului
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Joc'
+        '404':
+          description: Jocul nu a fost găsit
+    put:
+      tags:
+        - joc
+      summary: Actualizare stare joc (ex: start, finalizare)
+      operationId: updateJoc
+      parameters:
+        - name: jocId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JocInput'
+      responses:
+        '200':
+          description: Joc actualizat cu succes
+        '404':
+          description: Jocul nu a fost găsit
+
+  /jucator:
+    get:
+      tags:
+        - jucator
+      summary: Listare jucători
+      operationId: listJucatori
+      responses:
+        '200':
+          description: Lista jucătorilor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Jucator'
+    post:
+      tags:
+        - jucator
+      summary: Creare jucător
+      operationId: createJucator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JucatorInput'
+      responses:
+        '201':
+          description: Jucător creat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jucator'
+  /jucator/{username}:
+    get:
+      tags:
+        - jucator
+      summary: Obține datele unui jucător după username
+      operationId: getJucator
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Datele jucătorului
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jucator'
+        '404':
+          description: Jucător inexistent
+    put:
+      tags:
+        - jucator
+      summary: Actualizare jucător (ex: bani, poziție pion)
+      operationId: updateJucator
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JucatorInput'
+      responses:
+        '200':
+          description: Jucător actualizat
+        '404':
+          description: Jucător inexistent
+
+  /card:
+    get:
+      tags:
+        - card
+      summary: Listare carduri disponibile (Sansa/Empire etc.)
+      operationId: listCards
+      responses:
+        '200':
+          description: Lista cardurilor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+    post:
+      tags:
+        - card
+      summary: Creare card
+      operationId: createCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardInput'
+      responses:
+        '201':
+          description: Card creat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+
+  /card/{cardId}:
+    get:
+      tags:
+        - card
+      summary: Detalii despre un card
+      operationId: getCard
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Card găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          description: Card inexistent
+
+  /cardActiv:
+    get:
+      tags:
+        - cardActiv
+      summary: Listare carduri active (cine deține un anumit card)
+      operationId: listCardActiv
+      responses:
+        '200':
+          description: Lista cardurilor active
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardActiv'
+    post:
+      tags:
+        - cardActiv
+      summary: Activare card la un jucător
+      operationId: activateCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardActivInput'
+      responses:
+        '201':
+          description: Card activ asociat unui jucător
+
+  /panou:
+    get:
+      tags:
+        - panou
+      summary: Listare spații/piese de pe panou (proprietăți brand)
+      operationId: listPanou
+      responses:
+        '200':
+          description: Lista proprietăților
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Panou'
+    post:
+      tags:
+        - panou
+      summary: Adaugă o proprietate nouă în panou
+      operationId: createPanou
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PanouInput'
+      responses:
+        '201':
+          description: Proprietate adăugată
+
+  /panou/{panouId}:
+    get:
+      tags:
+        - panou
+      summary: Detalii despre o proprietate din panou
+      operationId: getPanou
+      parameters:
+        - name: panouId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalii proprietate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Panou'
+        '404':
+          description: Nu există această proprietate
+
+  /turn:
+    get:
+      tags:
+        - turn
+      summary: Listare turnuri ale jucătorilor
+      operationId: listTurn
+      responses:
+        '200':
+          description: Lista turnurilor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Turn'
+    post:
+      tags:
+        - turn
+      summary: Creare turn (ex. la start de joc) sau adăugare brand în turn
+      operationId: createTurn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TurnInput'
+      responses:
+        '201':
+          description: Turn creat / actualizat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Turn'
+
+components:
+  schemas:
+    Joc:
+      type: object
+      properties:
+        idJoc:
+          type: integer
+          example: 10
+        status:
+          type: string
+          description: "in asteptare / in desfasurare / finalizat"
+          example: in asteptare
+        nrJucatori:
+          type: integer
+          example: 4
+    JocInput:
+      type: object
+      properties:
+        status:
+          type: string
+        nrJucatori:
+          type: integer
+
+    Jucator:
+      type: object
+      properties:
+        username:
+          type: string
+        nrJocuriCastigate:
+          type: integer
+        bani:
+          type: integer
+        pozitiePion:
+          type: integer
+        # tipCard e optional, daca vrei
+    JucatorInput:
+      type: object
+      properties:
+        username:
+          type: string
+        bani:
+          type: integer
+        pozitiePion:
+          type: integer
+
+    Card:
+      type: object
+      properties:
+        idCard:
+          type: integer
+        descriere:
+          type: string
+        tip:
+          type: string
+          description: "ex: 'sansa' sau 'empire'"
+    CardInput:
+      type: object
+      properties:
+        descriere:
+          type: string
+        tip:
+          type: string
+
+    CardActiv:
+      type: object
+      properties:
+        idCard:
+          type: integer
+        username:
+          type: string
+    CardActivInput:
+      type: object
+      properties:
+        idCard:
+          type: integer
+        username:
+          type: string
+
+    Panou:
+      type: object
+      properties:
+        idPanou:
+          type: integer
+        nume:
+          type: string
+        pret:
+          type: integer
+        idJoc:
+          type: integer
+    PanouInput:
+      type: object
+      properties:
+        nume:
+          type: string
+        pret:
+          type: integer
+        idJoc:
+          type: integer
+
+    Turn:
+      type: object
+      properties:
+        idTurn:
+          type: integer
+        username:
+          type: string
+        valoare:
+          type: integer
+        idJoc:
+          type: integer
+    TurnInput:
+      type: object
+      properties:
+        username:
+          type: string
+        valoare:
+          type: integer
+        idJoc:
+          type: integer
