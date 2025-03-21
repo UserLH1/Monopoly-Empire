@@ -26,4 +26,4 @@ RUN ./mvnw package -DskipTests
 EXPOSE 8080
 
 # Command to run the application
-ENTRYPOINT ["java", "-jar", "target/monopolyEmpire-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "target/empire-0.0.1-SNAPSHOT.jar"]

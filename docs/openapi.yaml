@@ -79,7 +79,7 @@ paths:
     put:
       tags:
         - joc
-      summary: Actualizare stare joc (ex: start, finalizare)
+      summary: Actualizare stare joc 
       operationId: updateJoc
       parameters:
         - name: jocId
@@ -156,7 +156,7 @@ paths:
     put:
       tags:
         - jucator
-      summary: Actualizare jucător (ex: bani, poziție pion)
+      summary: Actualizare jucător 
       operationId: updateJucator
       parameters:
         - name: username
