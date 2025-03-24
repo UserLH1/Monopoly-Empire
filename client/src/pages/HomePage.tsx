@@ -6,6 +6,13 @@ export default function HomePage() {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleLogin = () => {
+    navigate("/login");
+  };
+  const handleRegister = () => {
+    navigate("/register");
+  };
+
   const handleCreateGame = () => {
     navigate("/setup");
   };
@@ -24,9 +31,14 @@ export default function HomePage() {
             <button onClick={logout}>Logout</button>
           </div>
         ) : (
-          <button onClick={login} className={styles.loginButton}>
-            Login with Google
-          </button>
+          <div className={styles.buttonGroup}>
+            <button onClick={handleLogin} className={styles.loginButton}>
+              Login
+            </button>
+            <button onClick={handleRegister} className={styles.loginButton}>
+              Register
+            </button>
+          </div>
         )}
       </header>
 

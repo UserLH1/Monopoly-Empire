@@ -324,6 +324,11 @@ export default function GamePage() {
   return (
     <div className={styles.gamePageContainer}>
       <div className={styles.gameContent}>
+        {/* Bank positioned at top center */}
+        <div className={styles.topBank}>
+          <Bank totalMoney={bankMoney} onTransaction={() => {}} />
+        </div>
+
         {/* Player panels */}
         <PlayerPanel
           player={players[0]}
@@ -354,6 +359,14 @@ export default function GamePage() {
             currentPlayer={currentPlayerIndex}
             players={players}
           />
+
+          {/* Dice moved to center of board */}
+          <div className={styles.centerDiceArea}>
+            <DiceArea
+              onRoll={handleDiceRoll}
+              disabled={gameStatus !== "playing"}
+            />
+          </div>
         </div>
 
         {/* Card decks */}
@@ -369,16 +382,6 @@ export default function GamePage() {
             disabled={false}
           />
         </div>
-
-        {/* Controls area - bottom */}
-        <div className={styles.controlsArea}>
-          <DiceArea
-            onRoll={handleDiceRoll}
-            disabled={gameStatus !== "playing"}
-          />
-          <Bank totalMoney={bankMoney} />
-        </div>
-        <div className={styles.towerArea}></div>
       </div>
     </div>
   );

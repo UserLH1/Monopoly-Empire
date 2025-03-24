@@ -35,6 +35,12 @@ export default function useAuth() {
       setUser(MOCK_USER);
     }, 300);
   };
+  const register = () => {
+    // Simulate async registration flow
+    setTimeout(() => {
+      setUser(MOCK_USER);
+    }, 300);
+  };
 
   const logout = () => {
     setUser(null);
@@ -43,6 +49,7 @@ export default function useAuth() {
   return {
     user,
     login,
+    register,
     logout,
     isAuthenticated: !!user,
   };
