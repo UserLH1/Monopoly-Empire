@@ -1,27 +1,35 @@
-# Folosim imaginea oficială Node ca bază
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine as build
 
-# Setăm directorul de lucru în container
+# Set working directory for build
 WORKDIR /app
 
-# Copiem fișierele package.json și package-lock.json
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Instalăm dependențele
 RUN npm install
 
-# Copiem restul codului aplicației
+# Copy source code and build
 COPY . .
-
-# Construim proiectul pentru producție
 RUN npm run build
 
-# Folosim un server static pentru a servi fișierele build-uite
-# De exemplu, folosim "serve" (instalat global)
-RUN npm install -g serve
+# Production stage with NGINX
+FROM nginx:alpine
 
-# Expunem portul pe care va rula aplicația (default 3000 pentru serve)
-EXPOSE 3000
+# Copy built files from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Comanda pentru a porni serverul static
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# Add custom nginx config
+RUN echo 'server { \
+    listen 80; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+# Expose port
+EXPOSE 80
+
+# Start NGINX
+CMD ["nginx", "-g", "daemon off;"]

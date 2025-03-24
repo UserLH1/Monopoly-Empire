@@ -163,30 +163,32 @@ paths:
         '400':
           description: Acest username este deja utilizat de catre o alta persoana
   /api/jucator/login:
-    get:
+    post:
       tags:
         - utilizator
-      summary: Logarea utilizatorului in joc
-      description: ''
+      summary: Logarea utilizatorului în joc
       operationId: loginUser
-      parameters:
-        - name: username
-          in: query
-          description: numele de utilizatorul
-          required: true
-          schema:
-            type: string
-        - name: password
-          in: query
-          description: parola de la contul utilizatorului
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: popraluca
+                password:
+                  type: string
+                  example: fsgdsdy42Sf
+              required:
+                - username
+                - password
       responses:
         '200':
           description: Utilizatorul s-a autentificat cu succes
         '400':
-          description: Nume de utilizator sau parola gresite
+          description: Nume de utilizator sau parolă greșite
+
   /api/jucator/{username}/pozitiePion:
     get:
       tags:
@@ -365,6 +367,7 @@ paths:
           content:
             application/json:
               schema:
+                type: array
                 items:
                   $ref: '#/components/schemas/CarduriActive'  
   /api/card/{status}/{idCard}:
@@ -413,6 +416,7 @@ paths:
           content:
             application/json:
               schema:
+                type: array
                 items:
                   $ref: '#/components/schemas/CarduriActiveByUsername'
         '404':
@@ -480,7 +484,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Panou'
-  /api/panou/{status}/{idPanou}:
+  /api/panouri/{status}/{idPanou}:
     get:
       tags:
         - panou
@@ -525,7 +529,7 @@ paths:
           description: Username, Turn sau panou neidentificat
         '400':
           description: Pretul panoului este prea mare
-  /api/panouri/joc/{idJoc}:
+  /api/panou/joc/{idJoc}:
     get:
       tags:
         - panou
@@ -549,7 +553,7 @@ paths:
                   $ref: '#/components/schemas/Panou'
         '404':
           description: Jocul nu a fost gasit
-  /api/panouri/turn/{idTurn}:
+  /api/panou/turn/{idTurn}:
     get:
       tags:
         - panou
@@ -574,6 +578,8 @@ paths:
         '404':
           description: Turnul nu a fost gasit
           
+  
+
 
   /api/turnuri:
     get:
@@ -590,6 +596,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Turn'
+        
   /api/turn/{username}:
     get:
       tags:
@@ -611,6 +618,7 @@ paths:
                 $ref: '#/components/schemas/Turn' 
         '404':
           description: Utilizatorul nu a fost gasit
+
   /api/turn/joc/{idJoc}:
     get:
       tags:
@@ -632,6 +640,7 @@ paths:
                 $ref: '#/components/schemas/Turn'
         '404':
           description: Jocul nu a fost gasit
+          
 
 components:
   schemas:
@@ -978,3 +987,4 @@ components:
       type: apiKey
       name: api_key
       in: header
+
