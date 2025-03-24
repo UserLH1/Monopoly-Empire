@@ -22,7 +22,7 @@ public class Utilizator {
     private UserRole rol;
     private String password;
     private int nrJocuriCastigate;
-    private int idJoc;
+    private Long idJoc;
     private int sumaBani;
     private int pozitiePion;
 
@@ -31,7 +31,7 @@ public class Utilizator {
     }
 
     // Constructor cu argumente
-    public Utilizator(String username, UserRole rol, String password, int nrJocuriCastigate, int idJoc, int sumaBani, int pozitiePion) {
+    public Utilizator(String username, UserRole rol, String password, int nrJocuriCastigate, Long idJoc, int sumaBani, int pozitiePion) {
         this.username = username;
         this.rol = rol;
         this.password = password;
@@ -58,7 +58,7 @@ public class Utilizator {
         return nrJocuriCastigate;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
@@ -87,7 +87,7 @@ public class Utilizator {
         this.nrJocuriCastigate = nrJocuriCastigate;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 

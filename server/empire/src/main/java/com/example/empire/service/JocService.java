@@ -17,5 +17,5 @@ public interface JocService {
     public ArrayList<JocDto> returneazaToateJocurile();
     public ArrayList<JocDto> returneazaToateJocurileNeincepute();
 
-    public JocDto returneazaJocDupaId(int jocId);
+    public JocDto returneazaJocDupaId(Long jocId);
 }

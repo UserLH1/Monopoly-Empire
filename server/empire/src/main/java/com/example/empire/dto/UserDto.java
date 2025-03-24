@@ -14,14 +14,14 @@ public class UserDto {
     private String password;
     private String rol;
     private int nrJocuriCastigate;
-    private int idJoc;
+    private Long idJoc;
     private int sumaBani;
     private int pozitiePion;
 
     public UserDto(){
 
     }
-    public UserDto(String username, String password, String rol, int nrJocuriCastigate, int idJoc, int sumaBani, int pozitiePion) {
+    public UserDto(String username, String password, String rol, int nrJocuriCastigate, Long idJoc, int sumaBani, int pozitiePion) {
         this.username = username;
         this.password = password;
         this.rol = rol;
@@ -63,11 +63,11 @@ public class UserDto {
         this.nrJocuriCastigate = nrJocuriCastigate;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 

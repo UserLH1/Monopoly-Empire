@@ -7,14 +7,14 @@ import lombok.Setter;
 
 public class AddUserDto {
     private String username;
-    private int gameId;
+    private Long gameId;
 
     // Constructor fără argumente
     public AddUserDto() {
     }
 
     // Constructor cu argumente
-    public AddUserDto(String username, int gameId) {
+    public AddUserDto(String username, Long gameId) {
         this.username = username;
         this.gameId = gameId;
     }
@@ -24,7 +24,7 @@ public class AddUserDto {
         return username;
     }
 
-    public int getGameId() {
+    public Long getGameId() {
         return gameId;
     }
 
@@ -33,7 +33,7 @@ public class AddUserDto {
         this.username = username;
     }
 
-    public void setGameId(int gameId) {
+    public void setGameId(Long gameId) {
         this.gameId = gameId;
     }
 }

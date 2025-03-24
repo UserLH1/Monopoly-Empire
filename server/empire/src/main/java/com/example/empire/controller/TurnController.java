@@ -1,2 +1,4 @@
-package com.example.empire.controller;public class TurnController {
+package com.example.empire.controller;
+
+public class TurnController {
 }

@@ -1,9 +1,7 @@
 package com.example.empire.model;
 
 import com.example.empire.enums.GameStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +17,8 @@ import jakarta.persistence.Table;
 @Table
 public class Joc {
     @Id
-    private int idJoc;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idJoc;
     private String jucatori;
     private int nrJucatori;
     private GameStatus status;
@@ -29,7 +28,7 @@ public class Joc {
     }
 
     // Constructor cu argumente
-    public Joc(int idJoc, String jucatori, int nrJucatori, GameStatus status) {
+    public Joc(Long idJoc, String jucatori, int nrJucatori, GameStatus status) {
         this.idJoc = idJoc;
         this.jucatori = jucatori;
         this.nrJucatori = nrJucatori;
@@ -37,7 +36,7 @@ public class Joc {
     }
 
     // Getteri
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
@@ -53,10 +52,6 @@ public class Joc {
         return status;
     }
 
-    // Setteri
-    public void setIdJoc(int idJoc) {
-        this.idJoc = idJoc;
-    }
 
     public void setJucatori(String jucatori) {
         this.jucatori = jucatori;

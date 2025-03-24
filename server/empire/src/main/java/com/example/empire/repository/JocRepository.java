@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 @Repository
-public interface JocRepository extends JpaRepository<Joc, Integer> {
-    Optional<Joc> getJocByIdJoc(int idJoc);
+public interface JocRepository extends JpaRepository<Joc, Long> {
+    Optional<Joc> getJocByIdJoc(Long idJoc);
     ArrayList<Joc> getAllByStatus(GameStatus gameStatus);
 }

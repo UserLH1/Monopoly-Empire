@@ -1,2 +1,4 @@
-package com.example.empire.controller;public class CardController {
+package com.example.empire.controller;
+
+public class CardController {
 }

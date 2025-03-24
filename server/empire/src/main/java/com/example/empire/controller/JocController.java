@@ -37,7 +37,7 @@ public class JocController {
     }
 
     @GetMapping("/joc/{idJoc}")
-    public ResponseEntity<ApiResponse> returneazaJoculDupaId(@RequestParam int idJoc){
+    public ResponseEntity<ApiResponse> returneazaJoculDupaId(@RequestParam Long idJoc){
         JocDto jocDto = jocService.returneazaJocDupaId(idJoc);
         return ResponseEntity.ok(ApiResponse.success("Joc returnat cu succes", jocDto));
     }

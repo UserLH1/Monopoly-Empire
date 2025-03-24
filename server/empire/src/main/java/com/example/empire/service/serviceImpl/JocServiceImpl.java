@@ -6,7 +6,9 @@ import com.example.empire.dto.JocDto;
 import com.example.empire.enums.GameStatus;
 import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Joc;
+import com.example.empire.model.Utilizator;
 import com.example.empire.repository.JocRepository;
+import com.example.empire.repository.UtilizatorRepository;
 import com.example.empire.service.JocService;
 
 
@@ -21,20 +23,30 @@ import java.util.Optional;
 public class JocServiceImpl implements JocService {
 
     private final JocRepository jocRepository;
+    private final UtilizatorRepository utilizatorRepository;
 
     @Autowired
-    public JocServiceImpl(JocRepository jocRepository) {
+    public JocServiceImpl(JocRepository jocRepository, UtilizatorRepository utilizatorRepository) {
        this.jocRepository = jocRepository;
+        this.utilizatorRepository = utilizatorRepository;
     }
 
     @Override
     public Joc createJoc(CreateGameDto createGameDto) {
-        Joc joc = new Joc();
-        String players = createGameDto.getUsername();
-        joc.setJucatori(players);
-        joc.setStatus(GameStatus.valueOf("WAITING"));
-        return jocRepository.save(joc);
-    }
+        Optional<Utilizator> optionalUser = utilizatorRepository.getAllByUsername(createGameDto.getUsername());
+        if(optionalUser.isPresent()){
+            Utilizator utilizator = optionalUser.get();
+            Joc joc = new Joc();
+            String players = createGameDto.getUsername();
+            joc.setJucatori(players);
+            joc.setNrJucatori(createGameDto.getNrGames());
+            joc.setStatus(GameStatus.valueOf("WAITING"));
+            Joc jocCreat = jocRepository.save(joc);
+            utilizator.setIdJoc(jocCreat.getIdJoc());
+            return jocCreat;
+        }
+        else throw new BadRequestException("Nu exista acest username");
+        }
 
     @Override
     public void addNewUser(AddUserDto addUserDto) {
@@ -77,7 +89,7 @@ public class JocServiceImpl implements JocService {
         return jocDtos;
     }
 
-    public JocDto returneazaJocDupaId(int jocId)  {
+    public JocDto returneazaJocDupaId(Long jocId)  {
         Optional<Joc> jocOp = jocRepository.getJocByIdJoc(jocId);
         if(jocOp.isPresent()){
             Joc joc = jocOp.get();

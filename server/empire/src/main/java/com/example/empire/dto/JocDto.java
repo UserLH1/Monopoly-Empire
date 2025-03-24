@@ -9,14 +9,14 @@ public class JocDto {
     private String jucatori;
     private int nrJucatori;
     private String statusJoc;
-    private int idJoc;
+    private Long idJoc;
 
     // Constructor fără argumente
     public JocDto() {
     }
 
     // Constructor cu argumente
-    public JocDto(String jucatori, int nrJucatori, String statusJoc, int idJoc) {
+    public JocDto(String jucatori, int nrJucatori, String statusJoc, Long idJoc) {
         this.jucatori = jucatori;
         this.nrJucatori = nrJucatori;
         this.statusJoc = statusJoc;
@@ -36,7 +36,7 @@ public class JocDto {
         return statusJoc;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
@@ -53,7 +53,7 @@ public class JocDto {
         this.statusJoc = statusJoc;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 }
