@@ -16,21 +16,15 @@ tags:
   - name: utilizator
     description: Toate informatiile despre utilizator
     
-  - name: cardActiv
-    description: Toate informatiile despre cardurile active
-  
   - name: card
     description: Toate informatiile despre carduri
     
-  - name: panouCumparat
-    description: Toate informatiile despre panourile cumparate
-
   - name: turn
     description: Toate informatiile despre turnuri
     
     
 paths:
-  /api/joc:
+  /api/jocuri:
     get:
       tags:
         - joc
@@ -46,10 +40,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Joc'          
-      security:
-        - petstore_auth:
-            - write:pets
-            - read:pets  
+  /api/joc:
     post:
       tags:
         - joc
@@ -65,6 +56,22 @@ paths:
       responses:
         '200':
           description: Jocul a fost creat cu succes
+  /api/jucatori:
+    get:
+      tags:
+        - utilizator
+      summary: Returnam toti jucatorii
+      description: Returnam toti jucatorii
+      operationId: getPlayers
+      responses:
+        '200':
+          description: Jucatorii au fost returnati cu succes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
   /api/joc/{idJoc}:
     get:
       tags:
@@ -110,6 +117,34 @@ paths:
           description: Jucator adaugat cu succes
         '404':
           description: Id-ul jocului nu a fost gasit.Username-ul jucatorului nu a fost gasit.
+  /api/joc/{idJoc}/jucatori:
+    get:
+      tags:
+        - joc
+      summary: Retruneaza toti jucatorii unui joc
+      description: Retruneaza toti jucatorii unui joc
+      operationId: getGamePlayers
+      parameters:
+        - name: idJoc
+          in: path
+          description: id-ul jocului (numar intreg pozitiv)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Jucatorii au fost returnati cu succes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Joc-returnareJucatoriJoc'          
+        '400':
+          description: Invalid id
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets  
+
   /api/jucator:
     post:
       tags:
@@ -152,33 +187,6 @@ paths:
           description: Utilizatorul s-a autentificat cu succes
         '400':
           description: Nume de utilizator sau parola gresite
-  /api/joc/jucatoriiUnuiJoc/{idJoc}:
-    get:
-      tags:
-        - joc
-      summary: Retruneaza toti jucatorii unui joc
-      description: Retruneaza toti jucatorii unui joc
-      operationId: getGamePlayers
-      parameters:
-        - name: idJoc
-          in: path
-          description: id-ul jocului (numar intreg pozitiv)
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Jucatorii au fost returnati cu succes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Joc-returnareJucatoriJoc'          
-        '400':
-          description: Invalid id
-      security:
-        - petstore_auth:
-            - write:pets
-            - read:pets  
   /api/jucator/{username}/pozitiePion:
     get:
       tags:
@@ -322,10 +330,11 @@ paths:
           description: Utilizator sters cu succes
         '404':
           description: Acest utilizator nu a fost gasit
-  /api/cardActiv:
+  
+  /api/card:
     post:
       tags:
-        - cardActiv
+        - card
       summary: Câștigarea unui card (Șansă sau Empire)
       description: În momentul în care un utilizator se află pe o poziție de câștig a unui card (empire/sansa), se returnează un card din categoria coresponzatoare.
       operationId: castigareIdCard
@@ -337,12 +346,19 @@ paths:
       responses:
         '200':
           description: Card câștigat
+  /api/carduri/{status}:
     get:
       tags:
-          - cardActiv
-      summary: Extragera tutoror cadruilor active din toate jocurile
-      description: Extragera tutoror cadruilor active din toate jocurile
-      operationId: getActiveCards
+        - card
+      summary: Extragera tutoror cadruilor active sau inactive din toate jocurile
+      description: Extragera tutoror cadruilor active sau inactive din toate jocurile
+      operationId: getCards
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Carduri returnate cu succes
@@ -351,19 +367,24 @@ paths:
               schema:
                 items:
                   $ref: '#/components/schemas/CarduriActive'  
-  /api/cardActiv/{idCardActiv}:
+  /api/card/{status}/{idCard}:
     get:
       tags:
-        - cardActiv
+        - card
       summary: Extragerea informatiilor despre cardul corespunzator id-ului specificat
       description: Extragerea informatiilor despre cardul corespunzator id-ului specificat
-      operationId: getActiveCardById
+      operationId: getCardById
       parameters:
-        - name: idCardActiv
+        - name: idCard
           in: path
           required: true
           schema:
             type: integer
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Detalii despre card returnate cu succes
@@ -373,10 +394,10 @@ paths:
                 $ref: '#/components/schemas/CarduriActiveById'
         '404':
           description: Id-ul cardului nu a fost gasit.
-  /api/cardActiv/{username}:
+  /api/carduri/utilizator/{username}:
     get:
       tags:
-        - cardActiv
+        - card
       summary: Extragerea informatiilor despre toate cardurile pe care le detine jucatorul cu username-ul specificat
       description: Extragerea informatiilor despre toate cardurile pe care le detine jucatorul cu username-ul specificat
       operationId: getActiveCardsByUsername
@@ -396,13 +417,13 @@ paths:
                   $ref: '#/components/schemas/CarduriActiveByUsername'
         '404':
           description: Username-ul jucatorului nu a fost gasit.
-  /api/cardActiv/{idJoc}:
+  /api/carduri/joc/{idJoc}:
     get:
       tags:
-        - cardActiv
-      summary: Extragerea informatiilor despre toate cardurile pe care le detine toti jucatorii din jocul cu id-ul specificat
-      description: Extragerea informatiilor despre toate cardurile pe care le detine toti jucatorii din jocul cu id-ul specificat
-      operationId: getActiveCardsByGameId
+        - card
+      summary: Extragerea informatiilor despre toate cardurile pe care le detin toti jucatorii din jocul cu id-ul specificat
+      description: Extragerea informatiilor despre toate cardurile pe care le detin toti jucatorii din jocul cu id-ul specificat
+      operationId: getCardsByGameId
       parameters:
         - name: idJoc
           in: path
@@ -419,10 +440,10 @@ paths:
                   $ref: '#/components/schemas/CarduriActiveByUsername'
         '404':
           description: Username-ul jucatorului nu a fost gasit.
-  /api/cardActiv/utilizeazaCard:
+  /api/card/utilizeazaCard:
     post:
       tags:
-        - cardActiv
+        - card
       summary: Utilizarea unui card (Șansă sau Empire)
       description: În momentul în care un jucator doreste sa utilizeze un card se vor realiza anumite actiuni ulterioare in functie de descrierea cardului
       operationId: utilizareCardActiv
@@ -436,50 +457,20 @@ paths:
           description: Card a fost utilizat cu succes
         '404':
           description: Utilizator sau cardActiv neidentificat
-  /api/card:
-    get:
-      tags:
-          - card
-      summary: Extragera tutoror cadruilor 
-      description: Extragera tutoror cadruilor
-      operationId: getCards
-      responses:
-        '200':
-          description: Carduri returnate cu succes
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/Carduri'  
-  /api/card/{idCard}:
-    get:
-      tags:
-        - card
-      summary: Extragerea informatiilor despre cardul corespunzator id-ului specificat
-      description: Extragerea informatiilor despre cardul corespunzator id-ului specificat
-      operationId: getCardById
-      parameters:
-        - name: idCard
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Detalii despre card returnate cu succes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CarduriById'
-        '404':
-          description: Id-ul cardului nu a fost gasit.   
-  /api/panou/:
+
+  /api/panouri/{status}:
     get:
       tags:
         - panou
       summary: Returneaza toate panourile ce se pot folosi intr-un joc
       description: Returneaza toate panourile ce se pot folosi intr-un joc
       operationId: listPanou
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Lista panourilor
@@ -489,18 +480,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Panou'
-  /api/panou/{panouId}:
+  /api/panou/{status}/{idPanou}:
     get:
       tags:
         - panou
       summary: Detalii despre un panou
       operationId: getPanou
       parameters:
-        - name: panouId
+        - name: idPanou
           in: path
           required: true
           schema:
             type: integer
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Detalii panou
@@ -510,28 +506,13 @@ paths:
                 $ref: '#/components/schemas/Panou'
         '404':
           description: Nu există acest panou
-  /api/panouCumparat:
-    get:
-      tags:
-        - panouCumparat
-      summary: Returneaza toate panourile cumparate in toate jocurile
-      description: Returneaza toate panourile cumparate in toate jocurile
-      operationId: listPanouCumparatToateJocurile
-      responses:
-        '200':
-          description: Lista panourilor cumparate
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Panou-Cumparat'
+  /api/panou:
     post:
       tags:
-        - panouCumparat
+        - panou
       summary: Adaugarea unui panou cumparat
       description: Adaugarea unui panou cumparat in lista cu panouri cumparate
-      operationId: adaugarePanouCumparat
+      operationId: adaugarePanou
       requestBody:
         content:
           application/json:
@@ -544,13 +525,10 @@ paths:
           description: Username, Turn sau panou neidentificat
         '400':
           description: Pretul panoului este prea mare
-        
-      
-    
-  /api/panouCumparat/{idJoc}:
+  /api/panouri/joc/{idJoc}:
     get:
       tags:
-        - panouCumparat
+        - panou
       summary: Returneaza toate panourile cumparate intr-un joc
       description: Returneaza toate panourile cumparate intr-un joc
       operationId: listPanouCumparat
@@ -568,36 +546,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Panou-Cumparat'
+                  $ref: '#/components/schemas/Panou'
         '404':
           description: Jocul nu a fost gasit
-
-  /api/panouCumparat/{panouCumparatId}:
+  /api/panouri/turn/{idTurn}:
     get:
       tags:
-        - panouCumparat
-      summary: Detalii despre un panou cumparat
-      operationId: getPanouCumparat
-      parameters:
-        - name: panouCumparatId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Detalii panou cumparat
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Panou-Cumparat'
-        '404':
-          description: Nu există acest panou cumparat
-
-  /api/panouCumparat/{idTurn}:
-    get:
-      tags:
-        - panouCumparat
+        - panou
       summary: Returneaza toate panourile cumparate intr-un turn
       description: Returneaza toate panourile cumparate intr-un turn
       operationId: listPanouCumparatTurn
@@ -615,14 +570,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Panou-Cumparat'
+                  $ref: '#/components/schemas/Panou'
         '404':
           description: Turnul nu a fost gasit
           
-  
 
-
-  /api/turn:
+  /api/turnuri:
     get:
       tags:
         - turn
@@ -637,7 +590,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Turn'
-        
   /api/turn/{username}:
     get:
       tags:
@@ -659,8 +611,7 @@ paths:
                 $ref: '#/components/schemas/Turn' 
         '404':
           description: Utilizatorul nu a fost gasit
-
-  /api/turn/{idJoc}:
+  /api/turn/joc/{idJoc}:
     get:
       tags:
         - turn
@@ -681,7 +632,6 @@ paths:
                 $ref: '#/components/schemas/Turn'
         '404':
           description: Jocul nu a fost gasit
-          
 
 components:
   schemas:
@@ -851,6 +801,10 @@ components:
         idJoc:
           type: integer
           example: 2
+        status:
+          type: string
+          enum: [activ, inactiv]
+          example: "activ"
     Carduri:
       type: object
       properties:
@@ -933,6 +887,14 @@ components:
           type: integer
           format: int64
           example: 100
+        status:
+          type: string
+          enum: [activ, inactiv, general]
+          example: "activ"
+        idTurn:
+          type: integer
+          format: int64
+          example: 10
     Panou-Cumparat:
       type: object
       properties:
@@ -975,7 +937,13 @@ components:
           type: integer
           format: int64
           example: 10
-
+    Returnare-Carduri:
+      type: object
+      properties:
+        ststusCard:
+          type: string
+          enum: [activ, inactiv]
+          example: "activ"      
 
       
     Turn:
@@ -1010,4 +978,3 @@ components:
       type: apiKey
       name: api_key
       in: header
-
