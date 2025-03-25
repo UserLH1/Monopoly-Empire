@@ -1,28 +1,19 @@
-package com.example.empire.model;
+package com.example.empire.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-
-@Entity
-public class Turn {
-
-    @Id
+public class TurnDto {
     private int idTurn;
     private String username;
-    private int valoareTurn;
     private int idJoc;
+    private int valoareTurn;
 
-    public Turn(){}
-    public Turn(int idTurn, String username, int valoareTurn, int idJoc) {
+    public TurnDto(){
+
+    }
+    public TurnDto(int idTurn, String username, int idJoc, int valoareTurn) {
         this.idTurn = idTurn;
         this.username = username;
-        this.valoareTurn = valoareTurn;
         this.idJoc = idJoc;
+        this.valoareTurn = valoareTurn;
     }
 
     public int getIdTurn() {
@@ -41,19 +32,19 @@ public class Turn {
         this.username = username;
     }
 
-    public int getValoareTurn() {
-        return valoareTurn;
-    }
-
-    public void setValoareTurn(int valoareTurn) {
-        this.valoareTurn = valoareTurn;
-    }
-
     public int getIdJoc() {
         return idJoc;
     }
 
     public void setIdJoc(int idJoc) {
         this.idJoc = idJoc;
+    }
+
+    public int getValoareTurn() {
+        return valoareTurn;
+    }
+
+    public void setValoareTurn(int valoareTurn) {
+        this.valoareTurn = valoareTurn;
     }
 }

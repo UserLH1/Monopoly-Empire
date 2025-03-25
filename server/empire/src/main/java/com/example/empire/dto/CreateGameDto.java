@@ -1,12 +1,7 @@
 package com.example.empire.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 public class CreateGameDto {
-    private int nrGames;
+    private int numarJucatori;
     private String username;
 
     // Constructor fără argumente
@@ -15,13 +10,13 @@ public class CreateGameDto {
 
     // Constructor cu argumente
     public CreateGameDto(int nrGames, String username) {
-        this.nrGames = nrGames;
+        this.numarJucatori = nrGames;
         this.username = username;
     }
 
     // Getteri
-    public int getNrGames() {
-        return nrGames;
+    public int getNumarJucatori() {
+        return numarJucatori;
     }
 
     public String getUsername() {
@@ -29,8 +24,8 @@ public class CreateGameDto {
     }
 
     // Setteri
-    public void setNrGames(int nrGames) {
-        this.nrGames = nrGames;
+    public void setNumarJucatori(int numarJucatori) {
+        this.numarJucatori = numarJucatori;
     }
 
     public void setUsername(String username) {

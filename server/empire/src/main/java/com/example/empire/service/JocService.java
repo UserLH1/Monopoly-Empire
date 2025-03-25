@@ -15,7 +15,7 @@ public interface JocService {
     public void addNewUser(AddUserDto addUserDto);
 
     public ArrayList<JocDto> returneazaToateJocurile();
-    public ArrayList<JocDto> returneazaToateJocurileNeincepute();
+    public String returneazaJucatoriiUnuiJoc(Long idJoc);
 
     public JocDto returneazaJocDupaId(Long jocId);
 }

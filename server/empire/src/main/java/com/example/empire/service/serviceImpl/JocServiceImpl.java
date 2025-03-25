@@ -39,7 +39,7 @@ public class JocServiceImpl implements JocService {
             Joc joc = new Joc();
             String players = createGameDto.getUsername();
             joc.setJucatori(players);
-            joc.setNrJucatori(createGameDto.getNrGames());
+            joc.setNrJucatori(createGameDto.getNumarJucatori());
             joc.setStatus(GameStatus.valueOf("WAITING"));
             Joc jocCreat = jocRepository.save(joc);
             utilizator.setIdJoc(jocCreat.getIdJoc());
@@ -50,7 +50,7 @@ public class JocServiceImpl implements JocService {
 
     @Override
     public void addNewUser(AddUserDto addUserDto) {
-        Optional<Joc> jocOp = jocRepository.getJocByIdJoc(addUserDto.getGameId());
+        Optional<Joc> jocOp = jocRepository.getJocByIdJoc(addUserDto.getIdJoc());
         if(jocOp.isPresent()){
             Joc joc = jocOp.get();
             String players = joc.getJucatori() + addUserDto.getUsername();
@@ -75,18 +75,12 @@ public class JocServiceImpl implements JocService {
     }
 
     @Override
-    public ArrayList<JocDto> returneazaToateJocurileNeincepute() {
-        ArrayList<Joc> jocuri = jocRepository.getAllByStatus(GameStatus.WAITING);
-        ArrayList<JocDto> jocDtos = new ArrayList<>();
-        for(Joc joc: jocuri){
-            JocDto jocDto = new JocDto();
-            jocDto.setIdJoc(joc.getIdJoc());
-            jocDto.setJucatori(joc.getJucatori());
-            jocDto.setStatusJoc(String.valueOf(joc.getStatus()));
-            jocDto.setNrJucatori(joc.getNrJucatori());
-            jocDtos.add(jocDto);
-        }
-        return jocDtos;
+    public String returneazaJucatoriiUnuiJoc(Long idJoc) {
+        Optional<Joc> jocOptional = jocRepository.getJocByIdJoc(idJoc);
+        if(jocOptional.isPresent())
+            return jocOptional.get().getJucatori();
+        else
+            throw new BadRequestException("Nu exista un ic cu acesst id");
     }
 
     public JocDto returneazaJocDupaId(Long jocId)  {

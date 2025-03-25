@@ -2,6 +2,7 @@ package com.example.empire.service.serviceImpl;
 
 import com.example.empire.dto.LoginDto;
 import com.example.empire.dto.UpdateMoneyDto;
+import com.example.empire.dto.UpdatePozitiePionDto;
 import com.example.empire.dto.UserDto;
 import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Utilizator;
@@ -22,7 +23,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
     }
 
     @Override
-    public Utilizator createUser(UserDto userDto){
+    public Utilizator createUser(LoginDto userDto){
         Utilizator user = new Utilizator();
         user.setRol(null);
         user.setUsername(userDto.getUsername());
@@ -58,7 +59,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
             UserDto userDto = new UserDto();
             userDto.setIdJoc(user.getIdJoc());
             userDto.setRol(String.valueOf(user.getRol()));
-            userDto.setNrJocuriCastigate(user.getNrJocuriCastigate());
+            userDto.setNumarJocuriCastigate(user.getNrJocuriCastigate());
             userDto.setPozitiePion(user.getPozitiePion());
             userDto.setSumaBani(userDto.getSumaBani());
             userDtos.add(userDto);
@@ -74,7 +75,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
             UserDto userDto = new UserDto();
             userDto.setIdJoc(user.getIdJoc());
             userDto.setRol(String.valueOf(user.getRol()));
-            userDto.setNrJocuriCastigate(user.getNrJocuriCastigate());
+            userDto.setNumarJocuriCastigate(user.getNrJocuriCastigate());
             userDto.setPozitiePion(user.getPozitiePion());
             userDto.setSumaBani(userDto.getSumaBani());
             userDtos.add(userDto);
@@ -117,7 +118,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
         Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(updateMoneyDto.getUsername());
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
-            utilizator.setSumaBani(updateMoneyDto.getMoney());
+            utilizator.setSumaBani(updateMoneyDto.getSumaBani());
             jucatorRepository.save(utilizator);
         }
         else{
@@ -126,11 +127,11 @@ public class UtilizatorServiceImpl implements UtilizatorService {
     }
 
     @Override
-    public void updatePosition(UpdateMoneyDto updateMoneyDto) {
+    public void updatePosition(UpdatePozitiePionDto updateMoneyDto) {
         Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(updateMoneyDto.getUsername());
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
-            utilizator.setPozitiePion(updateMoneyDto.getMoney());
+            utilizator.setPozitiePion(updateMoneyDto.getPozitiePion());
             jucatorRepository.save(utilizator);
         }
         else{
@@ -143,6 +144,33 @@ public class UtilizatorServiceImpl implements UtilizatorService {
         Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
         if(optionalUser.isPresent()){
             return  optionalUser.get().getIdJoc();
+        }
+        else{
+            throw new BadRequestException("Nu exista acest username");
+        }
+    }
+
+    @Override
+    public UserDto getUser(String username) {
+        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        if(optionalUser.isPresent()){
+            UserDto userDto = new UserDto();
+            userDto.setSumaBani(optionalUser.get().getSumaBani());
+            userDto.setRol(String.valueOf(optionalUser.get().getRol()));
+            userDto.setUsername(username);
+            userDto.setIdJoc(optionalUser.get().getIdJoc());
+            userDto.setNumarJocuriCastigate(optionalUser.get().getNrJocuriCastigate());
+            return  userDto;
+        }
+        else{
+            throw new BadRequestException("Nu exista acest username");
+        }    }
+
+    @Override
+    public void stergeUser(String username) {
+        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        if(optionalUser.isPresent()){
+            jucatorRepository.delete(optionalUser.get());
         }
         else{
             throw new BadRequestException("Nu exista acest username");

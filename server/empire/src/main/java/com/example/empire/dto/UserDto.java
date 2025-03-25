@@ -1,9 +1,6 @@
 package com.example.empire.dto;
 
-import com.example.empire.enums.UserRole;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -13,7 +10,7 @@ public class UserDto {
     private String username;
     private String password;
     private String rol;
-    private int nrJocuriCastigate;
+    private int numarJocuriCastigate;
     private Long idJoc;
     private int sumaBani;
     private int pozitiePion;
@@ -25,7 +22,7 @@ public class UserDto {
         this.username = username;
         this.password = password;
         this.rol = rol;
-        this.nrJocuriCastigate = nrJocuriCastigate;
+        this.numarJocuriCastigate = nrJocuriCastigate;
         this.idJoc = idJoc;
         this.sumaBani = sumaBani;
         this.pozitiePion = pozitiePion;
@@ -55,12 +52,12 @@ public class UserDto {
         this.rol = rol;
     }
 
-    public int getNrJocuriCastigate() {
-        return nrJocuriCastigate;
+    public int getNumarJocuriCastigate() {
+        return numarJocuriCastigate;
     }
 
-    public void setNrJocuriCastigate(int nrJocuriCastigate) {
-        this.nrJocuriCastigate = nrJocuriCastigate;
+    public void setNumarJocuriCastigate(int numarJocuriCastigate) {
+        this.numarJocuriCastigate = numarJocuriCastigate;
     }
 
     public Long getIdJoc() {

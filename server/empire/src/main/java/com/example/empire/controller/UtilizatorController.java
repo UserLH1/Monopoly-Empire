@@ -1,11 +1,11 @@
 package com.example.empire.controller;
 
 
-import com.example.empire.dto.LoginDto;
-import com.example.empire.dto.UpdateMoneyDto;
-import com.example.empire.dto.UserDto;
+import com.example.empire.dto.*;
+import com.example.empire.model.Utilizator;
 import com.example.empire.service.UtilizatorService;
 import com.example.empire.utils.ApiResponse;
+import jakarta.persistence.Id;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +25,9 @@ public class UtilizatorController {
     }
 
     @PostMapping("/jucator")
-    public ResponseEntity<ApiResponse> createUser(@RequestBody UserDto userDto){
-        utilizatorService.createUser(userDto);
-        return ResponseEntity.ok(ApiResponse.success("User salvat cu succes", null));
+    public ResponseEntity<ApiResponse> createUser(@RequestBody LoginDto loginDto){
+        utilizatorService.createUser(loginDto);
+        return ResponseEntity.ok(ApiResponse.success("Utilizatorul a fost creat cu succes", null));
     }
 
     @PostMapping("/jucator/login")
@@ -36,43 +36,52 @@ public class UtilizatorController {
         return ResponseEntity.ok(ApiResponse.success("User autentificat cu succes", null));
     }
 
-    @GetMapping("/jucator/jucatorii_unui_joc/{id_joc}")
-    public ResponseEntity<ApiResponse> loginUser(@PathVariable Long id_joc){
-        ArrayList<UserDto> userDto = utilizatorService.extrageJucatoriiUnuiJoc(id_joc);
-        return ResponseEntity.ok(ApiResponse.success("Returneaza toti jucatorii unui joc",userDto ));
-    }
-
-    @GetMapping("/jucator")
+    @GetMapping("/jucatori")
     public ResponseEntity<ApiResponse> returneazaTotiJucatorii(){
         ArrayList<UserDto> userDto = utilizatorService.extrageTotiJucatorii();
         return ResponseEntity.ok(ApiResponse.success("Returneaza toti jucatorii unui joc",userDto ));
     }
 
-    @GetMapping("/jucator/{username}/pozitie_pion")
+    @GetMapping("/jucator/{username}/pozitiePion")
     public ResponseEntity<ApiResponse>getUserPosition(@PathVariable String username){
         int userPosition = utilizatorService.getUserPosition(username);
-        return ResponseEntity.ok(ApiResponse.success("Pozitia pionului returnata cu succes", userPosition));
+        UserPositionDto userPositionDto = new UserPositionDto(userPosition);
+        return ResponseEntity.ok(ApiResponse.success("Pozitia pionului returnata cu succes", userPositionDto));
     }
 
-    @GetMapping("/jucator/{username}/suma_bani")
+    @GetMapping("/jucator/{username}/sumaBani")
     public ResponseEntity<ApiResponse>getUserMoney(@PathVariable String username){
         int userMoney = utilizatorService.getUserMoney(username);
-        return ResponseEntity.ok(ApiResponse.success("Suma de bani a utilizatorului returnata cu succes", userMoney));
+        UserMoneyDto userMoneyDto = new UserMoneyDto(userMoney);
+        return ResponseEntity.ok(ApiResponse.success("Suma de bani a utilizatorului returnata cu succes", userMoneyDto));
     }
     @PutMapping("/jucator/suma_bani")
     public ResponseEntity<ApiResponse>updateUserMoney(@RequestBody UpdateMoneyDto updateMoneyDto){
         utilizatorService.updateMoney(updateMoneyDto);
         return ResponseEntity.ok(ApiResponse.success("Suma de bani a utilizatorului a fost modificata cu succes", null));
     }
-    @PutMapping("/jucator/pozitiePion")
-    public ResponseEntity<ApiResponse>updateUserPosition(@RequestBody UpdateMoneyDto updateMoneyDto){
-        utilizatorService.updatePosition(updateMoneyDto);
-        return ResponseEntity.ok(ApiResponse.success("Pozitia utilizatorului a fost modificata cu succes", null));
-    }
-
     @GetMapping("/jucator/{username}/idJoc")
     public ResponseEntity<ApiResponse>returneazaIdulJoculuiJucatorului(@PathVariable String username){
         Long idJoc = utilizatorService.getUserGame(username);
-        return ResponseEntity.ok(ApiResponse.success("Id-ul jocului utilizatorului a fost returnat cu succes", idJoc));
+        IdJocDto idJocDto = new IdJocDto(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Id-ul jocului utilizatorului a fost returnat cu succes", idJocDto));
+    }
+
+    @PutMapping("/jucator/pozitiePion")
+    public ResponseEntity<ApiResponse>updateUserPosition(@RequestBody UpdatePozitiePionDto updatePozitiePionDto){
+        utilizatorService.updatePosition(updatePozitiePionDto);
+        return ResponseEntity.ok(ApiResponse.success("Pozitia utilizatorului a fost modificata cu succes", null));
+    }
+
+    @GetMapping("/jucator/{username}")
+    public ResponseEntity<ApiResponse>returneazaDetaliileJucatorului(@PathVariable String username){
+        UserDto user = utilizatorService.getUser(username);
+        return ResponseEntity.ok(ApiResponse.success("Utilizator returnat cu succes", user));
+    }
+
+    @DeleteMapping("/jucator/{username}")
+    public ResponseEntity<ApiResponse>stergeJucator(@PathVariable String username){
+        utilizatorService.stergeUser(username);
+        return ResponseEntity.ok(ApiResponse.success("Utilizator sters cu succes", null));
     }
 }

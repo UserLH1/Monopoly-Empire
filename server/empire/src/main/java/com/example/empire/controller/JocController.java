@@ -4,6 +4,7 @@ package com.example.empire.controller;
 import com.example.empire.dto.AddUserDto;
 import com.example.empire.dto.CreateGameDto;
 import com.example.empire.dto.JocDto;
+import com.example.empire.model.Joc;
 import com.example.empire.service.JocService;
 import com.example.empire.utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +27,11 @@ public class JocController {
 
     @PostMapping("/joc")
     public ResponseEntity<ApiResponse> createNewResponse(@RequestBody CreateGameDto jocDto){
-        jocService.createJoc(jocDto);
-        return ResponseEntity.ok(ApiResponse.success("Game saved successfully", null));
+        Joc joc = jocService.createJoc(jocDto);
+        return ResponseEntity.ok(ApiResponse.success("Game saved successfully", joc.getIdJoc()));
     }
 
-    @GetMapping("/joc")
+    @GetMapping("/jocuri")
     public ResponseEntity<ApiResponse> returneazaToateJocurile(){
         ArrayList<JocDto> jocDto = jocService.returneazaToateJocurile();
         return ResponseEntity.ok(ApiResponse.success("Jocuri returnate cu succes", jocDto));
@@ -42,16 +43,16 @@ public class JocController {
         return ResponseEntity.ok(ApiResponse.success("Joc returnat cu succes", jocDto));
     }
 
-    @GetMapping("/joc/jocuriNeincepute")
-    public ResponseEntity<ApiResponse> returneazaJocurileNeincepute(){
-        ArrayList<JocDto> jocDto = jocService.returneazaToateJocurileNeincepute();
-        return ResponseEntity.ok(ApiResponse.success("Jocuri neincepute returnate cu succes", jocDto));
+    @GetMapping("/joc/{idJoc}/jucatori")
+    public ResponseEntity<ApiResponse> returneazaJucatoriiUnuiJoc(@RequestParam Long idJoc){
+        String jucatori = jocService.returneazaJucatoriiUnuiJoc(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Jocuri neincepute returnate cu succes", jucatori));
     }
 
-    @PutMapping("/joc/adaugaPlayer")
+    @PutMapping("/joc/alaturareJoc")
     public ResponseEntity<ApiResponse> addNewUser(@RequestBody AddUserDto addUserDto){
         jocService.addNewUser(addUserDto);
-        return ResponseEntity.ok(ApiResponse.success("Player added successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Jucator adaugat cu succes", null));
     }
 
 }
