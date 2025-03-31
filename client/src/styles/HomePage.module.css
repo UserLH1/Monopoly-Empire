@@ -156,3 +156,105 @@
     gap: 1rem;
   }
 }
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 360px;
+  max-width: 90%;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  border: 3px solid #e94560;
+  animation: pulseBorder 2s infinite alternate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes pulseBorder {
+  0% {
+    border-color: #e94560;
+  }
+  100% {
+    border-color: #ff6b6b;
+  }
+}
+
+.modal h2 {
+  margin: 0 0 1rem;
+  color: #e94560;
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(233, 69, 96, 0.3);
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border-radius: 6px;
+  border: 2px solid #ddd;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal input:focus {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 6px rgba(255, 107, 107, 0.4);
+}
+
+.modalButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.modalButtons button {
+  background: #e94560;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(233, 69, 96, 0.3);
+}
+
+.modalButtons button:hover {
+  background: #ff6b6b;
+  transform: translateY(-2px);
+}
+
+/* Optional: separate style for Cancel button */
+.modalButtons button:nth-of-type(2) {
+  background: #ccc;
+  color: #333;
+}
+
+.modalButtons button:nth-of-type(2):hover {
+  background: #bbb;
+}
+
+.h2_color {
+  color: #e94560;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}

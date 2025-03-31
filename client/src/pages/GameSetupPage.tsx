@@ -8,8 +8,6 @@ export default function GameSetupPage() {
   const [gameName, setGameName] = useState("");
 
   const handleStartGame = () => {
-    // Here you would typically create the game via API
-    // For now, just navigate to the game page
     navigate("/game");
   };
 
@@ -36,7 +34,7 @@ export default function GameSetupPage() {
             value={playerCount}
             onChange={(e) => setPlayerCount(Number(e.target.value))}
           >
-            {[2, 3, 4, 5, 6].map((num) => (
+            {[2, 3, 4].map((num) => (
               <option key={num} value={num}>
                 {num} Players
               </option>
