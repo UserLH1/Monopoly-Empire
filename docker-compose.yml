@@ -6,6 +6,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - DB_URL
+      - DB_USERNAME
+      - DB_PASSWORD
     networks:
       - monopoly-network
 

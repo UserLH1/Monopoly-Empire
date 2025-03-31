@@ -58,7 +58,6 @@ export default function HomePage() {
           <div className={styles.statsGrid}>
             <StatItem title="Games Played" value="0" />
             <StatItem title="Wins" value="0" />
-            <StatItem title="Total Money" value="$0" />
           </div>
         </section>
       </main>
