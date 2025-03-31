@@ -8,6 +8,9 @@ import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Utilizator;
 import com.example.empire.repository.UtilizatorRepository;
 import com.example.empire.service.UtilizatorService;
+import com.example.empire.utils.AuthenticationResponse;
+import com.example.empire.config.JwtService;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,13 +20,18 @@ import java.util.Optional;
 @Service
 public class UtilizatorServiceImpl implements UtilizatorService {
     private final UtilizatorRepository jucatorRepository;
+    private final JwtService jwtService;
 
-    public UtilizatorServiceImpl(UtilizatorRepository jucatorRepository) {
+    public UtilizatorServiceImpl(UtilizatorRepository jucatorRepository, JwtService jwtService) {
         this.jucatorRepository = jucatorRepository;
+        this.jwtService = jwtService;
     }
 
     @Override
-    public Utilizator createUser(LoginDto userDto){
+    public AuthenticationResponse createUser(LoginDto userDto){
+        Optional<Utilizator> optional = jucatorRepository.getUtilizatorByUsername(userDto.getUsername());
+        if(optional.isPresent())
+            throw new BadRequestException("Acest username apartine deja altui jucator");
         Utilizator user = new Utilizator();
         user.setRol(null);
         user.setUsername(userDto.getUsername());
@@ -31,20 +39,27 @@ public class UtilizatorServiceImpl implements UtilizatorService {
         user.setPozitiePion(-1);
         user.setNrJocuriCastigate(0);
         user.setSumaBani(0);
-        user.setPassword(userDto.getPassword());
-        return jucatorRepository.save(user);
+        String password = BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt());
+        user.setPassword(password);
 
+        jucatorRepository.save(user);
+
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
     }
 
     @Override
     public Utilizator loginUser(LoginDto userDto) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(userDto.getUsername());
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(userDto.getUsername());
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
-            if(utilizator.getPassword().equals(userDto.getPassword()))
-                return utilizator;
-            else
-                throw new BadRequestException("Parola gresita");
+            boolean isMatch = BCrypt.checkpw(userDto.getPassword(), utilizator.getPassword());
+            if (!isMatch) {
+                throw new BadRequestException("Wrong password");
+            }
+            return utilizator;
         }
         else{
             throw new BadRequestException("Nu exista acest username");
@@ -85,7 +100,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public int getUserPosition(String username) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(username);
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
             if(utilizator.getIdJoc()!=-1)
@@ -100,7 +115,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public int getUserMoney(String username) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(username);
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
             if(utilizator.getIdJoc()!=-1)
@@ -115,7 +130,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public void updateMoney(UpdateMoneyDto updateMoneyDto) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(updateMoneyDto.getUsername());
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(updateMoneyDto.getUsername());
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
             utilizator.setSumaBani(updateMoneyDto.getSumaBani());
@@ -128,7 +143,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public void updatePosition(UpdatePozitiePionDto updateMoneyDto) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(updateMoneyDto.getUsername());
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(updateMoneyDto.getUsername());
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
             utilizator.setPozitiePion(updateMoneyDto.getPozitiePion());
@@ -141,7 +156,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public Long getUserGame(String username) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(username);
         if(optionalUser.isPresent()){
             return  optionalUser.get().getIdJoc();
         }
@@ -152,7 +167,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public UserDto getUser(String username) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(username);
         if(optionalUser.isPresent()){
             UserDto userDto = new UserDto();
             userDto.setSumaBani(optionalUser.get().getSumaBani());
@@ -168,7 +183,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
 
     @Override
     public void stergeUser(String username) {
-        Optional<Utilizator> optionalUser = jucatorRepository.getAllByUsername(username);
+        Optional<Utilizator> optionalUser = jucatorRepository.getUtilizatorByUsername(username);
         if(optionalUser.isPresent()){
             jucatorRepository.delete(optionalUser.get());
         }

@@ -5,6 +5,8 @@ import com.example.empire.dto.*;
 import com.example.empire.model.Utilizator;
 import com.example.empire.service.UtilizatorService;
 import com.example.empire.utils.ApiResponse;
+import com.example.empire.utils.AuthenticationResponse;
+import com.example.empire.config.JwtService;
 import jakarta.persistence.Id;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +20,12 @@ import java.util.ArrayList;
 public class UtilizatorController {
 
     private final UtilizatorService utilizatorService;
+    private final JwtService jwtService;
 
     @Autowired
-    public UtilizatorController(UtilizatorService utilizatorService) {
+    public UtilizatorController(UtilizatorService utilizatorService, JwtService jwtService) {
         this.utilizatorService = utilizatorService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/jucator")
@@ -32,8 +36,10 @@ public class UtilizatorController {
 
     @PostMapping("/jucator/login")
     public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginDto loginDto){
-        utilizatorService.loginUser(loginDto);
-        return ResponseEntity.ok(ApiResponse.success("User autentificat cu succes", null));
+        Utilizator user = utilizatorService.loginUser(loginDto);
+        String token = jwtService.generateToken(user);
+        AuthenticationResponse response = AuthenticationResponse.builder().token(token).build();
+        return ResponseEntity.ok(ApiResponse.success("Welcome " + user.getUsername(), response));
     }
 
     @GetMapping("/jucatori")

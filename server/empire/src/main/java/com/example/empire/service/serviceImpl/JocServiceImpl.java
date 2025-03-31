@@ -33,7 +33,7 @@ public class JocServiceImpl implements JocService {
 
     @Override
     public Joc createJoc(CreateGameDto createGameDto) {
-        Optional<Utilizator> optionalUser = utilizatorRepository.getAllByUsername(createGameDto.getUsername());
+        Optional<Utilizator> optionalUser = utilizatorRepository.getUtilizatorByUsername(createGameDto.getUsername());
         if(optionalUser.isPresent()){
             Utilizator utilizator = optionalUser.get();
             Joc joc = new Joc();

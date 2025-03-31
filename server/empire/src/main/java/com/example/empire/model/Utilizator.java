@@ -8,15 +8,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table
-public class Utilizator {
+public class Utilizator implements UserDetails {
     @Id
     private String username;
     private UserRole rol;
@@ -48,6 +54,11 @@ public class Utilizator {
 
     public UserRole getRol() {
         return rol;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
     }
 
     public String getPassword() {
@@ -98,5 +109,7 @@ public class Utilizator {
     public void setPozitiePion(int pozitiePion) {
         this.pozitiePion = pozitiePion;
     }
+
+
 }
 

@@ -92,6 +92,6 @@ public class CardActivServiceImpl implements CardActivService {
 
     @Override
     public void useCard(UseCardActivDto useCardActivDto) {
-        
+
     }
 }

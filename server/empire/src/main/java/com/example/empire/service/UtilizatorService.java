@@ -5,13 +5,14 @@ import com.example.empire.dto.UpdateMoneyDto;
 import com.example.empire.dto.UpdatePozitiePionDto;
 import com.example.empire.dto.UserDto;
 import com.example.empire.model.Utilizator;
+import com.example.empire.utils.AuthenticationResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
 @Service
 public interface UtilizatorService {
-    public Utilizator createUser(LoginDto loginDto);
+    public AuthenticationResponse createUser(LoginDto loginDto);
 
     public Utilizator loginUser(LoginDto userDto);
 

@@ -7,6 +7,6 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public interface UtilizatorRepository extends JpaRepository<Utilizator, String> {
-    public Optional<Utilizator> getAllByUsername(String username);
+    public Optional<Utilizator> getUtilizatorByUsername(String username);
     public ArrayList<Utilizator> getAllByIdJoc(Long idJoc);
 }
