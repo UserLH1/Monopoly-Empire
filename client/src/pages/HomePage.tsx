@@ -1,4 +1,3 @@
-//// filepath: c:\My Files\Facultate\PW\client\src\pages\HomePage.tsx
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -6,93 +5,130 @@ import useAuth from "../hooks/useAuth";
 import styles from "../styles/HomePage.module.css";
 
 type CreatedGameDetails = {
-  code: string;
-  creator: string;
-  createdAt: string;
-  numarJucatori: number;
-  message?: string; // in case the API returns some success message
+  status: number;
+  message: string;
+  data: {
+    idJoc: number;
+  };
 };
 
 export default function HomePage() {
-  const { user, login, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // For Join Game modal
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [gameCode, setGameCode] = useState("");
 
-  // New states for the "Create Game" flow
-  const [createGameModalOpen, setCreateGameModalOpen] = useState(false);
-  const [createdGame, setCreatedGame] = useState<CreatedGameDetails | null>(
-    null
-  );
+  // For Create Game modal
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [playerCount, setPlayerCount] = useState(3);
+  const [username, setUsername] = useState(user?.name || "");
 
   const handleLogin = () => {
     navigate("/login");
   };
+
   const handleRegister = () => {
     navigate("/register");
   };
 
-  // Modified: calls the API, then shows a new popup with details
-  async function handleCreateGame() {
+  // Show the create game modal
+  const handleCreateGameClick = () => {
     if (!user?.name) {
-      alert("Please log in first.");
+      alert("Please log in first to create a game.");
+      navigate("/login");
       return;
     }
+
+    setUsername(user.name);
+    setCreateModalOpen(true);
+  };
+
+  // Submit the create game request
+  async function handleCreateGameSubmit() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Authentication required. Please login again.");
+      navigate("/login");
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/joc", {
+      const response = await fetch("http://localhost:8080/api/jocuri", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Attach the token in the Authorization header
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          numarJucatori: 3,
-          username: user.name,
+          numarJucatori: playerCount,
+          username: username,
         }),
       });
+
       const data: CreatedGameDetails = await response.json();
+      console.log("Game created:", data);
 
       if (!response.ok) {
         throw new Error(data.message || "Could not create game");
       }
 
-      // Save the returned data (includes game code, date, etc.)
-      setCreatedGame(data);
-      setCreateGameModalOpen(true);
+      // Save the game ID in localStorage
+      localStorage.setItem("gameId", data.data.idJoc.toString());
+
+      // Close modal and redirect to game page
+      setCreateModalOpen(false);
+      navigate("/game");
     } catch (error: any) {
       alert(error.message);
     }
   }
 
   const handleJoinGame = () => {
+    if (!user?.name) {
+      alert("Please log in first to join a game.");
+      navigate("/login");
+      return;
+    }
     setJoinModalOpen(true);
   };
 
   async function handleJoinSubmit() {
-    if (!user?.name) {
-      alert("Please log in first.");
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Authentication required. Please login again.");
+      navigate("/login");
       return;
     }
+
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:8080/api/joc/alaturareJoc",
+        "http://localhost:8080/api/jocuri/alaturareJoc",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ cod: gameCode, username: user.name }),
+          body: JSON.stringify({
+            cod: gameCode,
+            username: user?.name,
+          }),
         }
       );
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to join game");
       }
+
+      // Save the game code in localStorage
+      localStorage.setItem("gameId", gameCode);
+
+      // Navigate to the game page
       navigate("/game");
     } catch (error: any) {
       alert(error.message);
@@ -126,8 +162,7 @@ export default function HomePage() {
       <main className={styles.mainContent}>
         <section className={styles.quickStart}>
           <h2>Quick Start</h2>
-          {/* On create, call handleCreateGame */}
-          <button className={styles.playButton} onClick={handleCreateGame}>
+          <button className={styles.playButton} onClick={handleCreateGameClick}>
             Create Private Game
           </button>
           <button className={styles.playButton} onClick={handleJoinGame}>
@@ -144,7 +179,51 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Modal for "Join Game" */}
+      {/* Create Game Modal */}
+      {createModalOpen && (
+        <div className={styles.modalOverlay}>
+          <motion.div
+            className={styles.modal}
+            initial={{ opacity: 0, scale: 0.8, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          >
+            <h2 className={styles.h2_color}>Create New Game</h2>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="username">Your Username</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                readOnly
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="playerCount">Number of Players</label>
+              <select
+                id="playerCount"
+                value={playerCount}
+                onChange={(e) => setPlayerCount(Number(e.target.value))}
+              >
+                <option value={2}>2 Players</option>
+                <option value={3}>3 Players</option>
+                <option value={4}>4 Players</option>
+              </select>
+            </div>
+
+            <div className={styles.modalButtons}>
+              <button onClick={handleCreateGameSubmit}>Create Game</button>
+              <button onClick={() => setCreateModalOpen(false)}>Cancel</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Join Game Modal */}
       {joinModalOpen && (
         <div className={styles.modalOverlay}>
           <motion.div
@@ -164,37 +243,6 @@ export default function HomePage() {
             <div className={styles.modalButtons}>
               <button onClick={handleJoinSubmit}>Join</button>
               <button onClick={() => setJoinModalOpen(false)}>Cancel</button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Modal for "Game Created" details */}
-      {createGameModalOpen && createdGame && (
-        <div className={styles.modalOverlay}>
-          <motion.div
-            className={styles.modal}
-            initial={{ opacity: 0, scale: 0.8, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: -50 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          >
-            <h2 className={styles.h2_color}>Game Created!</h2>
-            <p>
-              <strong>Creator:</strong> {createdGame.creator}
-            </p>
-            <p>
-              <strong>Created At:</strong> {createdGame.createdAt}
-            </p>
-            <p>
-              <strong>Number of Players:</strong> {createdGame.numarJucatori}
-            </p>
-            <p>
-              <strong>Game Code:</strong> {createdGame.code}
-            </p>
-
-            <div className={styles.modalButtons}>
-              <button onClick={() => setCreateGameModalOpen(false)}>OK</button>
             </div>
           </motion.div>
         </div>

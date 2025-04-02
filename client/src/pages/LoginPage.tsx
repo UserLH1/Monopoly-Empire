@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth"; // Import the useAuth hook
 import styles from "../styles/AuthPages.module.css";
-
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { user, login } = useAuth();
 
   const navigate = useNavigate();
 
@@ -17,23 +18,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/jucator/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      // Use the login function from useAuth hook instead of direct fetch
+      const result = await login(username, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+      if (!result.success) {
+        throw new Error(result.error || "Login failed");
       }
-      localStorage.setItem("token", data.token);
 
-      // Store user info in localStorage or context
-      localStorage.setItem("user", JSON.stringify({ username }));
-
-      // Redirect to homepage
+      // Navigate on success
       navigate("/");
     } catch (err: any) {
       setError(err.message);

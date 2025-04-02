@@ -184,3 +184,42 @@
   gap: 20px;
   z-index: 20;
 }
+/* Add these styles to your existing GamePage.module.css */
+
+.gameCodeContainer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+}
+
+.gameCodeBox {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.gameCode {
+  font-weight: bold;
+  margin: 0 8px;
+  color: #e94560;
+}
+
+.copyButton {
+  background: #e94560;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.copyButton:hover {
+  background: #ff6b6b;
+}

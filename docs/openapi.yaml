@@ -40,7 +40,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Joc'          
-  /api/joc:
+  /api/jocuri:
     post:
       tags:
         - joc
