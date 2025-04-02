@@ -108,7 +108,7 @@ export default function HomePage() {
       const response = await fetch(
         "http://localhost:8080/api/jocuri/alaturareJoc",
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
