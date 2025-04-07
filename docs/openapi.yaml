@@ -40,7 +40,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Joc'          
-  /api/jocuri:
     post:
       tags:
         - joc
@@ -72,7 +71,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-  /api/joc/{idJoc}:
+    post:
+      tags:
+        - utilizator
+      summary: Creare cont utilizator
+      description: Creare cont utilizator
+      operationId: createUserAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Utilizator-creareCont'
+      responses:
+        "200" :
+          description: Utilizatorul a fost creat cu succes
+        '400':
+          description: Acest username este deja utilizat de catre o alta persoana
+  /api/jocuri/{idJoc}:
     get:
       tags:
         - joc
@@ -92,14 +107,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Joc-returnareJoc'          
+                $ref: '#/components/schemas/Joc'          
         '400':
           description: Invalid id
       security:
         - petstore_auth:
             - write:pets
             - read:pets
-  /api/joc/alaturareJoc:
+  /api/jocuri/alaturareJoc:
     put:
       tags:
         - joc
@@ -117,7 +132,7 @@ paths:
           description: Jucator adaugat cu succes
         '404':
           description: Id-ul jocului nu a fost gasit.Username-ul jucatorului nu a fost gasit.
-  /api/joc/{idJoc}/jucatori:
+  /api/jocuri/{idJoc}/jucatori:
     get:
       tags:
         - joc
@@ -140,29 +155,77 @@ paths:
                 $ref: '#/components/schemas/Joc-returnareJucatoriJoc'          
         '400':
           description: Invalid id
-      security:
-        - petstore_auth:
-            - write:pets
-            - read:pets  
-
-  /api/jucator:
-    post:
+  /api/jocuri/{idJoc}/turnuri:
+    get:
       tags:
-        - utilizator
-      summary: Creare cont utilizator
-      description: Creare cont utilizator
-      operationId: createUserAccount
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Utilizator-creareCont'
+        - joc
+      summary: Afisarea detaliilor despre turnul jucatorilor din jocul cu id-ul specificat
+      operationId: listTurnJoc
+      parameters:
+        - name: idJoc
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
-        "200" :
-          description: Utilizatorul a fost creat cu succes
-        '400':
-          description: Acest username este deja utilizat de catre o alta persoana
-  /api/jucator/login:
+        '200':
+          description: Descriere turn
+          content:
+            application/json:
+              schema:   
+                $ref: '#/components/schemas/Turn'
+        '404':
+          description: Jocul nu a fost gasit
+          
+  /api/jocuri/{idJoc}/carduri:
+    get:
+      tags:
+        - joc
+      summary: Extragerea informatiilor despre toate cardurile pe care le detin toti jucatorii din jocul cu id-ul specificat
+      description: Extragerea informatiilor despre toate cardurile pe care le detin toti jucatorii din jocul cu id-ul specificat
+      operationId: getCardsByGameId
+      parameters:
+        - name: idJoc
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalii despre carduri returnate cu succes
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CarduriActiveByUsername'
+        '404':
+          description: Username-ul jucatorului nu a fost gasit.
+          
+  /api/jocuri/{idJoc}/panouri:
+    get:
+      tags:
+        - joc
+      summary: Returneaza toate panourile cumparate intr-un joc
+      description: Returneaza toate panourile cumparate intr-un joc
+      operationId: listPanouCumparat
+      parameters:
+        - name: idJoc
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista panourilor cumparate
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Panou'
+        '404':
+          description: Jocul nu a fost gasit
+  /api/jucatori/login:
     post:
       tags:
         - utilizator
@@ -179,7 +242,6 @@ paths:
                   example: popraluca
                 password:
                   type: string
-                  example: fsgdsdy42Sf
               required:
                 - username
                 - password
@@ -189,7 +251,7 @@ paths:
         '400':
           description: Nume de utilizator sau parolă greșite
 
-  /api/jucator/{username}/pozitiePion:
+  /api/jucatori/{username}/pozitiePion:
     get:
       tags:
         - utilizator
@@ -211,7 +273,7 @@ paths:
                 $ref: '#/components/schemas/User-pozitiePion'          
         '404':
           description: Nu s-a gasit un utilizator cu acest username
-  /api/jucator/pozitiePion:
+  /api/jucatori/pozitiePion:
     put:
       tags:
           - utilizator
@@ -230,7 +292,7 @@ paths:
           description: Pozitie invalida
         "404":
           description: Username neidentificat
-  /api/jucator/{username}/sumaBani:
+  /api/jucatori/{username}/sumaBani:
     get:
       tags:
         - utilizator
@@ -252,7 +314,7 @@ paths:
                 $ref: '#/components/schemas/Utilizator-getMoney'          
         '404':
           description: Nu s-a gasit un utilizator cu acest username
-  /api/jucator/sumaBani:
+  /api/jucatori/sumaBani:
     put:
       tags:
         - utilizator
@@ -271,7 +333,7 @@ paths:
           description: Suma de bani invalida
         "404" : 
           description: Utilizatorul nu a fost gasit
-  /api/jucator/{username}/idJoc:
+  /api/jucatori/{username}/idJoc:
     get:
       tags:
         - utilizator
@@ -293,7 +355,7 @@ paths:
                 $ref: '#/components/schemas/Utilizator-getIdJoc'          
         '404':
           description: Nu s-a gasit un utilizator cu acest username
-  /api/jucator/{username}:
+  /api/jucatori/{username}:
     get:
       tags:
         - utilizator
@@ -348,19 +410,13 @@ paths:
       responses:
         '200':
           description: Card câștigat
-  /api/carduri/{status}:
+  /api/carduri:
     get:
       tags:
         - card
       summary: Extragera tutoror cadruilor active sau inactive din toate jocurile
       description: Extragera tutoror cadruilor active sau inactive din toate jocurile
       operationId: getCards
-      parameters:
-        - name: status
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Carduri returnate cu succes
@@ -421,29 +477,7 @@ paths:
                   $ref: '#/components/schemas/CarduriActiveByUsername'
         '404':
           description: Username-ul jucatorului nu a fost gasit.
-  /api/carduri/joc/{idJoc}:
-    get:
-      tags:
-        - card
-      summary: Extragerea informatiilor despre toate cardurile pe care le detin toti jucatorii din jocul cu id-ul specificat
-      description: Extragerea informatiilor despre toate cardurile pe care le detin toti jucatorii din jocul cu id-ul specificat
-      operationId: getCardsByGameId
-      parameters:
-        - name: idJoc
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Detalii despre carduri returnate cu succes
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/CarduriActiveByUsername'
-        '404':
-          description: Username-ul jucatorului nu a fost gasit.
+  
   /api/card/utilizeazaCard:
     post:
       tags:
@@ -529,58 +563,7 @@ paths:
           description: Username, Turn sau panou neidentificat
         '400':
           description: Pretul panoului este prea mare
-  /api/panou/joc/{idJoc}:
-    get:
-      tags:
-        - panou
-      summary: Returneaza toate panourile cumparate intr-un joc
-      description: Returneaza toate panourile cumparate intr-un joc
-      operationId: listPanouCumparat
-      parameters:
-        - name: idJoc
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Lista panourilor cumparate
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Panou'
-        '404':
-          description: Jocul nu a fost gasit
-  /api/panou/turn/{idTurn}:
-    get:
-      tags:
-        - panou
-      summary: Returneaza toate panourile cumparate intr-un turn
-      description: Returneaza toate panourile cumparate intr-un turn
-      operationId: listPanouCumparatTurn
-      parameters:
-        - name: idTurn
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Lista panourilor cumparate
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Panou'
-        '404':
-          description: Turnul nu a fost gasit
-          
   
-
-
   /api/turnuri:
     get:
       tags:
@@ -597,7 +580,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Turn'
         
-  /api/turn/{username}:
+  /api/turnuri/{username}:
     get:
       tags:
         - turn
@@ -619,29 +602,31 @@ paths:
         '404':
           description: Utilizatorul nu a fost gasit
 
-  /api/turn/joc/{idJoc}:
+  /api/turnuri/{idTurn}/panouri:
     get:
       tags:
         - turn
-      summary: Afisarea detaliilor despre turnul jucatorilor din jocul cu id-ul specificat
-      operationId: listTurnJoc
+      summary: Returneaza toate panourile cumparate intr-un turn
+      description: Returneaza toate panourile cumparate intr-un turn
+      operationId: listPanouCumparatTurn
       parameters:
-        - name: idJoc
+        - name: idTurn
           in: path
           required: true
           schema:
             type: integer
       responses:
         '200':
-          description: Descriere turn
+          description: Lista panourilor cumparate
           content:
             application/json:
-              schema:   
-                $ref: '#/components/schemas/Turn'
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Panou'
         '404':
-          description: Jocul nu a fost gasit
-          
-
+          description: Turnul nu a fost gasit
+  
 components:
   schemas:
     User:
@@ -654,7 +639,7 @@ components:
           type: integer
           format: int64
           example: 10
-        jocId:
+        idJoc:
           type: integer
           example: 23
         sumaBani:
@@ -724,14 +709,14 @@ components:
           type: integer
           format: int64
           example: 10
-        numarJucatori:
+        nrJucatori:
           type: integer
           format: int64
           example: 10
         jucatori:
           type: string
           example: ralucapop;adrianalivadariu
-        status:
+        statusJoc:
           type: string
           example: WATING
     Joc-alaturareJoc:
@@ -987,4 +972,3 @@ components:
       type: apiKey
       name: api_key
       in: header
-
