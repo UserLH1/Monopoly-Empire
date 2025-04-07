@@ -7,11 +7,9 @@ import com.example.empire.service.UtilizatorService;
 import com.example.empire.utils.ApiResponse;
 import com.example.empire.utils.AuthenticationResponse;
 import com.example.empire.config.JwtService;
-import jakarta.persistence.Id;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.ArrayList;
 
 @RestController
@@ -90,4 +88,5 @@ public class UtilizatorController {
         utilizatorService.stergeUser(username);
         return ResponseEntity.ok(ApiResponse.success("Utilizator sters cu succes", null));
     }
+
 }

@@ -4,6 +4,7 @@ import com.example.empire.dto.LoginDto;
 import com.example.empire.dto.UpdateMoneyDto;
 import com.example.empire.dto.UpdatePozitiePionDto;
 import com.example.empire.dto.UserDto;
+import com.example.empire.enums.UserRole;
 import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Utilizator;
 import com.example.empire.repository.UtilizatorRepository;
@@ -33,7 +34,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
         if(optional.isPresent())
             throw new BadRequestException("Acest username apartine deja altui jucator");
         Utilizator user = new Utilizator();
-        user.setRol(null);
+        user.setRol(UserRole.valueOf("PLAYER"));
         user.setUsername(userDto.getUsername());
         user.setIdJoc((long) -1);
         user.setPozitiePion(-1);

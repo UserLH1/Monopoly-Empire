@@ -18,12 +18,17 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfiguration {
-    
+
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    
+
+    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthFilter, AuthenticationProvider authenticationProvider) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.authenticationProvider = authenticationProvider;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
@@ -34,8 +39,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/jucator/**").permitAll()
                         .requestMatchers("/api/jucator/login").permitAll()
                         .requestMatchers("/api/jucator/register").permitAll()
-                        .requestMatchers("/api/joc/**").permitAll()  // Added /** to cover all sub-paths
-                        .requestMatchers("/api/joc/alaturareJoc").permitAll() // Explicitly add this endpoint
+                        .requestMatchers("/api/joc/**").permitAll()
+                        .requestMatchers("/api/joc/alaturareJoc").permitAll()
                         .requestMatchers("/api/alaturareJoc").permitAll()
                         .requestMatchers("/api/card/**").permitAll()
                         .requestMatchers("/api/carduri/**").permitAll()

@@ -57,6 +57,14 @@ public class JocServiceImpl implements JocService {
             joc.setJucatori(players);
             jocRepository.save(joc);
         }
+        Optional<Utilizator> optional = utilizatorRepository.getUtilizatorByUsername(addUserDto.getUsername());
+        if(optional.isPresent())
+        {
+            Utilizator utilizator = optional.get();
+            utilizator.setSumaBani(1500);
+            utilizator.setPozitiePion(0);
+            utilizatorRepository.save(utilizator);
+        }
     }
 
     @Override
