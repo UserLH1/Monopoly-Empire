@@ -21,5 +21,4 @@ public class PanouCumparat {
     @JoinColumn(name="fk_id_panou")
     private Panou panou;
     private int idTurn;
-    private int idJoc;
 }

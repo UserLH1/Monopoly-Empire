@@ -11,7 +11,7 @@ import com.example.empire.utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.empire.config.JwtService;
 import java.util.ArrayList;
 
 @RestController
@@ -20,10 +20,12 @@ import java.util.ArrayList;
 public class JocController {
 
     private final JocService jocService;
+    private final JwtService jwtService;
 
     @Autowired
-    public JocController(JocService jocService) {
+    public JocController(JocService jocService, JwtService jwtService) {
         this.jocService = jocService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/jocuri")
@@ -47,13 +49,16 @@ public class JocController {
     }
 
     @GetMapping("/jocuri/{idJoc}/jucatori")
-    public ResponseEntity<ApiResponse> returneazaJucatoriiUnuiJoc(@RequestParam Long idJoc){
+    public ResponseEntity<ApiResponse> returneazaJucatoriiUnuiJoc(@PathVariable Long idJoc){
         String jucatori = jocService.returneazaJucatoriiUnuiJoc(idJoc-1000);
         return ResponseEntity.ok(ApiResponse.success("Jocuri neincepute returnate cu succes", jucatori));
     }
 
-    @PutMapping("/jocuri/alaturareJoc")
-    public ResponseEntity<ApiResponse> addNewUser(@RequestBody AddUserDto addUserDto){
+
+    @PostMapping("/jocuri/alaturareJoc/{idJoc}")
+    public ResponseEntity<ApiResponse> addNewUser(@RequestHeader("Authorization") String authHeader, @PathVariable Long idJoc){
+        String username = jwtService.extractUsername(authHeader);
+        AddUserDto  addUserDto= new AddUserDto(username, idJoc);
         jocService.addNewUser(addUserDto);
         return ResponseEntity.ok(ApiResponse.success("Jucator adaugat cu succes", null));
     }

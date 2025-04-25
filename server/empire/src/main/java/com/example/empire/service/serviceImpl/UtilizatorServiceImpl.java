@@ -89,6 +89,7 @@ public class UtilizatorServiceImpl implements UtilizatorService {
         ArrayList<UserDto> userDtos = new ArrayList<>();
         for(Utilizator user: utilizators){
             UserDto userDto = new UserDto();
+            userDto.setUsername(user.getUsername());
             userDto.setIdJoc(user.getIdJoc());
             userDto.setRol(String.valueOf(user.getRol()));
             userDto.setNumarJocuriCastigate(user.getNrJocuriCastigate());

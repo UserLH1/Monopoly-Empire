@@ -9,6 +9,7 @@ import com.example.empire.utils.AuthenticationResponse;
 import com.example.empire.config.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 
@@ -41,6 +42,7 @@ public class UtilizatorController {
     }
 
     @GetMapping("/jucatori")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR')")
     public ResponseEntity<ApiResponse> returneazaTotiJucatorii(){
         ArrayList<UserDto> userDto = utilizatorService.extrageTotiJucatorii();
         return ResponseEntity.ok(ApiResponse.success("Returneaza toti jucatorii unui joc",userDto ));

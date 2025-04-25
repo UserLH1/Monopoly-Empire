@@ -33,7 +33,6 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http
                 .csrf(csrf -> csrf.disable())
-                // Add this line to enable CORS
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/api/jucator/**").permitAll()
@@ -41,11 +40,13 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/jucator/register").permitAll()
                         .requestMatchers("/api/joc/**").permitAll()
                         .requestMatchers("/api/joc/alaturareJoc").permitAll()
-                        .requestMatchers("/api/alaturareJoc").permitAll()
+                        .requestMatchers("/api/alaturareJoc/**").hasAuthority("ADMINISTRATOR")
                         .requestMatchers("/api/card/**").permitAll()
                         .requestMatchers("/api/carduri/**").permitAll()
                         .requestMatchers("/api/jocuri/**").permitAll()
                         .requestMatchers("/api/turn/joc/**").permitAll()
+                        .requestMatchers("/api/panou/**").permitAll()
+                        .requestMatchers("/api/panouri/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement ->

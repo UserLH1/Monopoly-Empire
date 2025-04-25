@@ -4,6 +4,7 @@ import com.example.empire.dto.TurnDto;
 import com.example.empire.service.TurnService;
 import com.example.empire.utils.ApiResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,24 +24,25 @@ public class TurnController {
     }
 
     @GetMapping("/turnuri")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR')")
     ResponseEntity<ApiResponse>returneazaToateTurnurile(){
         ArrayList<TurnDto> turnuriDto = turnService.returneazaTurnuri();
         return ResponseEntity.ok(ApiResponse.success("Turnuri returnate cu succes!",turnuriDto));
     }
 
-    @GetMapping("/turn/jucator/{username}")
-    ResponseEntity<ApiResponse>returneazaToateTurnurile(@PathVariable String username){
+    @GetMapping("/turnuri/jucatori/{username}")
+    ResponseEntity<ApiResponse>returneazaTurnulUnuiJucator(@PathVariable String username){
         TurnDto turnDto = turnService.returneazaTurnulJucatorului(username);
         return ResponseEntity.ok(ApiResponse.success("Turnul jucatorului returnat cu succes!",turnDto));
     }
 
-    @GetMapping("/turn/joc/{idJoc}")
+    @GetMapping("/turnuri/jocuri/{idJoc}")
     ResponseEntity<ApiResponse>returneazaToateTurnurileJocului(@PathVariable int idJoc){
         ArrayList<TurnDto> turnuriDto = turnService.returneazaTurnurileJocului(idJoc);
         return ResponseEntity.ok(ApiResponse.success("Turnurile din joc returnate cu succes!",turnuriDto));
     }
 
-    @GetMapping("/turn/{idTurn}")
+    @GetMapping("/turnuri/{idTurn}")
     ResponseEntity<ApiResponse>returneazaDetaliiTurn(@PathVariable int idTurn){
         TurnDto turnDto = turnService.returneazaDetaliiTurn(idTurn);
         return ResponseEntity.ok(ApiResponse.success("Detaliile turnului returnate cu succes!",turnDto));

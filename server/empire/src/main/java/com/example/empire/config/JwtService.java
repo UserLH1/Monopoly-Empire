@@ -20,7 +20,15 @@ import java.util.function.Function;
 public class JwtService {
     private static final String SECRET_KEY="375140d0950e846894ca937becc79c005f3383cf11130ceb2250c87e5d37052a";
     public String extractUsername(String token){
-        return extractClaim(token, Claims::getSubject);
+        String jwt = cleanToken(token);
+        return extractClaim(jwt, Claims::getSubject);
+    }
+
+    private String cleanToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            return token.substring(7).trim();
+        }
+        return token.trim();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){

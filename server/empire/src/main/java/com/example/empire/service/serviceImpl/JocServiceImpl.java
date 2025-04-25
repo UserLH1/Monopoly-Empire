@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,23 +52,39 @@ public class JocServiceImpl implements JocService {
     @Override
     public void addNewUser(AddUserDto addUserDto) {
         Optional<Joc> jocOp = jocRepository.getJocByIdJoc(addUserDto.getIdJoc());
-        if(jocOp.isPresent()){
+        if (jocOp.isPresent()) {
             Joc joc = jocOp.get();
-            String players = joc.getJucatori() + addUserDto.getUsername();
-            joc.setJucatori(players);
-            jocRepository.save(joc);
-        }
-        Optional<Utilizator> optional = utilizatorRepository.getUtilizatorByUsername(addUserDto.getUsername());
-        if(optional.isPresent())
-        {
-            Utilizator utilizator = optional.get();
-            utilizator.setSumaBani(1500);
-            utilizator.setPozitiePion(0);
-            utilizatorRepository.save(utilizator);
-        }
+            String players = joc.getJucatori();
+            String[] jucatori = players.split(";");
+            List<String> listaJucatori = Arrays.asList(jucatori);
+
+            if (listaJucatori.contains(addUserDto.getUsername())) {
+                throw new BadRequestException("This user is already registered ");
+            } else {
+
+                String newPlayers = joc.getJucatori() + ';' + addUserDto.getUsername();
+                joc.setJucatori(newPlayers);
+
+                if (jucatori.length == joc.getNrJucatori())
+                    joc.setStatus(GameStatus.START);
+
+                jocRepository.save(joc);
+
+                Optional<Utilizator> optional = utilizatorRepository.getUtilizatorByUsername(addUserDto.getUsername());
+                if (optional.isPresent()) {
+
+                    Utilizator utilizator = optional.get();
+                    utilizator.setSumaBani(1500);
+                    utilizator.setIdJoc(addUserDto.getIdJoc());
+                    utilizator.setPozitiePion(0);
+                    utilizatorRepository.save(utilizator);
+
+                } else throw new BadRequestException("There is no user with this username");
+            }
+        } else throw new BadRequestException("There is no game with this id");
     }
 
-    @Override
+        @Override
     public ArrayList<JocDto> returneazaToateJocurile() {
         List<Joc> jocuri = jocRepository.findAll();
         ArrayList<JocDto> jocDtos = new ArrayList<>();
