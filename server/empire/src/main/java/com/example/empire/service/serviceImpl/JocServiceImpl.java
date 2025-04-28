@@ -1,14 +1,10 @@
 package com.example.empire.service.serviceImpl;
 
-import com.example.empire.dto.AddUserDto;
-import com.example.empire.dto.CreateGameDto;
-import com.example.empire.dto.JocDto;
+import com.example.empire.dto.*;
 import com.example.empire.enums.GameStatus;
 import com.example.empire.exceptions.BadRequestException;
-import com.example.empire.model.Joc;
-import com.example.empire.model.Utilizator;
-import com.example.empire.repository.JocRepository;
-import com.example.empire.repository.UtilizatorRepository;
+import com.example.empire.model.*;
+import com.example.empire.repository.*;
 import com.example.empire.service.JocService;
 
 
@@ -25,11 +21,17 @@ public class JocServiceImpl implements JocService {
 
     private final JocRepository jocRepository;
     private final UtilizatorRepository utilizatorRepository;
+    private final TurnRepository turnRepository;
+    private final CardActivRepository cardActivRepository;
+    private final PanouCumparatRepository panouCumparatRepository;
 
     @Autowired
-    public JocServiceImpl(JocRepository jocRepository, UtilizatorRepository utilizatorRepository) {
+    public JocServiceImpl(JocRepository jocRepository, UtilizatorRepository utilizatorRepository, TurnRepository turnRepository, CardActivRepository cardActivRepository, PanouCumparatRepository panouCumparatRepository) {
        this.jocRepository = jocRepository;
         this.utilizatorRepository = utilizatorRepository;
+        this.turnRepository = turnRepository;
+        this.cardActivRepository = cardActivRepository;
+        this.panouCumparatRepository = panouCumparatRepository;
     }
 
     @Override
@@ -44,6 +46,9 @@ public class JocServiceImpl implements JocService {
             joc.setStatus(GameStatus.valueOf("WAITING"));
             Joc jocCreat = jocRepository.save(joc);
             utilizator.setIdJoc(jocCreat.getIdJoc());
+            utilizator.setSumaBani(1500);
+            utilizator.setPozitiePion(0);
+            utilizatorRepository.save(utilizator);
             return jocCreat;
         }
         else throw new BadRequestException("Nu exista acest username");
@@ -97,6 +102,57 @@ public class JocServiceImpl implements JocService {
             jocDtos.add(jocDto);
         }
         return jocDtos;
+    }
+
+    @Override
+    public ArrayList<TurnDto> returneazaTurnurileUnuiJoc(Long idJoc) {
+        ArrayList<TurnDto> turnuriDto = new ArrayList<>();
+        ArrayList<Turn> turnuri =  turnRepository.getTurnByIdJoc(idJoc);
+        for(Turn t: turnuri){
+            TurnDto turnDto = new TurnDto();
+            turnDto.setUsername(t.getUsername());
+            turnDto.setIdTurn(t.getIdTurn());
+            turnDto.setIdJoc(t.getIdJoc());
+            turnDto.setValoareTurn(t.getValoareTurn());
+            turnuriDto.add(turnDto);
+        }
+        return turnuriDto;
+    }
+
+    @Override
+    public ArrayList<ActiveCardDto> returneazaCardurileUnuiJoc(Long idJoc) {
+        ArrayList<ActiveCardDto> activeCardDtos = new ArrayList<>();
+        List<ActiveCard>activeCards=cardActivRepository.getActiveCardByIdJoc(idJoc);
+        for(ActiveCard activeCard: activeCards){
+            ActiveCardDto activeCardDto = new ActiveCardDto();
+            activeCardDto.setIdJoc(activeCard.getIdJoc());
+            activeCardDto.setUsername(activeCard.getUsername());
+            activeCardDto.setIdCardActive(activeCard.getIdCardActiv());
+            activeCardDto.setIdCard(activeCard.getCard().getIdCard());
+            activeCardDtos.add(activeCardDto);
+        }
+        return activeCardDtos;
+    }
+
+    @Override
+    public ArrayList<DetaliiPanouCompletDto> returneazaPanourileUnuiJoc(Long idJoc) {
+        //pentru a extrage toate panourile cumparate dintr-un joc extragem toate turnurile dintr-un joc
+        ArrayList<DetaliiPanouCompletDto> detaliiPanouCompletDtos = new ArrayList<>();
+        ArrayList<Turn> turnuri =  turnRepository.getTurnByIdJoc(idJoc);
+        for(Turn t: turnuri){
+            List<PanouCumparat> panouriTurn = panouCumparatRepository.getAllByIdTurn(t.getIdTurn());
+            for(PanouCumparat panouCumparat: panouriTurn)
+            {
+                DetaliiPanouCompletDto panouCompletDto = new DetaliiPanouCompletDto();
+                panouCompletDto.setIdPanouCumparat(panouCumparat.getIdPanouCumparat());
+                panouCompletDto.setIdPanouGeneral(panouCumparat.getPanou().getIdPanou());
+                panouCompletDto.setNume(panouCumparat.getPanou().getNume());
+                panouCompletDto.setPret(panouCumparat.getPanou().getPret());
+                panouCompletDto.setIdTurn(panouCumparat.getIdTurn());
+                detaliiPanouCompletDtos.add(panouCompletDto);
+            }
+        }
+        return  detaliiPanouCompletDtos;
     }
 
     @Override

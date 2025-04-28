@@ -12,7 +12,8 @@ import java.util.ArrayList;
 public interface CardActivService {
     public void castigaCard(CardCastigatDto cardCastigatDto);
     public ActiveCardDto getActiveCardDetails(int idCardActiv);
+    public ArrayList<ActiveCardDto> getAllActiveCards();
     public ArrayList<ActiveCardDto>getAllUserCards(String username);
-    public ArrayList<ActiveCardDto>getAllGameCards(int idCard);
+    public ArrayList<ActiveCardDto>getAllGameCards(Long idCard);
     public void useCard(UseCardActivDto useCardActivDto);
 }

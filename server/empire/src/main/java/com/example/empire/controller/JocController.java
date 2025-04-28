@@ -1,10 +1,7 @@
 package com.example.empire.controller;
 
 
-import com.example.empire.dto.AddUserDto;
-import com.example.empire.dto.CreateGameDto;
-import com.example.empire.dto.IdJocDto;
-import com.example.empire.dto.JocDto;
+import com.example.empire.dto.*;
 import com.example.empire.model.Joc;
 import com.example.empire.service.JocService;
 import com.example.empire.utils.ApiResponse;
@@ -32,7 +29,7 @@ public class JocController {
     public ResponseEntity<ApiResponse> createNewResponse(@RequestBody CreateGameDto jocDto){
         Joc joc = jocService.createJoc(jocDto);
         IdJocDto idJocDto = new IdJocDto();
-        idJocDto.setIdJoc(joc.getIdJoc()+1000);
+        idJocDto.setIdJoc(joc.getIdJoc());
         return ResponseEntity.ok(ApiResponse.success("Game saved successfully",idJocDto));
     }
 
@@ -43,15 +40,31 @@ public class JocController {
     }
 
     @GetMapping("/jocuri/{idJoc}")
-    public ResponseEntity<ApiResponse> returneazaJoculDupaId(@RequestParam Long idJoc){
-        JocDto jocDto = jocService.returneazaJocDupaId(idJoc-1000);
+    public ResponseEntity<ApiResponse> returneazaJoculDupaId(@PathVariable Long idJoc){
+        JocDto jocDto = jocService.returneazaJocDupaId(idJoc);
         return ResponseEntity.ok(ApiResponse.success("Joc returnat cu succes", jocDto));
     }
 
     @GetMapping("/jocuri/{idJoc}/jucatori")
     public ResponseEntity<ApiResponse> returneazaJucatoriiUnuiJoc(@PathVariable Long idJoc){
-        String jucatori = jocService.returneazaJucatoriiUnuiJoc(idJoc-1000);
-        return ResponseEntity.ok(ApiResponse.success("Jocuri neincepute returnate cu succes", jucatori));
+        String jucatori = jocService.returneazaJucatoriiUnuiJoc(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Jucatori returnati cu succes", jucatori));
+    }
+
+    @GetMapping("/jocuri/{idJoc}/turnuri")
+    public ResponseEntity<ApiResponse> returneazaTurnurileUnuiJoc(@PathVariable Long idJoc){
+        ArrayList< TurnDto> turnuri = jocService.returneazaTurnurileUnuiJoc(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Turnuri returnate cu succes", turnuri));
+    }
+    @GetMapping("/jocuri/{idJoc}/carduri")
+    public ResponseEntity<ApiResponse> returneazaCardurileUnuiJoc(@PathVariable Long idJoc){
+       ArrayList<ActiveCardDto>carduri = jocService.returneazaCardurileUnuiJoc(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Carduri returnate cu succes", carduri));
+    }
+    @GetMapping("/jocuri/{idJoc}/panouri")
+    public ResponseEntity<ApiResponse> returneazaPanourileUnuiJoc(@PathVariable Long idJoc){
+       ArrayList<DetaliiPanouCompletDto> panouri = jocService.returneazaPanourileUnuiJoc(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Panouri returnate cu succes", panouri));
     }
 
 

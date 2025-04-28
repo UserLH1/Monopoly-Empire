@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface TurnRepository extends JpaRepository<Turn, Integer> {
     public Optional<Turn>getTurnByUsername(String username);
-    public ArrayList<Turn>getTurnByIdJoc(int idJoc);
+    public ArrayList<Turn>getTurnByIdJoc(Long idJoc);
     public Optional<Turn>getTurnByIdTurn(int idTurn);
 
 }

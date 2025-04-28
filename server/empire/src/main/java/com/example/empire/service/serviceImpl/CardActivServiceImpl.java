@@ -61,6 +61,21 @@ public class CardActivServiceImpl implements CardActivService {
     }
 
     @Override
+    public ArrayList<ActiveCardDto> getAllActiveCards() {
+        ArrayList<ActiveCardDto> activeCardsDto = new ArrayList<>();
+        List<ActiveCard>activeCards=cardActiveRepository.findAll();
+        for(ActiveCard activeCard: activeCards){
+            ActiveCardDto activeCardDto = new ActiveCardDto();
+            activeCardDto.setIdJoc(activeCard.getIdJoc());
+            activeCardDto.setUsername(activeCard.getUsername());
+            activeCardDto.setIdCardActive(activeCard.getIdCardActiv());
+            activeCardDto.setIdCard(activeCard.getCard().getIdCard());
+            activeCardsDto.add(activeCardDto);
+        }
+        return activeCardsDto;
+    }
+
+    @Override
     public ArrayList<ActiveCardDto> getAllUserCards(String username) {
         ArrayList<ActiveCardDto> activeCardsDto = new ArrayList<>();
         List<ActiveCard>activeCards=cardActiveRepository.getActiveCardByUsername(username);
@@ -76,7 +91,7 @@ public class CardActivServiceImpl implements CardActivService {
     }
 
     @Override
-    public ArrayList<ActiveCardDto> getAllGameCards(int idJoc) {
+    public ArrayList<ActiveCardDto> getAllGameCards(Long idJoc) {
         ArrayList<ActiveCardDto> activeCardsDto = new ArrayList<>();
         List<ActiveCard>activeCards=cardActiveRepository.getActiveCardByIdJoc(idJoc);
         for(ActiveCard activeCard: activeCards){

@@ -64,9 +64,9 @@ public class PanouController {
         }
     }
 
-    @GetMapping("/panouri/{username}")
+    @GetMapping("/panouri/jucatori/{username}")
     ResponseEntity<ApiResponse>returneazaPanourileUnuiJucator(@PathVariable String username){
-        ArrayList<DetaliiPanouCompletDto> detaliiPanouCompletDtos = new ArrayList<DetaliiPanouCompletDto>();
+        ArrayList<DetaliiPanouCompletDto> detaliiPanouCompletDtos ;
         detaliiPanouCompletDtos = panouActivService.getAllUserPanels(username);
         return ResponseEntity.ok(ApiResponse.success("Panourile unui jucator returnate cu succes", detaliiPanouCompletDtos));
     }
@@ -76,5 +76,4 @@ public class PanouController {
         panouActivService.cumparaPanou(cumparaPanouDto);
         return ResponseEntity.ok(ApiResponse.success("Panoul a fost cumparat cu succes", null));
     }
-
 }

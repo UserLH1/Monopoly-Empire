@@ -42,8 +42,8 @@ public class CardServiceImpl implements CardService {
         if(optionalCard.isPresent()){
             Card card = optionalCard.get();
             cardDto.setCardType(String.valueOf(card.getCardType()));
-            cardDto.setIdCard(cardDto.getIdCard());
-            cardDto.setDescriere(cardDto.getDescriere());
+            cardDto.setIdCard(card.getIdCard());
+            cardDto.setDescriere(card.getDescriere());
             return cardDto;
         }
         else{

@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface CardActivRepository extends JpaRepository<ActiveCard, Integer> {
     public Optional<ActiveCard>getActiveCardByIdCardActiv(int idCardActiv);
     public List<ActiveCard>getActiveCardByUsername(String username);
-    public List<ActiveCard>getActiveCardByIdJoc(int idJoc);
+    public List<ActiveCard>getActiveCardByIdJoc(Long idJoc);
 }

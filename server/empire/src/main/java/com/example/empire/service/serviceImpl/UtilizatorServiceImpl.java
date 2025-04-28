@@ -40,9 +40,9 @@ public class UtilizatorServiceImpl implements UtilizatorService {
         user.setPozitiePion(-1);
         user.setNrJocuriCastigate(0);
         user.setSumaBani(0);
+        user.setRol(UserRole.PLAYER);
         String password = BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt());
         user.setPassword(password);
-
         jucatorRepository.save(user);
 
         var jwtToken = jwtService.generateToken(user);

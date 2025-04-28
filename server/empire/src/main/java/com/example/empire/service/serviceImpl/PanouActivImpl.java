@@ -7,9 +7,11 @@ import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Panou;
 import com.example.empire.model.PanouCumparat;
 import com.example.empire.model.Turn;
+import com.example.empire.model.Utilizator;
 import com.example.empire.repository.PanouCumparatRepository;
 import com.example.empire.repository.PanouRepository;
 import com.example.empire.repository.TurnRepository;
+import com.example.empire.repository.UtilizatorRepository;
 import com.example.empire.service.PanouActivService;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +25,13 @@ public class PanouActivImpl implements PanouActivService {
     private final PanouCumparatRepository panouCumparatRepository;
     private final TurnRepository turnRepository;
     private final PanouRepository panouRepository;
+    private final UtilizatorRepository utilizatorRepository;
 
-    public PanouActivImpl(PanouCumparatRepository panouCumparatRepository, TurnRepository turnRepository, PanouRepository panouRepository) {
+    public PanouActivImpl(PanouCumparatRepository panouCumparatRepository, TurnRepository turnRepository, PanouRepository panouRepository, UtilizatorRepository utilizatorRepository) {
         this.panouCumparatRepository = panouCumparatRepository;
         this.turnRepository = turnRepository;
         this.panouRepository = panouRepository;
+        this.utilizatorRepository = utilizatorRepository;
     }
 
     @Override
@@ -88,8 +92,27 @@ public class PanouActivImpl implements PanouActivService {
         if(optional.isPresent())
         {
             panouCumparat.setPanou(optional.get());
-            panouCumparatRepository.save(panouCumparat);
+            Optional<Turn> turn = turnRepository.getTurnByIdTurn(cumparaPanouDto.getIdTurn());
+
+            if(turn.isPresent()){
+                String username = turn.get().getUsername();
+                Optional<Utilizator> utilizator = utilizatorRepository.getUtilizatorByUsername(username);
+                if(utilizator.isPresent()){
+                    Utilizator ut = utilizator.get();
+                    int pretPanou = panouCumparat.getPanou().getPret();
+                    if(pretPanou>ut.getSumaBani())
+                        throw new BadRequestException("Nu sunt suficienti bani pentru a cumpara acest panou");
+                    else{
+                        ut.setSumaBani(ut.getSumaBani()-pretPanou);
+                        utilizatorRepository.save(ut);
+                        panouCumparatRepository.save(panouCumparat);
+                    }
+                }
+                throw new BadRequestException("Nu exista un utilizator cu acest username");
+            }
+            throw new BadRequestException("Nu exista un turn cu acest id");
         }
+
         throw new BadRequestException("Nu exista acest panou");
     }
 }
