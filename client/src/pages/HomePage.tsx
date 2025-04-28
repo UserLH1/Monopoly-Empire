@@ -108,13 +108,16 @@ export default function HomePage() {
     }
   
     try {
+      // transformăm codul de la utilizator în id real
+      const realGameId = Number(gameCode) - 1000;
+  
       const response = await fetch(
-        `http://localhost:8080/api/jocuri/alaturareJoc/${gameCode}`, // ID în URL!
+        `http://localhost:8080/api/jocuri/alaturareJoc/${realGameId}`, // aici trimitem id-ul real, nu codul
         {
-          method: "POST", // POST, nu PUT
+          method: "POST",
           headers: {
-            "Authorization": `Bearer ${token}`,
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
   
@@ -123,13 +126,15 @@ export default function HomePage() {
         throw new Error(errorData.message || "Failed to join game");
       }
   
+      // Salvăm în localStorage codul pe care l-a introdus userul
       localStorage.setItem("gameId", gameCode);
+  
+      setJoinModalOpen(false);
+      setGameCode("");
+  
       navigate("/pending");
     } catch (error: any) {
       alert(error.message);
-    } finally {
-      setJoinModalOpen(false);
-      setGameCode("");
     }
   }
   

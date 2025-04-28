@@ -43,10 +43,11 @@ public class JocController {
     }
 
     @GetMapping("/jocuri/{idJoc}")
-    public ResponseEntity<ApiResponse> returneazaJoculDupaId(@RequestParam Long idJoc){
-        JocDto jocDto = jocService.returneazaJocDupaId(idJoc-1000);
+        public ResponseEntity<ApiResponse> returneazaJoculDupaId(@PathVariable Long idJoc) {
+        JocDto jocDto = jocService.returneazaJocDupaId(idJoc - 1000);
         return ResponseEntity.ok(ApiResponse.success("Joc returnat cu succes", jocDto));
-    }
+}
+
 
     @GetMapping("/jocuri/{idJoc}/jucatori")
     public ResponseEntity<ApiResponse> returneazaJucatoriiUnuiJoc(@PathVariable Long idJoc){

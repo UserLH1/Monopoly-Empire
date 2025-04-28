@@ -4,7 +4,7 @@ import useAuth from "../hooks/useAuth";
 import "../styles/PendingPage.css";
 
 type JocDto = {
-  jucatori: string;    // numele jucătorilor despărțite prin virgulă
+  jucatori: string;    // numele jucătorilor despărțite prin ;
   nrJucatori: number;  // numărul total de jucători necesari
   statusJoc: string;   // statusul jocului (ex: "WAITING" sau "STARTED")
   idJoc: number;       // id-ul jocului
@@ -15,6 +15,7 @@ export default function PendingPage() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false); // 👈 adăugat pentru mesaj toast
 
   const gameId = localStorage.getItem("gameId");
 
@@ -28,7 +29,7 @@ export default function PendingPage() {
       try {
         const token = localStorage.getItem("token");
 
-        const response = await fetch(`http://localhost:8080/api/jocuri`, {
+        const response = await fetch(`http://localhost:8080/api/jocuri/${gameId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -38,32 +39,25 @@ export default function PendingPage() {
           throw new Error("Failed to fetch game data.");
         }
 
-        const data: { data: JocDto[] } = await response.json(); // presupunem răspunsul are field-ul "data"
-
-        // Găsim jocul cu id-ul nostru
-        const myGame = data.data.find((game) => (game.idJoc + 1000).toString() === gameId);
-
+        const data: { data: JocDto } = await response.json();
+        const myGame = data.data;
 
         if (!myGame) {
           throw new Error("Game not found.");
         }
 
-        // Extragem lista de jucători
-        const playerList = myGame.jucatori ? myGame.jucatori.split(",") : [];
+        const playerList = myGame.jucatori ? myGame.jucatori.split(";") : [];
         setPlayers(playerList);
 
-        // Verificăm dacă jocul a început (opțional)
         if (myGame.statusJoc === "STARTED") {
           navigate("/game");
-        }
-
-        // Sau pornim automat când sunt suficienți jucători
-        if (playerList.length === myGame.nrJucatori) {
+        } else if (playerList.length === myGame.nrJucatori && myGame.statusJoc === "WAITING") {
+          // Arată toast alert înainte de navigate
+          setShowToast(true);
           setTimeout(() => {
             navigate("/game");
-          }, 1000);
+          }, 1500);
         }
-
       } catch (error: any) {
         setError(error.message);
       }
@@ -87,6 +81,22 @@ export default function PendingPage() {
       </nav>
 
       <main className="main-section">
+        {showToast && ( // 👈 Toast alert
+          <div style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            padding: "10px 20px",
+            borderRadius: "8px",
+            zIndex: 1000
+          }}>
+            All players have joined! Starting game...
+          </div>
+        )}
+
         <div className="left-side">
           <div className="welcome">Waiting for Players...</div>
 
@@ -97,8 +107,9 @@ export default function PendingPage() {
           )}
 
           <div className="image-placeholder">
-            Loading players...
+            {players.length === 0 ? "Loading players..." : null}
           </div>
+
           <div className="description">
             Share the Game ID with your friends! As soon as enough players join, the game will begin automatically.
           </div>
