@@ -1,0 +1,71 @@
+/* Rules.css */
+
+.rules-container {
+    min-height: 100vh;
+    background-color: #0a2540;
+    color: #f0f4ff;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .rules-header {
+    background-color: #102e4a;
+    padding: 30px;
+    text-align: center;
+    border-bottom: 2px solid #1c4063;
+  }
+  
+  .rules-header h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #ffffff;
+    letter-spacing: 1px;
+  }
+  
+  .rules-content {
+    flex: 1;
+    padding: 40px 20px;
+    max-width: 900px;
+    margin: auto;
+  }
+  
+  .section {
+    background-color: #123c65;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  }
+  
+  .section h2 {
+    margin-top: 0;
+    color: #ffffff;
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  
+  .section p,
+  .section ul {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .section ul {
+    padding-left: 20px;
+  }
+  
+  .section li {
+    margin-bottom: 8px;
+  }
+  
+  /* Footer */
+  .rules-footer {
+    background-color: #102e4a;
+    padding: 16px; 
+    text-align: center;
+    font-size: 14px;
+    color: #d0e3f7;
+    margin-top: auto;
+  }
+  

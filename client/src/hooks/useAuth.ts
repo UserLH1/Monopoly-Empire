@@ -4,6 +4,8 @@ interface User {
   id?: string;
   name: string;
   username?: string;
+  rol?: string; // <-- adaugă aici rolul!
+
 }
 
 export default function useAuth() {
@@ -72,7 +74,7 @@ export default function useAuth() {
       };
 
       setUser(userData);
-      return { success: true };
+      return { success: true, user: userData };
     } catch (error: any) {
       return { success: false, error: error.message };
     }

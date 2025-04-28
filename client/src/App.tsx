@@ -5,6 +5,10 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Pending from "./pages/Pending";
+import Rules from "./pages/Rules";
+import LeaderboardPage from "./pages/LeaderboardPage";
+
 
 const App = () => {
   return (
@@ -23,6 +27,9 @@ const App = () => {
         {/* Already protected in GamePage component */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/pending" element={<Pending />} />
+        <Route path="/rules" element={<Rules />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Routes>
     </Router>
   );

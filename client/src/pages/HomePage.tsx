@@ -25,6 +25,8 @@ export default function HomePage() {
   const [playerCount, setPlayerCount] = useState(3);
   const [username, setUsername] = useState(user?.name || "");
 
+  
+
   const handleLogin = () => {
     navigate("/login");
   };
@@ -80,7 +82,8 @@ export default function HomePage() {
 
       // Close modal and redirect to game page
       setCreateModalOpen(false);
-      navigate("/game");
+      navigate("/pending");
+
     } catch (error: any) {
       alert(error.message);
     }
@@ -97,46 +100,45 @@ export default function HomePage() {
 
   async function handleJoinSubmit() {
     const token = localStorage.getItem("token");
-
+  
     if (!token) {
       alert("Authentication required. Please login again.");
       navigate("/login");
       return;
     }
-
+  
     try {
+      // transformăm codul de la utilizator în id real
+      const realGameId = Number(gameCode) - 1000;
+  
       const response = await fetch(
-        "http://localhost:8080/api/jocuri/alaturareJoc",
+        `http://localhost:8080/api/jocuri/alaturareJoc/${realGameId}`, // aici trimitem id-ul real, nu codul
         {
-          method: "PUT",
+          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            cod: gameCode,
-            username: user?.name,
-          }),
         }
       );
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to join game");
       }
-
-      // Save the game code in localStorage
+  
+      // Salvăm în localStorage codul pe care l-a introdus userul
       localStorage.setItem("gameId", gameCode);
-
-      // Navigate to the game page
-      navigate("/game");
-    } catch (error: any) {
-      alert(error.message);
-    } finally {
+  
       setJoinModalOpen(false);
       setGameCode("");
+  
+      navigate("/pending");
+    } catch (error: any) {
+      alert(error.message);
     }
   }
+  
+  
 
   return (
     <div className={styles.container}>

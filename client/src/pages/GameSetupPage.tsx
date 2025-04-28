@@ -8,7 +8,7 @@ export default function GameSetupPage() {
   const [gameName, setGameName] = useState("");
 
   const handleStartGame = () => {
-    navigate("/game");
+    navigate("/pending");
   };
 
   return (

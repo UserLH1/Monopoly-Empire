@@ -35,11 +35,15 @@ public class UtilizatorController {
 
     @PostMapping("/jucatori/login")
     public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginDto loginDto){
-        Utilizator user = utilizatorService.loginUser(loginDto);
-        String token = jwtService.generateToken(user);
-        AuthenticationResponse response = AuthenticationResponse.builder().token(token).build();
-        return ResponseEntity.ok(ApiResponse.success("Welcome " + user.getUsername(), response));
-    }
+    Utilizator user = utilizatorService.loginUser(loginDto);
+    String token = jwtService.generateToken(user);
+
+    // Construim răspunsul cu token + rol
+    LoginResponse response = new LoginResponse(token, user.getRol().name());
+
+    return ResponseEntity.ok(ApiResponse.success("Welcome " + user.getUsername(), response));
+}
+
 
     @GetMapping("/jucatori")
     public ResponseEntity<ApiResponse> returneazaTotiJucatorii(){
