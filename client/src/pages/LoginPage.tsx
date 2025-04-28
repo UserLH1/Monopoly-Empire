@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth"; // Import the useAuth hook
 import styles from "../styles/AuthPages.module.css";
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,23 +17,29 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
+  
     try {
-      // Use the login function from useAuth hook instead of direct fetch
       const result = await login(username, password);
-
+  
       if (!result.success) {
         throw new Error(result.error || "Login failed");
       }
-
-      // Navigate on success
-      navigate("/");
+  
+      // !!! FOARTE IMPORTANT: user este updatat automat de useAuth după login.
+      if (result.success && result.user?.rol === "ADMINISTRATOR") {
+        navigate("/leaderboard");
+      } else {
+        navigate("/");
+      }
+      
+  
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className={styles.container}>

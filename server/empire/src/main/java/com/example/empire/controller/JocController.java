@@ -57,10 +57,12 @@ public class JocController {
 
     @PostMapping("/jocuri/alaturareJoc/{idJoc}")
     public ResponseEntity<ApiResponse> addNewUser(@RequestHeader("Authorization") String authHeader, @PathVariable Long idJoc){
-        String username = jwtService.extractUsername(authHeader);
-        AddUserDto  addUserDto= new AddUserDto(username, idJoc);
-        jocService.addNewUser(addUserDto);
-        return ResponseEntity.ok(ApiResponse.success("Jucator adaugat cu succes", null));
-    }
+    String jwt = authHeader.substring(7); // <<< Adaugă această linie
+    String username = jwtService.extractUsername(jwt); // Folosește token-ul curat
+    AddUserDto addUserDto = new AddUserDto(username, idJoc);
+    jocService.addNewUser(addUserDto);
+    return ResponseEntity.ok(ApiResponse.success("Jucator adaugat cu succes", null));
+}
+
 
 }

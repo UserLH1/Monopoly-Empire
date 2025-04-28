@@ -43,7 +43,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/alaturareJoc/**").hasAuthority("ADMINISTRATOR")
                         .requestMatchers("/api/card/**").permitAll()
                         .requestMatchers("/api/carduri/**").permitAll()
+                        .requestMatchers("/api/jocuri/alaturareJoc/**").authenticated()
                         .requestMatchers("/api/jocuri/**").permitAll()
+
                         .requestMatchers("/api/turn/joc/**").permitAll()
                         .requestMatchers("/api/panou/**").permitAll()
                         .requestMatchers("/api/panouri/**").permitAll()

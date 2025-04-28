@@ -25,6 +25,8 @@ export default function HomePage() {
   const [playerCount, setPlayerCount] = useState(3);
   const [username, setUsername] = useState(user?.name || "");
 
+  
+
   const handleLogin = () => {
     navigate("/login");
   };
@@ -80,7 +82,8 @@ export default function HomePage() {
 
       // Close modal and redirect to game page
       setCreateModalOpen(false);
-      navigate("/game");
+      navigate("/pending");
+
     } catch (error: any) {
       alert(error.message);
     }
@@ -97,39 +100,31 @@ export default function HomePage() {
 
   async function handleJoinSubmit() {
     const token = localStorage.getItem("token");
-
+  
     if (!token) {
       alert("Authentication required. Please login again.");
       navigate("/login");
       return;
     }
-
+  
     try {
       const response = await fetch(
-        "http://localhost:8080/api/jocuri/alaturareJoc",
+        `http://localhost:8080/api/jocuri/alaturareJoc/${gameCode}`, // ID în URL!
         {
-          method: "PUT",
+          method: "POST", // POST, nu PUT
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            cod: gameCode,
-            username: user?.name,
-          }),
+            "Authorization": `Bearer ${token}`,
+          }
         }
       );
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to join game");
       }
-
-      // Save the game code in localStorage
+  
       localStorage.setItem("gameId", gameCode);
-
-      // Navigate to the game page
-      navigate("/game");
+      navigate("/pending");
     } catch (error: any) {
       alert(error.message);
     } finally {
@@ -137,6 +132,8 @@ export default function HomePage() {
       setGameCode("");
     }
   }
+  
+  
 
   return (
     <div className={styles.container}>
