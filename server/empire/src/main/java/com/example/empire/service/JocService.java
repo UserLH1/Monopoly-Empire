@@ -20,4 +20,12 @@ public interface JocService {
     public String returneazaJucatoriiUnuiJoc(Long idJoc);
 
     public JocDto returneazaJocDupaId(Long jocId);
+
+    public boolean esteUtilizatorInJoc(String username);
+
+    boolean existaJoc(Long idJoc);
+    boolean esteUtilizatorInJoculSpecificat(String username, Long idJoc);
+    void scoateJucatorDinJoc(String username, Long idJoc);
+
+    JocDto getJocCurentAlUtilizatorului(String username);
 }

@@ -4,6 +4,9 @@ info:
   version: 1.0.0
 servers:
 
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/west-fd6/empire/1.0.0
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/uvt-636/empire/1.0.0
   - url: http://localhost:8080
@@ -71,6 +74,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+  /api/jucatori/register:
     post:
       tags:
         - utilizator
@@ -114,19 +118,19 @@ paths:
         - petstore_auth:
             - write:pets
             - read:pets
-  /api/jocuri/alaturareJoc:
-    put:
+  /api/jocuri/alaturareJoc/{idJoc}:
+    post:
       tags:
         - joc
+      parameters:
+        - name: idJoc
+          in: path
+          required: true
+          schema:
+            type: integer
       summary: Adaugarea unui jucator la un joc
       description: Adaugarea unui jucator la un joc folosind username-ul jucatorului si id-ul jocului
       operationId: actualizareJoc
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Joc-alaturareJoc'
-        required: true
       responses:
         '200':
           description: Jucator adaugat cu succes
@@ -252,34 +256,18 @@ paths:
           description: Nume de utilizator sau parolă greșite
 
   /api/jucatori/{username}/pozitiePion:
-    get:
-      tags:
-        - utilizator
-      summary: Extragem pozitia pionului utilizatorului specificat
-      description: Extragem pozitia pionului utilizatorului specificat
-      operationId: getUserPositionByName
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User-pozitiePion'          
-        '404':
-          description: Nu s-a gasit un utilizator cu acest username
-  /api/jucatori/pozitiePion:
     put:
       tags:
           - utilizator
       summary: Schimbarea pozitiei pionului utilizatorului
       description: Schimbarea pozitiei pionului utilizatorului
       operationId: modifyUserPosition
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           application/json:
@@ -293,34 +281,18 @@ paths:
         "404":
           description: Username neidentificat
   /api/jucatori/{username}/sumaBani:
-    get:
-      tags:
-        - utilizator
-      summary: Extragem suma de bani a utilizatorului specificat
-      description: Extragem suma de bani a utilizatorului specificat
-      operationId: getUserMoney
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Suma de bani a fost extrasa cu succes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Utilizator-getMoney'          
-        '404':
-          description: Nu s-a gasit un utilizator cu acest username
-  /api/jucatori/sumaBani:
     put:
       tags:
         - utilizator
       summary: Modificam suma de bani a unui jucator
       description: Modificam suma de bani a unui jucator
       operationId: updateUserMoney
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           application/json:
@@ -333,28 +305,7 @@ paths:
           description: Suma de bani invalida
         "404" : 
           description: Utilizatorul nu a fost gasit
-  /api/jucatori/{username}/idJoc:
-    get:
-      tags:
-        - utilizator
-      summary: Extragem id-ul jocului in care joaca utilizatorul specificat
-      description: Extragem id-ul jocului in care joaca utilizatorul specificat
-      operationId: getUserGameId
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Id-ul jocului a fost extras cu succes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Utilizator-getIdJoc'          
-        '404':
-          description: Nu s-a gasit un utilizator cu acest username
+  
   /api/jucatori/{username}:
     get:
       tags:
@@ -410,13 +361,20 @@ paths:
       responses:
         '200':
           description: Card câștigat
-  /api/carduri:
+          
+  /api/carduri/jocuri/{idJoc}:
     get:
       tags:
         - card
       summary: Extragera tutoror cadruilor active sau inactive din toate jocurile
-      description: Extragera tutoror cadruilor active sau inactive din toate jocurile
+      description: Extragera tutoror cadruilor active dintr-un joc
       operationId: getCards
+      parameters:
+        - name: idJoc
+          in: path
+          required: true
+          schema:
+            type: number
       responses:
         '200':
           description: Carduri returnate cu succes
@@ -426,7 +384,31 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CarduriActive'  
-  /api/card/{status}/{idCard}:
+  /api/carduri/{status}:
+    get:
+      tags:
+        - card
+      summary: Extragerea informatiilor despre cardul corespunzator id-ului specificat
+      description: Extragerea informatiilor despre cardul corespunzator id-ului specificat
+      operationId: getCardAllCardsByStatus
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalii despre card returnate cu succes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarduriActiveById'
+        '404':
+          description: Id-ul cardului nu a fost gasit.
+  /api/carduri/{status}/{idCard}:
     get:
       tags:
         - card
@@ -453,7 +435,7 @@ paths:
                 $ref: '#/components/schemas/CarduriActiveById'
         '404':
           description: Id-ul cardului nu a fost gasit.
-  /api/carduri/utilizator/{username}:
+  /api/carduri/utilizatori/{username}:
     get:
       tags:
         - card
@@ -478,18 +460,19 @@ paths:
         '404':
           description: Username-ul jucatorului nu a fost gasit.
   
-  /api/card/utilizeazaCard:
+  /api/card/utilizeazaCard/{idCard}:
     post:
       tags:
         - card
       summary: Utilizarea unui card (Șansă sau Empire)
       description: În momentul în care un jucator doreste sa utilizeze un card se vor realiza anumite actiuni ulterioare in functie de descrierea cardului
+      parameters:
+        - name: idCard
+          in: path
+          required: true
+          schema:
+            type: number
       operationId: utilizareCardActiv
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Card-utilieazaCard'
       responses:
         '200':
           description: Card a fost utilizat cu succes
@@ -505,6 +488,28 @@ paths:
       operationId: listPanou
       parameters:
         - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista panourilor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Panou'
+  /api/panouri/jucatori/{username}:
+    get:
+      tags:
+        - panou
+      summary: Returneaza toate panourile ce se pot folosi intr-un joc
+      description: Returneaza toate panourile ce se pot folosi intr-un joc
+      operationId: listPanouriJucatori
+      parameters:
+        - name: username
           in: path
           required: true
           schema:
@@ -579,8 +584,32 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Turn'
+  
+  /api/turnuri/{idTurn}:
+    get:
+      tags:
+        - turn
+      summary: Returneaza detaliile unui turn
+      description: Returneaza detaliile unui turn
+      operationId: detaliiTurn
+      parameters:
+        - name: idTurn
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista panourilor cumparate
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Turn'
+        '404':
+          description: Turnul nu a fost gasit
         
-  /api/turnuri/{username}:
+  /api/turnuri/jucatori/{username}:
     get:
       tags:
         - turn

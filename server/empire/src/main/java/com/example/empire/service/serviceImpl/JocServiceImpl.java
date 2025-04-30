@@ -179,4 +179,86 @@ public class JocServiceImpl implements JocService {
             throw new BadRequestException("Nu exista un joc cu acest id");
         }
     }
+
+    @Override
+    public boolean esteUtilizatorInJoc(String username) {
+        // Obține utilizatorul din baza de date
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Utilizatorul nu există"));
+        
+        // Verifică dacă utilizatorul are un joc asociat (idJoc != null)
+        return utilizator.getIdJoc() != null;
+    }
+
+    @Override
+    public boolean existaJoc(Long idJoc) {
+        return jocRepository.existsById(idJoc);
+    }
+
+    @Override
+    public boolean esteUtilizatorInJoculSpecificat(String username, Long idJoc) {
+        Optional<Utilizator> utilizatorOpt = utilizatorRepository.getUtilizatorByUsername(username);
+        if (utilizatorOpt.isEmpty()) {
+            return false;
+        }
+        
+        Utilizator utilizator = utilizatorOpt.get();
+        return utilizator.getIdJoc() != null && utilizator.getIdJoc().equals(idJoc);
+    }
+
+    @Override
+    public void scoateJucatorDinJoc(String username, Long idJoc) {
+        // 1. Obține utilizatorul
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Utilizatorul nu există"));
+        
+        // 2. Obține jocul
+        Joc joc = jocRepository.findById(idJoc)
+            .orElseThrow(() -> new RuntimeException("Jocul nu există"));
+        
+        // 3. Elimină utilizatorul din lista de jucători din joc
+        String listaJucatori = joc.getJucatori();
+        List<String> jucatori = new ArrayList<>(Arrays.asList(listaJucatori.split(";")));
+        jucatori.remove(username);
+        
+        // 4. Actualizează jocul
+        if (jucatori.isEmpty()) {
+            // Dacă nu mai sunt jucători, șterge jocul
+            jocRepository.delete(joc);
+        } else {
+            // Altfel, actualizează lista de jucători
+            joc.setJucatori(String.join(";", jucatori));
+            jocRepository.save(joc);
+        }
+        
+        // 5. Actualizează utilizatorul (eliminăm referința la joc)
+        utilizator.setIdJoc(null);
+        utilizator.setPozitiePion(0);
+        utilizatorRepository.save(utilizator);
+    }
+
+    @Override
+    public JocDto getJocCurentAlUtilizatorului(String username) {
+        // Obține utilizatorul
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Utilizatorul nu există"));
+        
+        // Verifică dacă utilizatorul are un joc asociat
+        if (utilizator.getIdJoc() == null) {
+            throw new RuntimeException("Utilizatorul nu este într-un joc");
+        }
+        
+        // Obține jocul
+        Joc joc = jocRepository.findById(utilizator.getIdJoc())
+            .orElseThrow(() -> new RuntimeException("Jocul nu a fost găsit"));
+        
+        // Convertește în DTO
+        JocDto jocDto = new JocDto();
+        jocDto.setIdJoc(joc.getIdJoc());
+        jocDto.setJucatori(joc.getJucatori());
+        jocDto.setNrJucatori(joc.getNrJucatori());
+        jocDto.setStatusJoc(joc.getStatus().toString());
+        
+        return jocDto;
+    }
 }
