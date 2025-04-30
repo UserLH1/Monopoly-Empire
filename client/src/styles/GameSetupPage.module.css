@@ -8,7 +8,15 @@
   align-items: center;
   justify-content: center;
 }
-
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  font-size: 1.5rem;
+}
 .setupForm {
   background: rgba(255, 255, 255, 0.1);
   padding: 2rem;

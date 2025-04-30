@@ -15,8 +15,9 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
 
     setRolling(true);
 
-    // Animation effect - rapidly change dice values
+    // Animation effect with better randomization
     let counter = 0;
+    const totalAnimations = 15; // Mai multe frame-uri pentru animație mai fluidă
     const interval = setInterval(() => {
       const values = [
         Math.floor(Math.random() * 6) + 1,
@@ -25,12 +26,75 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
       setDiceValues(values);
 
       counter++;
-      if (counter > 10) {
+      if (counter > totalAnimations) {
         clearInterval(interval);
-        setRolling(false);
-        onRoll(values);
+        
+        // Rezultat final cu delay pentru efect mai bun
+        setTimeout(() => {
+          setRolling(false);
+          onRoll(values);
+        }, 300);
       }
-    }, 100);
+    }, 80); // Animație mai rapidă
+  };
+
+  // Renderează punctele în funcție de configurația standard a zarurilor
+  const renderDiceDots = (value: number) => {
+    switch (value) {
+      case 1:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.center}`}></div>
+          </div>
+        );
+      case 2:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 3:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.center}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 4:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.topRight}`}></div>
+            <div className={`${styles.dot} ${styles.bottomLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 5:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.topRight}`}></div>
+            <div className={`${styles.dot} ${styles.center}`}></div>
+            <div className={`${styles.dot} ${styles.bottomLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 6:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.topRight}`}></div>
+            <div className={`${styles.dot} ${styles.middleLeft}`}></div>
+            <div className={`${styles.dot} ${styles.middleRight}`}></div>
+            <div className={`${styles.dot} ${styles.bottomLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -40,21 +104,13 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
           className={`${styles.dice} ${rolling ? styles.rolling : ""}`}
           data-value={diceValues[0]}
         >
-          <div className={styles.face}>
-            {Array.from({ length: diceValues[0] }).map((_, i) => (
-              <div key={i} className={styles.dot}></div>
-            ))}
-          </div>
+          {renderDiceDots(diceValues[0])}
         </div>
         <div
           className={`${styles.dice} ${rolling ? styles.rolling : ""}`}
           data-value={diceValues[1]}
         >
-          <div className={styles.face}>
-            {Array.from({ length: diceValues[1] }).map((_, i) => (
-              <div key={i} className={styles.dot}></div>
-            ))}
-          </div>
+          {renderDiceDots(diceValues[1])}
         </div>
       </div>
 

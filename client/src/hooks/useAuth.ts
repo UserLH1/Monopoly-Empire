@@ -47,7 +47,7 @@ export default function useAuth() {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:8080/api/jucator/login", {
+      const response = await fetch("http://localhost:8080/api/jucatori/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

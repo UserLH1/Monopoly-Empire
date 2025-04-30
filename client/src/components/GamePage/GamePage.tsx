@@ -1,296 +1,125 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "../../styles/GamePage/GamePage.module.css";
 import Bank from "./Bank";
 import CardDeck from "./CardDecks";
 import DiceArea from "./DiceArea";
 import GameBoard from "./GameBoard";
 import PlayerPanel from "./PlayerPanels";
+import tileData from "../../assets/tiles.json";
+import useAuth from "../../hooks/useAuth";
 
-// Real Monopoly Empire tiles
-const monopolyEmpireTiles = [
-  { id: "t0", position: 0, type: "corner", name: "GO" },
-  {
-    id: "t1",
-    position: 1,
-    type: "brand",
-    name: "Nerf",
-    color: "#ff8800",
-    value: 150,
-    logo: "/assets/brands/nerf.png",
-  },
-  {
-    id: "t2",
-    position: 2,
-    type: "brand",
-    name: "Transformers",
-    color: "#ff8800",
-    value: 150,
-    logo: "/assets/brands/transformers.png",
-  },
-  { id: "t3", position: 3, type: "empire", name: "Empire Card" },
-  {
-    id: "t4",
-    position: 4,
-    type: "brand",
-    name: "Spotify",
-    color: "#1DB954",
-    value: 200,
-    logo: "/assets/brands/spotify.png",
-  },
-  {
-    id: "t5",
-    position: 5,
-    type: "brand",
-    name: "Beats",
-    color: "#1DB954",
-    value: 200,
-    logo: "/assets/brands/beats.png",
-  },
-  { id: "t6", position: 6, type: "utility", name: "Tower Tax" },
-  {
-    id: "t7",
-    position: 7,
-    type: "brand",
-    name: "Fender",
-    color: "#1DB954",
-    value: 250,
-    logo: "/assets/brands/fender.png",
-  },
-  {
-    id: "t8",
-    position: 8,
-    type: "brand",
-    name: "Carnival",
-    color: "#1DB954",
-    value: 250,
-    logo: "/assets/brands/carnival.png",
-  },
+// Definirea tipului pentru tipurile valide de dale
+type TileType = "empire" | "chance" | "corner" | "brand" | "utility" | "tax";
 
-  { id: "t9", position: 9, type: "corner", name: "Just Visiting / Jail" },
-  {
-    id: "t10",
-    position: 10,
-    type: "brand",
-    name: "Jet Blue",
-    color: "#87CEEB",
-    value: 300,
-    logo: "/assets/brands/jetblue.png",
-  },
-  {
-    id: "t11",
-    position: 11,
-    type: "brand",
-    name: "EA",
-    color: "#87CEEB",
-    value: 300,
-    logo: "/assets/brands/ea.png",
-  },
-  { id: "t12", position: 12, type: "chance", name: "Chance" },
-  {
-    id: "t13",
-    position: 13,
-    type: "brand",
-    name: "Hasbro",
-    color: "#FFA500",
-    value: 350,
-    logo: "/assets/brands/hasbro.png",
-  },
-  {
-    id: "t14",
-    position: 14,
-    type: "brand",
-    name: "eBay",
-    color: "#FFA500",
-    value: 350,
-    logo: "/assets/brands/ebay.png",
-  },
-  { id: "t15", position: 15, type: "utility", name: "Free Parking" },
-  {
-    id: "t16",
-    position: 16,
-    type: "brand",
-    name: "X (Twitter)",
-    color: "#00ACEE",
-    value: 400,
-    logo: "/assets/brands/twitter.png",
-  },
-  {
-    id: "t17",
-    position: 17,
-    type: "brand",
-    name: "Yahoo!",
-    color: "#00ACEE",
-    value: 400,
-    logo: "/assets/brands/yahoo.png",
-  },
+// Definirea tipurilor pentru jucători și dale
+type Player = {
+  id: string;
+  name: string;
+  color: string;
+  money: number;
+  position: number;
+  properties: any[];
+  brands: any[];
+  towerHeight: number;
+};
 
-  { id: "t18", position: 18, type: "corner", name: "Free Parking" },
-  {
-    id: "t19",
-    position: 19,
-    type: "brand",
-    name: "Chevrolet",
-    color: "#FF0000",
-    value: 450,
-    logo: "/assets/brands/chevrolet.png",
-  },
-  {
-    id: "t20",
-    position: 20,
-    type: "brand",
-    name: "Under Armour",
-    color: "#FF0000",
-    value: 450,
-    logo: "/assets/brands/underarmour.png",
-  },
-  { id: "t21", position: 21, type: "empire", name: "Empire Card" },
-  {
-    id: "t22",
-    position: 22,
-    type: "brand",
-    name: "Ducati",
-    color: "#800080",
-    value: 500,
-    logo: "/assets/brands/ducati.png",
-  },
-  {
-    id: "t23",
-    position: 23,
-    type: "brand",
-    name: "Macdonalds",
-    color: "#800080",
-    value: 500,
-    logo: "/assets/brands/mcdonalds.png",
-  },
-  { id: "t24", position: 24, type: "utility", name: "Rival Tower" },
-  {
-    id: "t25",
-    position: 25,
-    type: "brand",
-    name: "Intel",
-    color: "#0071C5",
-    value: 550,
-    logo: "/assets/brands/intel.png",
-  },
-  {
-    id: "t26",
-    position: 26,
-    type: "brand",
-    name: "Nestlé",
-    color: "#0071C5",
-    value: 550,
-    logo: "/assets/brands/nestle.png",
-  },
+type Tile = {
+  id: string;
+  position: number;
+  type: TileType;
+  name: string;
+  color?: string;
+  value?: number;
+  logo?: string;
+};
 
-  { id: "t27", position: 27, type: "corner", name: "Go To Jail" },
-  {
-    id: "t28",
-    position: 28,
-    type: "brand",
-    name: "Samsung",
-    color: "#000000",
-    value: 600,
-    logo: "/assets/brands/samsung.png",
-  },
-  {
-    id: "t29",
-    position: 29,
-    type: "brand",
-    name: "Xbox",
-    color: "#000000",
-    value: 600,
-    logo: "/assets/brands/xbox.png",
-  },
-  { id: "t30", position: 30, type: "chance", name: "Chance" },
-  {
-    id: "t31",
-    position: 31,
-    type: "brand",
-    name: "Coca-Cola",
-    color: "#f40000",
-    value: 650,
-    logo: "/assets/brands/cocacola.png",
-  },
-  {
-    id: "t32",
-    position: 32,
-    type: "brand",
-    name: "Universal",
-    color: "#f40000",
-    value: 650,
-    logo: "/assets/brands/universal.png",
-  },
-  { id: "t33", position: 33, type: "tax", name: "Tower Tax", value: 100 },
-  {
-    id: "t34",
-    position: 34,
-    type: "brand",
-    name: "Paramount",
-    color: "#2E86C1",
-    value: 700,
-    logo: "/assets/brands/paramount.png",
-  },
-  {
-    id: "t35",
-    position: 35,
-    type: "brand",
-    name: "Hasbro",
-    color: "#2E86C1",
-    value: 750,
-    logo: "/assets/brands/hasbro.png",
-  },
-];
-
-const mockPlayers = [
-  {
-    id: "p1",
-    name: "Player 1",
-    color: "#e74c3c",
-    money: 1500,
-    position: 0,
-    properties: [],
-    brands: [],
-    towerHeight: 0,
-  },
-  {
-    id: "p2",
-    name: "Player 2",
-    color: "#3498db",
-    money: 1500,
-    position: 0,
-    properties: [],
-    brands: [],
-    towerHeight: 0,
-  },
-  {
-    id: "p3",
-    name: "Player 3",
-    color: "#2ecc71",
-    money: 1500,
-    position: 0,
-    properties: [],
-    brands: [],
-    towerHeight: 0,
-  },
-  {
-    id: "p4",
-    name: "Player 4",
-    color: "#f39c12",
-    money: 1500,
-    position: 0,
-    properties: [],
-    brands: [],
-    towerHeight: 0,
-  },
-];
+// Culori predefinite pentru jucători
+const PLAYER_COLORS = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12"];
 
 export default function GamePage() {
-  const [players, setPlayers] = useState(mockPlayers);
+  const { user } = useAuth();
+  // Inițializare cu un array gol și validare în useEffect
+  const [tiles, setTiles] = useState<Tile[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [bankMoney, setBankMoney] = useState(15000);
-  const [gameStatus, setGameStatus] = useState<
-    "waiting" | "playing" | "finished"
-  >("playing");
+  const [gameStatus, setGameStatus] = useState<"waiting" | "playing" | "finished">("waiting");
+  
+  // Inițializează și validează tiles
+  useEffect(() => {
+    try {
+      // Validează că toate tiles au un tip valid
+      const validatedTiles = tileData.tiles.map(tile => {
+        // Verifică dacă tipul este valid
+        const validType = ["empire", "chance", "corner", "brand", "utility", "tax"].includes(tile.type);
+        if (!validType) {
+          console.error(`Tip de dale invalid: ${tile.type} pentru ${tile.name}`);
+          // Oferă un tip implicit pentru siguranță
+          return { ...tile, type: "utility" as TileType };
+        }
+        return tile as Tile;
+      });
+      
+      setTiles(validatedTiles);
+    } catch (error) {
+      console.error("Eroare la încărcarea datelor pentru dale:", error);
+    }
+  }, []);
+  
+  // Obține informații despre joc și jucători
+  useEffect(() => {
+    async function fetchGameData() {
+      try {
+        const token = localStorage.getItem("token");
+        const gameId = localStorage.getItem("gameId");
+        
+        if (!gameId) {
+          console.error("No game ID found");
+          return;
+        }
+        
+        // Convertește gameId în ID-ul real al jocului
+        const realGameId = Number(gameId) - 1000;
+        
+        // Fetch game data
+        const response = await fetch(`http://localhost:8080/api/jocuri/${realGameId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch game data");
+        }
+        
+        const result = await response.json();
+        const gameData = result.data;
+        
+        // Obtine lista de jucători
+        const playerNames = gameData.jucatori.split(";");
+        
+        // Crearea jucătorilor cu nume reale
+        const gamePlayers = playerNames.map((name: string, index: number) => ({
+          id: `p${index + 1}`,
+          name: name.trim(), // Numele real al jucătorului
+          color: PLAYER_COLORS[index], // Culoarea predefinită
+          money: 1500,
+          position: 0,
+          properties: [],
+          brands: [],
+          towerHeight: 0
+        }));
+        
+        setPlayers(gamePlayers);
+        setGameStatus("playing");
+        
+      } catch (error) {
+        console.error("Error fetching game data:", error);
+      }
+    }
+    
+    fetchGameData();
+  }, []);
 
   const handleDiceRoll = (diceValues: number[]) => {
     const diceSum = diceValues[0] + diceValues[1];
@@ -301,8 +130,7 @@ export default function GamePage() {
       const currentPlayer = { ...newPlayers[currentPlayerIndex] };
 
       // Calculate new position (wrapping around the board)
-      currentPlayer.position =
-        (currentPlayer.position + diceSum) % monopolyEmpireTiles.length;
+      currentPlayer.position = (currentPlayer.position + diceSum) % tiles.length;
 
       newPlayers[currentPlayerIndex] = currentPlayer;
       return newPlayers;
@@ -321,6 +149,22 @@ export default function GamePage() {
     console.log(`Player drew a ${type} card`);
   };
 
+  // Dacă jocul încă se încarcă sau nu avem jucători, afișează stare de încărcare
+  if (gameStatus === "waiting" || players.length === 0) {
+    return (
+      <div className={styles.loadingContainer}>
+        <h2>Loading game data...</h2>
+      </div>
+    );
+  }
+
+  // Poziționarea panourilor de jucători în funcție de numărul lor
+  const playerPositions = players.length === 2 
+    ? ["topLeft", "topRight"] 
+    : players.length === 3
+    ? ["topLeft", "topRight", "bottomLeft"]
+    : ["topLeft", "topRight", "bottomLeft", "bottomRight"];
+
   return (
     <div className={styles.gamePageContainer}>
       <div className={styles.gameContent}>
@@ -329,33 +173,20 @@ export default function GamePage() {
           <Bank totalMoney={bankMoney} onTransaction={() => {}} />
         </div>
 
-        {/* Player panels */}
-        <PlayerPanel
-          player={players[0]}
-          isCurrentPlayer={currentPlayerIndex === 0}
-          position="topLeft"
-        />
-        <PlayerPanel
-          player={players[1]}
-          isCurrentPlayer={currentPlayerIndex === 1}
-          position="topRight"
-        />
-        <PlayerPanel
-          player={players[2]}
-          isCurrentPlayer={currentPlayerIndex === 2}
-          position="bottomLeft"
-        />
-        <PlayerPanel
-          player={players[3]}
-          isCurrentPlayer={currentPlayerIndex === 3}
-          position="bottomRight"
-        />
+        {/* Player panels - afișate condițional bazat pe numărul de jucători */}
+        {players.map((player, index) => (
+          <PlayerPanel
+            key={player.id}
+            player={player}
+            isCurrentPlayer={currentPlayerIndex === index}
+            position={playerPositions[index] as "topLeft" | "topRight" | "bottomLeft" | "bottomRight"}
+          />
+        ))}
 
         {/* Game board */}
         <div className={styles.boardArea}>
           <GameBoard
-            //@ts-ignore
-            tiles={monopolyEmpireTiles}
+            tiles={tiles}
             currentPlayer={currentPlayerIndex}
             players={players}
           />

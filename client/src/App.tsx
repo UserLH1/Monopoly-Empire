@@ -27,9 +27,9 @@ const App = () => {
         {/* Already protected in GamePage component */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/pending" element={<Pending />} />
+        <Route path="/pending" element={<ProtectedRoute><Pending /></ProtectedRoute>} />
         <Route path="/rules" element={<Rules />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

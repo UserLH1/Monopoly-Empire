@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/jucator", {
+      const response = await fetch("http://localhost:8080/api/jucatori/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

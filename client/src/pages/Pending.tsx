@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import "../styles/PendingPage.css";
+import styles from "../styles/PendingPage.module.css";
+import { motion } from "framer-motion";
 
 type JocDto = {
   jucatori: string;    // numele jucătorilor despărțite prin ;
@@ -15,12 +16,14 @@ export default function PendingPage() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false); // 👈 adăugat pentru mesaj toast
+  const [showToast, setShowToast] = useState(false);
+  const [gameInfo, setGameInfo] = useState<JocDto | null>(null);
+  const [isAllPlayersJoined, setIsAllPlayersJoined] = useState(false);
 
-  const gameId = localStorage.getItem("gameId");
+  const gameCode = localStorage.getItem("gameId");
 
   useEffect(() => {
-    if (!gameId) {
+    if (!gameCode) {
       setError("No game ID found. Please rejoin the game.");
       return;
     }
@@ -28,8 +31,11 @@ export default function PendingPage() {
     const fetchGameData = async () => {
       try {
         const token = localStorage.getItem("token");
+        
+        // Transformăm codul jocului în ID-ul real pentru API
+        const realGameId = Number(gameCode) - 1000;
 
-        const response = await fetch(`http://localhost:8080/api/jocuri/${gameId}`, {
+        const response = await fetch(`http://localhost:8080/api/jocuri/${realGameId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -46,17 +52,15 @@ export default function PendingPage() {
           throw new Error("Game not found.");
         }
 
+        setGameInfo(myGame);
         const playerList = myGame.jucatori ? myGame.jucatori.split(";") : [];
         setPlayers(playerList);
 
+        // Verifică dacă toți jucătorii au intrat
+        setIsAllPlayersJoined(playerList.length === myGame.nrJucatori);
+
         if (myGame.statusJoc === "STARTED") {
           navigate("/game");
-        } else if (playerList.length === myGame.nrJucatori && myGame.statusJoc === "WAITING") {
-          // Arată toast alert înainte de navigate
-          setShowToast(true);
-          setTimeout(() => {
-            navigate("/game");
-          }, 1500);
         }
       } catch (error: any) {
         setError(error.message);
@@ -67,77 +71,115 @@ export default function PendingPage() {
     const intervalId = setInterval(fetchGameData, 3000);
 
     return () => clearInterval(intervalId);
-  }, [gameId, navigate]);
+  }, [gameCode, navigate]);
+
+  const handleStartGame = async () => {
+    // Implementează logica pentru a începe jocul
+    try {
+      const token = localStorage.getItem("token");
+      const realGameId = Number(gameCode) - 1000;
+      
+      // Trebuie să existe un endpoint de start game
+      
+      // Redirecționează către pagina de joc
+      navigate("/game");
+      
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleBack = () => {
+    navigate("/");
+  };
 
   return (
-    <div className="home-container">
-      <nav className="navbar">
-        <div className="title">Monopoly Empire</div>
-        {user && (
-          <button className="logout-button" onClick={logout}>
-            Logout
-          </button>
-        )}
-      </nav>
-
-      <main className="main-section">
-        {showToast && ( // 👈 Toast alert
-          <div style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            padding: "10px 20px",
-            borderRadius: "8px",
-            zIndex: 1000
-          }}>
-            All players have joined! Starting game...
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1>Monopoly Empire</h1>
+        {user ? (
+          <div className={styles.userPanel}>
+            <span>Welcome, {user.name}</span>
+            <button onClick={logout}>Logout</button>
+          </div>
+        ) : (
+          <div className={styles.buttonGroup}>
+            <button onClick={() => navigate("/login")} className={styles.loginButton}>
+              Login
+            </button>
           </div>
         )}
+      </header>
 
-        <div className="left-side">
-          <div className="welcome">Waiting for Players...</div>
-
-          {gameId && (
-            <div className="game-id">
-              <strong>Game ID:</strong> {gameId}
+      <main className={styles.mainContent}>
+        <section className={styles.quickStart}>
+          <h2>Waiting for Players</h2>
+          
+          {gameCode && (
+            <div className={styles.gameCodeDisplay}>
+              <span>Game Code:</span>
+              <span className={styles.codeNumber}>{gameCode}</span>
             </div>
           )}
+          
+          <p className={styles.instructions}>
+            Share this code with your friends to join the game. The game will start once all players have joined.
+          </p>
+          
+          {isAllPlayersJoined && (
+            <button 
+              className={`${styles.playButton} ${styles.startButton}`}
+              onClick={handleStartGame}
+            >
+              Start Game
+            </button>
+          )}
+          
+          <button 
+            className={`${styles.playButton} ${styles.backButton}`}
+            onClick={handleBack}
+          >
+            Back to Home
+          </button>
+        </section>
 
-          <div className="image-placeholder">
-            {players.length === 0 ? "Loading players..." : null}
-          </div>
-
-          <div className="description">
-            Share the Game ID with your friends! As soon as enough players join, the game will begin automatically.
-          </div>
-        </div>
-
-        <div className="right-side">
-          <div className="players-title">Players Joined</div>
-
-          {error && <p style={{ color: "red" }}>{error}</p>}
-
-          <ul className="players-list">
-            {players.length === 0 ? (
-              <p>No players yet.</p>
-            ) : (
-              players.map((player, index) => (
-                <li key={index} className="player">
-                  <div className="avatar">{player.charAt(0).toUpperCase()}</div>
-                  <div>{player}</div>
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
+        <section className={styles.playersList}>
+          <h3>Players Joined ({players.length}/{gameInfo?.nrJucatori || "?"})</h3>
+          
+          {players.length === 0 ? (
+            <div className={styles.noPlayers}>No players have joined yet</div>
+          ) : (
+            <ul className={styles.playersGrid}>
+              {players.map((player, index) => (
+                <motion.li 
+                  key={index} 
+                  className={styles.playerCard}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <div className={styles.playerAvatar}>
+                    {player.charAt(0).toUpperCase()}
+                  </div>
+                  <div className={styles.playerName}>{player}</div>
+                </motion.li>
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
 
-      <footer className="footer">
-        &copy; 2025 Monopoly Empire. All rights reserved.
-      </footer>
+      {/* Toast pentru afișarea mesajelor */}
+      {showToast && (
+        <motion.div 
+          className={styles.toast}
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+        >
+          All players have joined! You can start the game now.
+        </motion.div>
+      )}
     </div>
   );
 }
