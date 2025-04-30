@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion"; // Asigurați-vă că este instalat
 import styles from "../../styles/GamePage/GamePage.module.css";
 import Bank from "./Bank";
 import CardDeck from "./CardDecks";
@@ -36,7 +37,25 @@ type Tile = {
 // Culori predefinite pentru jucători
 const PLAYER_COLORS = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12"];
 
-export default function GamePage() {
+// Adăugați această funcție de formatare a timpului în afara componentei
+const formatGameTime = (seconds: number | null): string => {
+  if (seconds === null) return "00:00";
+  
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`;
+  const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : `${remainingSeconds}`;
+  
+  return `${formattedMinutes}:${formattedSeconds}`;
+};
+
+// Adăugăm props pentru timp
+interface GamePageComponentProps {
+  syncedTime?: number | null;
+}
+
+export default function GamePageComponent({ syncedTime }: GamePageComponentProps) {
   const { user } = useAuth();
   // Inițializare cu un array gol și validare în useEffect
   const [tiles, setTiles] = useState<Tile[]>([]);
@@ -44,7 +63,61 @@ export default function GamePage() {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [bankMoney, setBankMoney] = useState(15000);
   const [gameStatus, setGameStatus] = useState<"waiting" | "playing" | "finished">("waiting");
-  
+  const [loading, setLoading] = useState(true);
+
+  // Funcție pentru preluarea datelor jucătorilor
+  const fetchPlayerData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const gameId = localStorage.getItem("gameId");
+      if (!gameId) return;
+
+      const realGameId = Number(gameId) - 1000;
+      
+      const response = await fetch(`http://localhost:8080/api/jocuri/${realGameId}/jucatori`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch player data");
+      }
+
+      const result = await response.json();
+      
+      if (result.data && Array.isArray(result.data)) {
+        // Transformăm datele în formatul necesar pentru componenta PlayerPanel
+        const formattedPlayers: Player[] = result.data.map((player: any, index: number) => ({
+          id: player.username || `p${index + 1}`,
+          name: player.username || `Player ${index + 1}`,
+          color: PLAYER_COLORS[index],
+          money: player.sumaBani || 1500, // Folosim banii din baza de date
+          position: player.pozitiePion || 0,
+          properties: [],
+          brands: [],
+          towerHeight: 0 // Acesta poate fi calculat din numărul de brand-uri
+        }));
+        
+        setPlayers(formattedPlayers);
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching player data:", error);
+      setLoading(false);
+    }
+  };
+
+  // Adăugăm un efect pentru actualizarea periodică a datelor
+  useEffect(() => {
+    fetchPlayerData();
+    
+    const intervalId = setInterval(fetchPlayerData, 5000); // Actualizăm la fiecare 5 secunde
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
   // Inițializează și validează tiles
   useEffect(() => {
     try {
@@ -150,7 +223,7 @@ export default function GamePage() {
   };
 
   // Dacă jocul încă se încarcă sau nu avem jucători, afișează stare de încărcare
-  if (gameStatus === "waiting" || players.length === 0) {
+  if (loading || gameStatus === "waiting" || players.length === 0) {
     return (
       <div className={styles.loadingContainer}>
         <h2>Loading game data...</h2>
@@ -167,13 +240,15 @@ export default function GamePage() {
 
   return (
     <div className={styles.gamePageContainer}>
-      <div className={styles.gameContent}>
+      <div >
         {/* Bank positioned at top center */}
         <div className={styles.topBank}>
           <Bank totalMoney={bankMoney} onTransaction={() => {}} />
         </div>
+      </div>
 
-        {/* Player panels - afișate condițional bazat pe numărul de jucători */}
+      <div className={styles.gameContent}>
+        {/* Player panels */}
         {players.map((player, index) => (
           <PlayerPanel
             key={player.id}

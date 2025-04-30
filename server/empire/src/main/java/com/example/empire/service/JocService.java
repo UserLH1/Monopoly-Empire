@@ -5,6 +5,7 @@ import com.example.empire.model.Joc;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public interface JocService {
@@ -28,4 +29,10 @@ public interface JocService {
     void scoateJucatorDinJoc(String username, Long idJoc);
 
     JocDto getJocCurentAlUtilizatorului(String username);
+
+    void startGame(Long idJoc);
+
+    Long getGameTime(Long idJoc);
+
+    List<UtilizatorJocDto> getJucatoriDinJoc(Long idJoc);
 }

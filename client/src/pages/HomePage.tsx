@@ -42,20 +42,28 @@ export default function HomePage() {
   const checkCurrentGameFromServer = async () => {
     const token = localStorage.getItem("token");
     if (!token || !user) {
-        console.log("Nu există token sau utilizator, nu se face cererea");
-        return;
+      console.log("Nu există token sau utilizator, nu se face cererea");
+      return;
     }
     
     try {
-        const response = await fetch("http://localhost:8080/api/jocuri/joc-curent", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+      const response = await fetch("http://localhost:8080/api/jocuri/jocCurent", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
         
-        if (!response.ok) {
-            if (response.status === 401) {
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Problema cu autentificarea
+          logout();
+          return;
+        }
+        throw new Error("Failed to check current game");
+      }
       
+      const result = await response.json();
+        
       if (result.data && result.data.joc) {
         // Utilizatorul are un joc în curs
         const gameCode = result.data.gameCode.toString();
@@ -385,4 +393,3 @@ function StatItem({ title, value }: { title: string; value: string }) {
     </div>
   );
 }
-

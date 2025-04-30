@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.empire.config.JwtService;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -48,8 +49,23 @@ public class JocController {
 
     @GetMapping("/jocuri/{idJoc}/jucatori")
     public ResponseEntity<ApiResponse> returneazaJucatoriiUnuiJoc(@PathVariable Long idJoc){
-        String jucatori = jocService.returneazaJucatoriiUnuiJoc(idJoc);
-        return ResponseEntity.ok(ApiResponse.success("Jucatori returnati cu succes", jucatori));
+        try {
+            // Verifică dacă jocul există
+            if (!jocService.existaJoc(idJoc)) {
+                return ResponseEntity
+                    .status(404)
+                    .body(ApiResponse.error(404, "Jocul nu există."));
+            }
+            
+            // Obține informațiile despre jucătorii din joc
+            List<UtilizatorJocDto> jucatori = jocService.getJucatoriDinJoc(idJoc);
+            
+            return ResponseEntity.ok(ApiResponse.success("Jucătorii din joc au fost obținuți cu succes.", jucatori));
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(500)
+                .body(ApiResponse.error(500, "A apărut o eroare: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/jocuri/{idJoc}/turnuri")
@@ -124,7 +140,7 @@ public class JocController {
         }
     }
 
-    @GetMapping("/jocuri/joc-curent")
+    @GetMapping("/jocuri/jocCurent")
     public ResponseEntity<ApiResponse> getJocCurent(@RequestHeader("Authorization") String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -152,6 +168,58 @@ public class JocController {
             return ResponseEntity.ok(ApiResponse.success("Jocul curent al utilizatorului", responseData));
         } catch (Exception e) {
             e.printStackTrace(); // Adaugă pentru log-uri mai bune
+            return ResponseEntity
+                .status(500)
+                .body(ApiResponse.error(500, "A apărut o eroare: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/jocuri/startJoc/{idJoc}")
+    public ResponseEntity<ApiResponse> startGame(@RequestHeader("Authorization") String authHeader, @PathVariable Long idJoc) {
+        String jwt = authHeader.substring(7);
+        String username = jwtService.extractUsername(jwt);
+        
+        try {
+            // Verificăm dacă jocul există
+            if (!jocService.existaJoc(idJoc)) {
+                return ResponseEntity
+                    .status(404)
+                    .body(ApiResponse.error(404, "Jocul nu există."));
+            }
+            
+            // Verificăm dacă utilizatorul este în acest joc
+            if (!jocService.esteUtilizatorInJoculSpecificat(username, idJoc)) {
+                return ResponseEntity
+                    .status(400)
+                    .body(ApiResponse.error(400, "Nu ești în acest joc."));
+            }
+            
+            // Pornim jocul
+            jocService.startGame(idJoc);
+            
+            return ResponseEntity.ok(ApiResponse.success("Jocul a fost pornit cu succes.", null));
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(500)
+                .body(ApiResponse.error(500, "A apărut o eroare: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/jocuri/{idJoc}/timp")
+    public ResponseEntity<ApiResponse> getGameTimer(@PathVariable Long idJoc) {
+        try {
+            // Verificăm dacă jocul există
+            if (!jocService.existaJoc(idJoc)) {
+                return ResponseEntity
+                    .status(404)
+                    .body(ApiResponse.error(404, "Jocul nu există."));
+            }
+            
+            // Obținem timpul jocului
+            Long gameTime = jocService.getGameTime(idJoc);
+            
+            return ResponseEntity.ok(ApiResponse.success("Timp joc obținut cu succes.", gameTime));
+        } catch (Exception e) {
             return ResponseEntity
                 .status(500)
                 .body(ApiResponse.error(500, "A apărut o eroare: " + e.getMessage()));

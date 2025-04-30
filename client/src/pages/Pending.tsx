@@ -59,7 +59,7 @@ export default function PendingPage() {
         // Verifică dacă toți jucătorii au intrat
         setIsAllPlayersJoined(playerList.length === myGame.nrJucatori);
 
-        if (myGame.statusJoc === "STARTED") {
+        if (myGame.statusJoc === "START" || myGame.statusJoc === "2" || myGame.statusJoc === "STARTED") {
           navigate("/game");
         }
       } catch (error: any) {
@@ -74,24 +74,52 @@ export default function PendingPage() {
   }, [gameCode, navigate]);
 
   const handleStartGame = async () => {
-    // Implementează logica pentru a începe jocul
     try {
       const token = localStorage.getItem("token");
       const realGameId = Number(gameCode) - 1000;
       
-      // Trebuie să existe un endpoint de start game
+      // Apelăm endpoint-ul de startJoc
+      const response = await fetch(`http://localhost:8080/api/jocuri/startJoc/${realGameId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       
-      // Redirecționează către pagina de joc
-      navigate("/game");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to start game");
+      }
+      
+      // Actualizăm starea jocului local
+      if (gameInfo) {
+        setGameInfo({
+          ...gameInfo,
+          statusJoc: "START"
+        });
+      }
+      
+      // Așteptăm puțin pentru a permite backend-ului să actualizeze statusul
+      setTimeout(() => {
+        navigate("/game");
+      }, 500);
       
     } catch (error: any) {
       alert(error.message);
+      console.error("Error starting game:", error);
     }
+  };
+
+  const handleContinueGame = () => {
+    navigate("/game");
   };
 
   const handleBack = () => {
     navigate("/");
   };
+
+  // Verifică dacă jocul a început
+  const isGameStarted = gameInfo?.statusJoc === "START" || gameInfo?.statusJoc === "2";
 
   return (
     <div className={styles.container}>
@@ -113,7 +141,8 @@ export default function PendingPage() {
 
       <main className={styles.mainContent}>
         <section className={styles.quickStart}>
-          <h2>Waiting for Players</h2>
+          {/* Titlul se schimbă în funcție de statusul jocului */}
+          <h2>{isGameStarted ? "The Game Has Started" : "Waiting for Players"}</h2>
           
           {gameCode && (
             <div className={styles.gameCodeDisplay}>
@@ -122,17 +151,31 @@ export default function PendingPage() {
             </div>
           )}
           
+          {/* Descrierea se schimbă în funcție de statusul jocului */}
           <p className={styles.instructions}>
-            Share this code with your friends to join the game. The game will start once all players have joined.
+            {isGameStarted 
+              ? "The game has started. Click the Continue Game button to join the action!"
+              : "Share this code with your friends to join the game. The game will start once all players have joined."}
           </p>
           
           {isAllPlayersJoined && (
-            <button 
-              className={`${styles.playButton} ${styles.startButton}`}
-              onClick={handleStartGame}
-            >
-              Start Game
-            </button>
+            <>
+              {isGameStarted ? (
+                <button 
+                  className={`${styles.playButton} ${styles.continueButton}`}
+                  onClick={handleContinueGame}
+                >
+                  Continue Game
+                </button>
+              ) : (
+                <button 
+                  className={`${styles.playButton} ${styles.startButton}`}
+                  onClick={handleStartGame}
+                >
+                  Start Game
+                </button>
+              )}
+            </>
           )}
           
           <button 

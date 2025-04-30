@@ -1,56 +1,65 @@
 .panel {
   position: absolute;
-  width: 250px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 10px;
-  padding: 12px;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 15px;
   color: #333;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25), 0 3px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
   transition: transform 0.3s, box-shadow 0.3s;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 
 .topLeft {
-  top: 0;
-  left: 0;
-  border-radius: 0 0 10px 0;
+  top: 20px;
+  left: 20px;
+  border-radius: 0 12px 12px 12px;
 }
 
 .topRight {
-  top: 0;
-  right: 0;
-  border-radius: 0 0 0 10px;
+  top: 20px;
+  right: 20px;
+  border-radius: 12px 0 12px 12px;
 }
 
 .bottomLeft {
-  bottom: 0;
-  left: 0;
-  border-radius: 0 10px 0 0;
+  bottom: 20px;
+  left: 20px;
+  border-radius: 12px 12px 0 12px;
 }
 
 .bottomRight {
-  bottom: 0;
-  right: 0;
-  border-radius: 10px 0 0 0;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 12px 12px 12px 0;
 }
 
 .active {
-  box-shadow: 0 0 0 3px #e94560, 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 3px #e94560, 0 10px 25px rgba(0, 0, 0, 0.35);
   transform: scale(1.05);
+  z-index: 101;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 8px;
+  gap: 12px;
+  padding-bottom: 10px;
   border-bottom: 3px solid;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  position: relative;
 }
 
 .avatar {
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -58,35 +67,129 @@
   color: white;
   font-weight: bold;
   font-size: 1.2rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.playerName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.activeIndicator {
+  font-size: 1.2rem;
+  margin-right: 5px;
 }
 
 .money {
-  margin-left: auto;
   font-weight: bold;
   color: #2ecc71;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  margin-left: auto;
+  text-shadow: 0px 1px 2px rgba(0,0,0,0.1);
+  position: relative;
 }
 
 .content {
   display: flex;
-  gap: 12px;
+  gap: 15px;
+  align-items: stretch;
+}
+
+.towerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+}
+
+.towerLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.tower {
+  width: 50px;
+  height: 150px;
+  background-color: #f0f0f0;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.towerFill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, #3498db, #2980b9);
+  transition: height 0.5s ease-out;
+}
+
+.brandLogo {
+  width: 40px;
+  height: 20px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 2;
 }
 
 .cardCount {
   flex: 1;
-  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .cardType {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  background: #f0f0f0;
-  padding: 5px 8px;
-  border-radius: 4px;
+  padding: 8px 12px;
+  background: linear-gradient(to right, #f5f7fa, #f0f2f5);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+  border-left: 3px solid #ddd;
+}
+
+.cardType:nth-child(1) {
+  border-color: #3498db;
+}
+
+.cardType:nth-child(2) {
+  border-color: #f1c40f;
+}
+
+.cardType:nth-child(3) {
+  border-color: #e74c3c;
+}
+
+.cardType:hover {
+  background: linear-gradient(to right, #f0f2f5, #e6e9ed);
 }
 
 .count {
   font-weight: bold;
   color: #e94560;
+  background-color: rgba(233, 69, 96, 0.1);
+  padding: 1px 8px;
+  border-radius: 10px;
 }

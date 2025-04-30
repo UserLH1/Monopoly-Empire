@@ -11,6 +11,7 @@ import com.example.empire.service.JocService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,24 +67,29 @@ public class JocServiceImpl implements JocService {
             if (listaJucatori.contains(addUserDto.getUsername())) {
                 throw new BadRequestException("This user is already registered ");
             } else {
-
+                // Adăugăm noul jucător
                 String newPlayers = joc.getJucatori() + ';' + addUserDto.getUsername();
                 joc.setJucatori(newPlayers);
-
-                if (jucatori.length == joc.getNrJucatori())
+                
+                // Verificăm DUPĂ adăugarea jucătorului dacă s-a atins numărul maxim
+                String[] jucatoriActualizati = newPlayers.split(";");
+                if (jucatoriActualizati.length == joc.getNrJucatori()) {
+                    // Jocul poate începe - toți jucătorii s-au alăturat
                     joc.setStatus(GameStatus.START);
+                    joc.setStartTime(LocalDateTime.now());
+                    joc.setGameTimer(0L);
+                }
 
                 jocRepository.save(joc);
 
+                // Restul codului rămâne neschimbat
                 Optional<Utilizator> optional = utilizatorRepository.getUtilizatorByUsername(addUserDto.getUsername());
                 if (optional.isPresent()) {
-
                     Utilizator utilizator = optional.get();
                     utilizator.setSumaBani(1500);
                     utilizator.setIdJoc(addUserDto.getIdJoc());
                     utilizator.setPozitiePion(0);
                     utilizatorRepository.save(utilizator);
-
                 } else throw new BadRequestException("There is no user with this username");
             }
         } else throw new BadRequestException("There is no game with this id");
@@ -183,11 +189,16 @@ public class JocServiceImpl implements JocService {
     @Override
     public boolean esteUtilizatorInJoc(String username) {
         // Obține utilizatorul din baza de date
-        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Utilizatorul nu există"));
+        Optional<Utilizator> utilizatorOptional = utilizatorRepository.getUtilizatorByUsername(username);
+        
+        // Dacă utilizatorul nu există, nu poate fi într-un joc
+        if (utilizatorOptional.isEmpty()) {
+            return false;
+        }
         
         // Verifică dacă utilizatorul are un joc asociat (idJoc != null)
-        return utilizator.getIdJoc() != null;
+        Utilizator utilizator = utilizatorOptional.get();
+        return utilizator.getIdJoc() != -1;
     }
 
     @Override
@@ -231,8 +242,8 @@ public class JocServiceImpl implements JocService {
             jocRepository.save(joc);
         }
         
-        // 5. Actualizează utilizatorul (eliminăm referința la joc)
-        utilizator.setIdJoc(null);
+        // 5. Actualizează utilizatorul (setăm idJoc la -1L, nu la null)
+        utilizator.setIdJoc(-1L); // Modificat din null în -1L
         utilizator.setPozitiePion(0);
         utilizatorRepository.save(utilizator);
     }
@@ -260,5 +271,81 @@ public class JocServiceImpl implements JocService {
         jocDto.setStatusJoc(joc.getStatus().toString());
         
         return jocDto;
+    }
+
+    @Override
+    public void startGame(Long idJoc) {
+        // Obține jocul
+        Joc joc = jocRepository.findById(idJoc)
+            .orElseThrow(() -> new RuntimeException("Jocul nu există"));
+        
+        // Verifică dacă toți jucătorii sunt conectați
+        String[] jucatoriArray = joc.getJucatori().split(";");
+        if (jucatoriArray.length < joc.getNrJucatori()) {
+            throw new BadRequestException("Nu sunt suficienți jucători pentru a începe jocul");
+        }
+        
+        // Setează statusul la START (2)
+        joc.setStatus(GameStatus.START);
+        
+        // Setează timestamp-ul de început
+        joc.setStartTime(LocalDateTime.now());
+        
+        // Inițializează cronometrul
+        joc.setGameTimer(0L);
+        
+        // Salvează modificările
+        jocRepository.save(joc);
+    }
+
+    @Override
+    public Long getGameTime(Long idJoc) {
+        // Obține jocul
+        Joc joc = jocRepository.findById(idJoc)
+            .orElseThrow(() -> new RuntimeException("Jocul nu există"));
+        
+        // Dacă jocul nu a început încă, returnăm 0
+        if (joc.getStartTime() == null) {
+            return 0L;
+        }
+        
+        // Calculăm timpul trecut de la începerea jocului
+        LocalDateTime now = LocalDateTime.now();
+        Long secondsPassed = java.time.Duration.between(joc.getStartTime(), now).getSeconds();
+        
+        // Actualizăm gameTimer și salvăm
+        joc.setGameTimer(secondsPassed);
+        jocRepository.save(joc);
+        
+        return secondsPassed;
+    }
+
+    @Override
+    public List<UtilizatorJocDto> getJucatoriDinJoc(Long idJoc) {
+        // Obține jocul
+        Joc joc = jocRepository.findById(idJoc)
+            .orElseThrow(() -> new RuntimeException("Jocul nu există"));
+        
+        // Obține lista de jucători
+        String[] jucatoriArray = joc.getJucatori().split(";");
+        List<UtilizatorJocDto> rezultat = new ArrayList<>();
+        
+        // Pentru fiecare jucător, obține detaliile din baza de date
+        for (String username : jucatoriArray) {
+            if (!username.trim().isEmpty()) {
+                Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username.trim())
+                    .orElseThrow(() -> new RuntimeException("Utilizatorul " + username + " nu există"));
+                
+                // Crează DTO-ul pentru jucător
+                UtilizatorJocDto dto = new UtilizatorJocDto();
+                dto.setUsername(utilizator.getUsername());
+                dto.setSumaBani(utilizator.getSumaBani());
+                dto.setPozitiePion(utilizator.getPozitiePion());
+                
+                rezultat.add(dto);
+            }
+        }
+        
+        return rezultat;
     }
 }
