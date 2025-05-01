@@ -66,7 +66,7 @@ export default function PlayerPanel({
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 0.5 }}
         >
-          ${player.money}M
+          ${player.money}
         </motion.div>
       </div>
 

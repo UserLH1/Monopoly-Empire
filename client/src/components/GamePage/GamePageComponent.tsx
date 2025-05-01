@@ -1,18 +1,25 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion"; // Asigurați-vă că este instalat
+import { motion } from "framer-motion";
 import styles from "../../styles/GamePage/GamePage.module.css";
 import Bank from "./Bank";
 import CardDeck from "./CardDecks";
+import CardModal from "./CardModal";
 import DiceArea from "./DiceArea";
 import GameBoard from "./GameBoard";
 import PlayerPanel from "./PlayerPanels";
 import tileData from "../../assets/tiles.json";
 import useAuth from "../../hooks/useAuth";
+import { Card, ActiveCard, CardType } from "../../types/Card";
+import {
+  fetchCards,
+  fetchCardsByGame,
+  fetchUserCards,
+  drawRandomCard,
+  useCard
+} from "../../services/CardService";
 
-// Definirea tipului pentru tipurile valide de dale
 type TileType = "empire" | "chance" | "corner" | "brand" | "utility" | "tax";
 
-// Definirea tipurilor pentru jucători și dale
 type Player = {
   id: string;
   name: string;
@@ -34,10 +41,8 @@ type Tile = {
   logo?: string;
 };
 
-// Culori predefinite pentru jucători
 const PLAYER_COLORS = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12"];
 
-// Adăugați această funcție de formatare a timpului în afara componentei
 const formatGameTime = (seconds: number | null): string => {
   if (seconds === null) return "00:00";
   
@@ -50,22 +55,24 @@ const formatGameTime = (seconds: number | null): string => {
   return `${formattedMinutes}:${formattedSeconds}`;
 };
 
-// Adăugăm props pentru timp
 interface GamePageComponentProps {
   syncedTime?: number | null;
 }
 
 export default function GamePageComponent({ syncedTime }: GamePageComponentProps) {
   const { user } = useAuth();
-  // Inițializare cu un array gol și validare în useEffect
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [bankMoney, setBankMoney] = useState(15000);
   const [gameStatus, setGameStatus] = useState<"waiting" | "playing" | "finished">("waiting");
   const [loading, setLoading] = useState(true);
+  const [drawnCard, setDrawnCard] = useState<Card | null>(null);
+  const [showCardModal, setShowCardModal] = useState<boolean>(false);
+  const [empireCards, setEmpireCards] = useState<Card[]>([]);
+  const [chanceCards, setChanceCards] = useState<Card[]>([]);
+  const [userCards, setUserCards] = useState<ActiveCard[]>([]);
 
-  // Funcție pentru preluarea datelor jucătorilor
   const fetchPlayerData = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -85,18 +92,16 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
       }
 
       const result = await response.json();
-      
       if (result.data && Array.isArray(result.data)) {
-        // Transformăm datele în formatul necesar pentru componenta PlayerPanel
         const formattedPlayers: Player[] = result.data.map((player: any, index: number) => ({
           id: player.username || `p${index + 1}`,
           name: player.username || `Player ${index + 1}`,
           color: PLAYER_COLORS[index],
-          money: player.sumaBani || 1500, // Folosim banii din baza de date
+          money: player.sumaBani || 1500,
           position: player.pozitiePion || 0,
           properties: [],
           brands: [],
-          towerHeight: 0 // Acesta poate fi calculat din numărul de brand-uri
+          towerHeight: 0
         }));
         
         setPlayers(formattedPlayers);
@@ -109,25 +114,19 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     }
   };
 
-  // Adăugăm un efect pentru actualizarea periodică a datelor
   useEffect(() => {
     fetchPlayerData();
-    
-    const intervalId = setInterval(fetchPlayerData, 5000); // Actualizăm la fiecare 5 secunde
-    
+    const intervalId = setInterval(fetchPlayerData, 50000); // Fetch player data every 50 seconds
+    console.log("player data fetched every 50 seconds");
     return () => clearInterval(intervalId);
   }, []);
 
-  // Inițializează și validează tiles
   useEffect(() => {
     try {
-      // Validează că toate tiles au un tip valid
       const validatedTiles = tileData.tiles.map(tile => {
-        // Verifică dacă tipul este valid
         const validType = ["empire", "chance", "corner", "brand", "utility", "tax"].includes(tile.type);
         if (!validType) {
           console.error(`Tip de dale invalid: ${tile.type} pentru ${tile.name}`);
-          // Oferă un tip implicit pentru siguranță
           return { ...tile, type: "utility" as TileType };
         }
         return tile as Tile;
@@ -139,7 +138,6 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     }
   }, []);
   
-  // Obține informații despre joc și jucători
   useEffect(() => {
     async function fetchGameData() {
       try {
@@ -151,10 +149,8 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
           return;
         }
         
-        // Convertește gameId în ID-ul real al jocului
         const realGameId = Number(gameId) - 1000;
         
-        // Fetch game data
         const response = await fetch(`http://localhost:8080/api/jocuri/${realGameId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -168,14 +164,12 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
         const result = await response.json();
         const gameData = result.data;
         
-        // Obtine lista de jucători
         const playerNames = gameData.jucatori.split(";");
         
-        // Crearea jucătorilor cu nume reale
         const gamePlayers = playerNames.map((name: string, index: number) => ({
           id: `p${index + 1}`,
-          name: name.trim(), // Numele real al jucătorului
-          color: PLAYER_COLORS[index], // Culoarea predefinită
+          name: name.trim(),
+          color: PLAYER_COLORS[index],
           money: 1500,
           position: 0,
           properties: [],
@@ -194,35 +188,127 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     fetchGameData();
   }, []);
 
+  useEffect(() => {
+    const fetchCardData = async () => {
+      try {
+        const generalCards = await fetchCards("GENERAL");
+        const empireCards = generalCards.filter((card: Card) => card.tip === "empire");
+        const chanceCards = generalCards.filter((card: Card) => card.tip === "chance");
+        setEmpireCards(empireCards);
+        setChanceCards(chanceCards);
+      } catch (error) {
+        console.error("Error fetching cards:", error);
+      }
+    };
+
+    fetchCardData();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserCardData = async () => {
+      if (!user || !user.name) return;
+      
+      try {
+        const cards = await fetchUserCards(user.name);
+        setUserCards(cards);
+      } catch (error) {
+        console.error("Error fetching user cards:", error);
+      }
+    };
+
+    fetchUserCardData();
+  }, [user]);
+
   const handleDiceRoll = (diceValues: number[]) => {
     const diceSum = diceValues[0] + diceValues[1];
 
-    // Move current player token
     setPlayers((prev) => {
       const newPlayers = [...prev];
       const currentPlayer = { ...newPlayers[currentPlayerIndex] };
-
-      // Calculate new position (wrapping around the board)
       currentPlayer.position = (currentPlayer.position + diceSum) % tiles.length;
-
       newPlayers[currentPlayerIndex] = currentPlayer;
       return newPlayers;
     });
 
-    // Logic for handling landing on different tile types would go here
-
-    // Move to next player after a delay to allow for animations
     setTimeout(() => {
       setCurrentPlayerIndex((prev) => (prev + 1) % players.length);
     }, 2000);
   };
 
-  const handleDrawCard = (type: "empire" | "chance") => {
-    // Logic for handling card drawing
-    console.log(`Player drew a ${type} card`);
+  const handleDrawCard = async (type: CardType) => {
+    if (!user || !user.name) return;
+    
+    try {
+      const gameId = localStorage.getItem("gameId");
+      if (!gameId) return;
+      
+      const realGameId = Number(gameId) - 1000;
+      const card = await drawRandomCard(type, realGameId, user.name);
+      setDrawnCard(card);
+      setShowCardModal(true);
+      fetchUserCards(user.name).then(cards => setUserCards(cards));
+    } catch (error) {
+      console.error(`Error drawing ${type} card:`, error);
+    }
   };
 
-  // Dacă jocul încă se încarcă sau nu avem jucători, afișează stare de încărcare
+  const handleUseCard = async () => {
+    if (!drawnCard || !user || !user.name) return;
+    
+    try {
+      const activeCard = userCards.find(card => card.id === drawnCard.id && !card.folosit);
+      
+      if (activeCard) {
+        await useCard(activeCard.idCardActiv);
+        setShowCardModal(false);
+        handleCardEffect(drawnCard);
+        fetchUserCards(user.name).then(cards => setUserCards(cards));
+      }
+    } catch (error) {
+      console.error("Error using card:", error);
+    }
+  };
+
+  const handleCardEffect = (card: Card) => {
+    switch (card.efectSpecial) {
+      case "MOVE_FORWARD":
+        setPlayers(prev => {
+          const newPlayers = [...prev];
+          const currentPlayer = { ...newPlayers[currentPlayerIndex] };
+          currentPlayer.position = (currentPlayer.position + (card.valoare || 0)) % tiles.length;
+          newPlayers[currentPlayerIndex] = currentPlayer;
+          return newPlayers;
+        });
+        break;
+        
+      case "COLLECT_MONEY":
+        setPlayers(prev => {
+          const newPlayers = [...prev];
+          const currentPlayer = { ...newPlayers[currentPlayerIndex] };
+          currentPlayer.money += card.valoare || 0;
+          newPlayers[currentPlayerIndex] = currentPlayer;
+          return newPlayers;
+        });
+        break;
+        
+      case "PAY_MONEY":
+        if ((players[currentPlayerIndex].money - (card.valoare || 0)) >= 0) {
+          setPlayers(prev => {
+            const newPlayers = [...prev];
+            const currentPlayer = { ...newPlayers[currentPlayerIndex] };
+            currentPlayer.money -= card.valoare || 0;
+            newPlayers[currentPlayerIndex] = currentPlayer;
+            return newPlayers;
+          });
+          setBankMoney(prev => prev + (card.valoare || 0));
+        }
+        break;
+        
+      default:
+        console.log("Card effect not implemented:", card.efectSpecial);
+    }
+  };
+
   if (loading || gameStatus === "waiting" || players.length === 0) {
     return (
       <div className={styles.loadingContainer}>
@@ -231,7 +317,6 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     );
   }
 
-  // Poziționarea panourilor de jucători în funcție de numărul lor
   const playerPositions = players.length === 2 
     ? ["topLeft", "topRight"] 
     : players.length === 3
@@ -241,14 +326,12 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
   return (
     <div className={styles.gamePageContainer}>
       <div >
-        {/* Bank positioned at top center */}
         <div className={styles.topBank}>
           <Bank totalMoney={bankMoney} onTransaction={() => {}} />
         </div>
       </div>
 
       <div className={styles.gameContent}>
-        {/* Player panels */}
         {players.map((player, index) => (
           <PlayerPanel
             key={player.id}
@@ -258,7 +341,6 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
           />
         ))}
 
-        {/* Game board */}
         <div className={styles.boardArea}>
           <GameBoard
             tiles={tiles}
@@ -266,7 +348,6 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
             players={players}
           />
 
-          {/* Dice moved to center of board */}
           <div className={styles.centerDiceArea}>
             <DiceArea
               onRoll={handleDiceRoll}
@@ -275,20 +356,28 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
           </div>
         </div>
 
-        {/* Card decks */}
         <div className={styles.cardDecks}>
           <CardDeck
             type="empire"
             onDrawCard={() => handleDrawCard("empire")}
-            disabled={false}
+            disabled={gameStatus !== "playing" || currentPlayerIndex !== players.findIndex(p => p.name === user?.name)}
+            remainingCards={empireCards.length}
           />
           <CardDeck
             type="chance"
             onDrawCard={() => handleDrawCard("chance")}
-            disabled={false}
+            disabled={gameStatus !== "playing" || currentPlayerIndex !== players.findIndex(p => p.name === user?.name)}
+            remainingCards={chanceCards.length}
           />
         </div>
       </div>
+
+      <CardModal
+        card={drawnCard}
+        isOpen={showCardModal}
+        onClose={() => setShowCardModal(false)}
+        onUseCard={handleUseCard}
+      />
     </div>
   );
 }
