@@ -192,8 +192,20 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     const fetchCardData = async () => {
       try {
         const generalCards = await fetchCards("GENERAL");
-        const empireCards = generalCards.filter((card: Card) => card.tip === "empire");
-        const chanceCards = generalCards.filter((card: Card) => card.tip === "chance");
+        console.log("All cards:", generalCards);
+        
+        // Folosește cardType în loc de tip pentru filtrare
+        const empireCards = generalCards.filter((card: any) => 
+          card.cardType && card.cardType.toUpperCase() === "EMPIRE"
+        );
+        
+        const chanceCards = generalCards.filter((card: any) => 
+          card.cardType && card.cardType.toUpperCase() === "CHANCE"
+        );
+        
+        console.log("Empire cards found:", empireCards.length);
+        console.log("Chance cards found:", chanceCards.length);
+        
         setEmpireCards(empireCards);
         setChanceCards(chanceCards);
       } catch (error) {
@@ -235,6 +247,7 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     }, 2000);
   };
 
+  // Modifică funcția handleDrawCard pentru a actualiza numărul de carduri
   const handleDrawCard = async (type: CardType) => {
     if (!user || !user.name) return;
     
@@ -246,6 +259,15 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
       const card = await drawRandomCard(type, realGameId, user.name);
       setDrawnCard(card);
       setShowCardModal(true);
+      
+      // Actualizează numărul de carduri disponibile
+      if (type === "empire") {
+        setEmpireCards(prev => prev.filter(c => c.idCard !== card.idCard));
+      } else {
+        setChanceCards(prev => prev.filter(c => c.idCard !== card.idCard));
+      }
+      
+      // Actualizează cardurile utilizatorului
       fetchUserCards(user.name).then(cards => setUserCards(cards));
     } catch (error) {
       console.error(`Error drawing ${type} card:`, error);
@@ -256,7 +278,7 @@ export default function GamePageComponent({ syncedTime }: GamePageComponentProps
     if (!drawnCard || !user || !user.name) return;
     
     try {
-      const activeCard = userCards.find(card => card.id === drawnCard.id && !card.folosit);
+      const activeCard = userCards.find(card => card.idCard === drawnCard.idCard && !card.folosit);
       
       if (activeCard) {
         await useCard(activeCard.idCardActiv);
