@@ -87,7 +87,6 @@ public class PanouActivImpl implements PanouActivService {
     @Override
     public void cumparaPanou(CumparaPanouDto cumparaPanouDto) {
         PanouCumparat panouCumparat = new PanouCumparat();
-        panouCumparat.setIdTurn(cumparaPanouDto.getIdTurn());
         Optional<Panou>optional = panouRepository.getPanouByIdPanou(cumparaPanouDto.getIdPanou());
         if(optional.isPresent())
         {
@@ -95,6 +94,7 @@ public class PanouActivImpl implements PanouActivService {
             Optional<Turn> turn = turnRepository.getTurnByIdTurn(cumparaPanouDto.getIdTurn());
 
             if(turn.isPresent()){
+                panouCumparat.setIdTurn(turn.get().getIdTurn());
                 String username = turn.get().getUsername();
                 Optional<Utilizator> utilizator = utilizatorRepository.getUtilizatorByUsername(username);
                 if(utilizator.isPresent()){
@@ -103,16 +103,19 @@ public class PanouActivImpl implements PanouActivService {
                     if(pretPanou>ut.getSumaBani())
                         throw new BadRequestException("Nu sunt suficienti bani pentru a cumpara acest panou");
                     else{
+                        Turn turn1 = turn.get();
+                        turn1.setValoareTurn(turn1.getValoareTurn()+panouCumparat.getPanou().getValoareAdaugataTurn());
                         ut.setSumaBani(ut.getSumaBani()-pretPanou);
                         utilizatorRepository.save(ut);
+                        turnRepository.save(turn1);
                         panouCumparatRepository.save(panouCumparat);
                     }
                 }
-                throw new BadRequestException("Nu exista un utilizator cu acest username");
+                else throw new BadRequestException("Nu exista un utilizator cu acest username");
             }
-            throw new BadRequestException("Nu exista un turn cu acest id");
+            else throw new BadRequestException("Nu exista un turn cu acest id");
         }
 
-        throw new BadRequestException("Nu exista acest panou");
+        else throw new BadRequestException("Nu exista acest panou");
     }
 }

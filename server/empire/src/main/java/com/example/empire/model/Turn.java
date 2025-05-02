@@ -18,10 +18,10 @@ public class Turn {
     private int idTurn;
     private String username;
     private int valoareTurn;
-    private int idJoc;
+    private Long idJoc;
 
     public Turn(){}
-    public Turn(int idTurn, String username, int valoareTurn, int idJoc) {
+    public Turn(int idTurn, String username, int valoareTurn, Long idJoc) {
         this.idTurn = idTurn;
         this.username = username;
         this.valoareTurn = valoareTurn;
@@ -52,11 +52,11 @@ public class Turn {
         this.valoareTurn = valoareTurn;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 }

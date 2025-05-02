@@ -78,6 +78,14 @@ public class JocServiceImpl implements JocService {
                     joc.setStatus(GameStatus.START);
                     joc.setStartTime(LocalDateTime.now());
                     joc.setGameTimer(0L);
+
+                    for(String jucator: jucatoriActualizati){
+                        Turn t = new Turn();
+                        t.setIdJoc(addUserDto.getIdJoc());
+                        t.setUsername(jucator);
+                        t.setValoareTurn(0);
+                        turnRepository.save(t);
+                    }
                 }
 
                 jocRepository.save(joc);
@@ -234,18 +242,30 @@ public class JocServiceImpl implements JocService {
         
         // 4. Actualizează jocul
         if (jucatori.isEmpty()) {
-            // Dacă nu mai sunt jucători, șterge jocul
             jocRepository.delete(joc);
         } else {
-            // Altfel, actualizează lista de jucători
             joc.setJucatori(String.join(";", jucatori));
             jocRepository.save(joc);
         }
-        
-        // 5. Actualizează utilizatorul (setăm idJoc la -1L, nu la null)
-        utilizator.setIdJoc(-1L); // Modificat din null în -1L
+
+        utilizator.setSumaBani(0);
+        utilizator.setIdJoc(-1L);
         utilizator.setPozitiePion(0);
         utilizatorRepository.save(utilizator);
+
+        //returnarea la bord a tuturor panourilor userului respectiv
+        //sterge turnul acestui user
+        Optional<Turn> optionalTurn = turnRepository.getTurnByUsername(username);
+        if(optionalTurn.isPresent())
+        {
+            Turn turn = optionalTurn.get();
+            List<PanouCumparat> panouCumparats = panouCumparatRepository.getAllByIdTurn(turn.getIdTurn());
+            for(PanouCumparat pc: panouCumparats)
+                panouCumparatRepository.delete(pc);
+            turnRepository.delete(turn);
+        }
+
+
     }
 
     @Override

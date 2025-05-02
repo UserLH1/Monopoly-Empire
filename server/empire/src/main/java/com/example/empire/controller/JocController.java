@@ -96,7 +96,7 @@ public class JocController {
             if (jocService.esteUtilizatorInJoc(username)) {
                 return ResponseEntity
                     .status(400)
-                    .body(ApiResponse.error(400, "Ești deja în joc."));
+                    .body(ApiResponse.error(400, "Ești deja într-un joc."));
             }
             
             AddUserDto addUserDto = new AddUserDto(username, idJoc);
@@ -118,8 +118,8 @@ public class JocController {
             // Verificăm dacă jocul există
             if (!jocService.existaJoc(idJoc)) {
                 return ResponseEntity
-                    .status(404)
-                    .body(ApiResponse.error(404, "Jocul nu există."));
+                        .status(404)
+                        .body(ApiResponse.error(404, "Jocul nu există."));
             }
             
             // Verificăm dacă utilizatorul este în acest joc
