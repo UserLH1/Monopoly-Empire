@@ -2,7 +2,11 @@ package com.example.empire.controller;
 
 
 import com.example.empire.dto.*;
+import com.example.empire.model.PanouCumparat;
+import com.example.empire.model.Turn;
 import com.example.empire.model.Utilizator;
+import com.example.empire.repository.PanouCumparatRepository;
+import com.example.empire.repository.TurnRepository;
 import com.example.empire.repository.UtilizatorRepository;
 import com.example.empire.service.JocService;
 import com.example.empire.service.UtilizatorService;
@@ -14,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -25,14 +30,17 @@ public class UtilizatorController {
     private final JocService jocService;
     private final JwtService jwtService;
     private final UtilizatorRepository utilizatorRepository;
-
+    private final PanouCumparatRepository panouCumparatRepository;
+    private final TurnRepository turnRepository;
 
     @Autowired
-    public UtilizatorController(UtilizatorService utilizatorService, JocService jocService, JwtService jwtService, UtilizatorRepository utilizatorRepository) {
+    public UtilizatorController(UtilizatorService utilizatorService, JocService jocService, JwtService jwtService, UtilizatorRepository utilizatorRepository, PanouCumparatRepository panouCumparatRepository, TurnRepository turnRepository) {
         this.utilizatorService = utilizatorService;
         this.jocService = jocService;
         this.jwtService = jwtService;
         this.utilizatorRepository = utilizatorRepository;
+        this.panouCumparatRepository = panouCumparatRepository;
+        this.turnRepository = turnRepository;
     }
 
     @PostMapping("/jucatori/register")
@@ -179,6 +187,50 @@ public class UtilizatorController {
         return ResponseEntity
                 .status(404)
                 .body(ApiResponse.error(400,"Solicitarea nu este corecta"));
+    }
+
+    @PutMapping("/jucatori/{username}/platesteImpozit")
+    public ResponseEntity<ApiResponse>platesteImpozit(@PathVariable String username){
+
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username).get();
+        Turn turn = turnRepository.getTurnByUsername(username).get();
+        if(utilizator.getSumaBani()<turn.getValoareTurn())
+            return ResponseEntity
+                    .status(400)
+                    .body(ApiResponse.error(400, "Nu exista sufucienti bani pentru a plati impozitul"));
+        else{
+            utilizator.setSumaBani(utilizator.getSumaBani()-turn.getValoareTurn());
+            utilizatorRepository.save(utilizator);
+            return ResponseEntity.ok(ApiResponse.success("Impozit platit cu succes",null));
+        }
+    }
+
+    @PutMapping("/jucatori/{username}/platesteImpozitCuPanou")
+    public ResponseEntity<ApiResponse>platesteImpozitCuPanou(@PathVariable String username){
+
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username).get();
+        Turn turn = turnRepository.getTurnByUsername(username).get();
+        List<PanouCumparat> panouCumparats = panouCumparatRepository.getAllByIdTurn(turn.getIdTurn());
+
+        if(panouCumparats.isEmpty()) {
+            jocService.scoateJucatorDinJoc(username, utilizator.getIdJoc());
+            return ResponseEntity
+                    .status(400)
+                    .body(ApiResponse.error(400, "Nu exista panouri care pot fi returnate! Jucatorul va fi eliminat din joc."));
+        }
+        else{
+
+            PanouCumparat panouMaxim = panouCumparats.getFirst();
+            for(PanouCumparat pc: panouCumparats) {
+                if (pc.getPanou().getValoareAdaugataTurn() > pc.getPanou().getValoareAdaugataTurn())
+                    panouMaxim = pc;
+            }
+
+            panouCumparatRepository.delete(panouMaxim);
+            turn.setValoareTurn(turn.getValoareTurn()-panouMaxim.getPanou().getValoareAdaugataTurn());
+            turnRepository.save(turn);
+            return ResponseEntity.ok(ApiResponse.success("Impozit platit cu succes, panoul a fost retras la tabla de joc.",null));
+        }
     }
 
 }

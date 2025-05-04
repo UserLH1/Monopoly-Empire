@@ -6,12 +6,22 @@ public class CardDto {
     private int idCard;
     private String descriere;
     private String cardType;
+    private String titlu;
+
+    public String getTitlu() {
+        return titlu;
+    }
+
+    public void setTitlu(String titlu) {
+        this.titlu = titlu;
+    }
 
     public CardDto(){}
-    public CardDto(int idCard, String descriere, String cardType) {
+    public CardDto(int idCard, String descriere, String cardType, String titlu) {
         this.idCard = idCard;
         this.descriere = descriere;
         this.cardType = cardType;
+        this.titlu = titlu;
     }
 
     public String getDescriere() {

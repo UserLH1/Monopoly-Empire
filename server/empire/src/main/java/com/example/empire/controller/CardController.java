@@ -72,9 +72,10 @@ public class CardController {
         return ResponseEntity.ok(ApiResponse.success("Toate cardurile active dintr-un joc", activeCardsDto));
     }
 
-    @PostMapping("/api/card/utilizeazaCard/{idCard}")
-    public ResponseEntity<ApiResponse>utilizeazaCard(@PathVariable int idCard, @RequestBody UseCardActivDto useCardActivDto){
-        useCardActivDto.setIdCardActiv(idCard);
+    @PostMapping("/card/utilizeazaCard/{idCardActiv}")
+    public ResponseEntity<ApiResponse>utilizeazaCard(@PathVariable int idCardActiv, @RequestBody UseCardActivDto useCardActivDto){
+        useCardActivDto.setIdCardActiv(idCardActiv);
+        System.out.print(idCardActiv);
         cardActivService.useCard(useCardActivDto);
         return ResponseEntity.ok(ApiResponse.success("Card folosit cu succes", null));
     }

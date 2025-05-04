@@ -43,6 +43,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/jocuri/**").permitAll()
                         .requestMatchers("/api/jocuri/alaturareJoc").permitAll()
                         .requestMatchers("/api/card/**").permitAll()
+                        .requestMatchers("/api/card/utilizeazaCard").permitAll()
                         .requestMatchers("/api/carduri/**").permitAll()
                         .requestMatchers("/api/panouri/**").permitAll()
                         .requestMatchers("/api/panouri/jucatori/**").permitAll()

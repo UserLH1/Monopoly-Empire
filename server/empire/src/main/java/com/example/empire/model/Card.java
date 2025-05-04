@@ -17,7 +17,27 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idCard;
     private String descriere;
+    private String titlu;
     private CardType cardType;
+
+    public Card(){
+
+    }
+
+    public Card(int idCard, String descriere, String titlu, CardType cardType) {
+        this.idCard = idCard;
+        this.descriere = descriere;
+        this.titlu = titlu;
+        this.cardType = cardType;
+    }
+
+    public String getTitlu() {
+        return titlu;
+    }
+
+    public void setTitlu(String titlu) {
+        this.titlu = titlu;
+    }
 
     public int getIdCard() {
         return idCard;

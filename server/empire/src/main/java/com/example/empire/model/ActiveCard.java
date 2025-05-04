@@ -14,9 +14,9 @@ public class ActiveCard {
     private int idCardActiv;
 
 
-
     public ActiveCard(){}
-    @OneToOne
+
+    @ManyToOne
     @JoinColumn(name="fk_id_card")
     private Card card;
     private String username;
