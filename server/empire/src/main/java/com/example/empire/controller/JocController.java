@@ -3,6 +3,9 @@ package com.example.empire.controller;
 
 import com.example.empire.dto.*;
 import com.example.empire.model.Joc;
+import com.example.empire.model.Utilizator;
+import com.example.empire.repository.JocRepository;
+import com.example.empire.repository.UtilizatorRepository;
 import com.example.empire.service.JocService;
 import com.example.empire.utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +23,15 @@ public class JocController {
 
     private final JocService jocService;
     private final JwtService jwtService;
+    private final JocRepository jocRepository;
+    private final UtilizatorRepository utilizatorRepository;
 
     @Autowired
-    public JocController(JocService jocService, JwtService jwtService) {
+    public JocController(JocService jocService, JwtService jwtService, JocRepository jocRepository, UtilizatorRepository utilizatorRepository) {
         this.jocService = jocService;
         this.jwtService = jwtService;
+        this.jocRepository = jocRepository;
+        this.utilizatorRepository = utilizatorRepository;
     }
 
     @PostMapping("/jocuri")
@@ -109,7 +116,7 @@ public class JocController {
         }
     }
 
-    @PostMapping("/jocuri/parasireJoc/{idJoc}")
+    @PutMapping("/jocuri/parasireJoc/{idJoc}")
     public ResponseEntity<ApiResponse> parasireJoc(@RequestHeader("Authorization") String authHeader, @PathVariable Long idJoc) {
         String jwt = authHeader.substring(7); // Eliminăm "Bearer " din token
         String username = jwtService.extractUsername(jwt);
@@ -223,6 +230,31 @@ public class JocController {
             return ResponseEntity
                 .status(500)
                 .body(ApiResponse.error(500, "A apărut o eroare: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/jocuri/{idJoc}/verificareCastig")
+    public ResponseEntity<ApiResponse>verificaCastigJoc(@PathVariable Long idJoc){
+
+        boolean jocFinalizat = jocService.verificaCastigJoc(idJoc);
+        if(jocFinalizat) {
+            String jucatorCastigator = jocService.returneazaJucatorCastigator(idJoc);
+            jocService.incheieJoc(idJoc);
+            return ResponseEntity.ok(ApiResponse.success("Jocul a fost incheiat: jucaotrul castigator este: ", jucatorCastigator));
+        }
+        return ResponseEntity.ok(ApiResponse.success("Jocul nu s-a incheiat",null));
+
+    }
+
+    @GetMapping("/jocuri/{idJoc}/verificareContinuitateJoc")
+    public ResponseEntity<ApiResponse>verificaContinuitateJoc(@PathVariable Long idJoc){
+        List<Utilizator>utilizatori =  utilizatorRepository.getAllByIdJoc(idJoc);
+        if(utilizatori.size()>1)
+            return ResponseEntity.ok(ApiResponse.success("Jocul contiua", null));
+        else
+        {
+            jocService.incheieJoc(idJoc);
+            return ResponseEntity.ok(ApiResponse.success("Jocul se inchiei, exista mai putin de 2 jucatori", null));
         }
     }
 

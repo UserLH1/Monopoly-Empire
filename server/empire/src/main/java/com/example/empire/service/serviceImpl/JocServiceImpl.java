@@ -265,6 +265,9 @@ public class JocServiceImpl implements JocService {
             turnRepository.delete(turn);
         }
 
+        List<ActiveCard> activeCards = cardActivRepository.getActiveCardByUsername(username);
+        for(ActiveCard ac: activeCards)
+            cardActivRepository.delete(ac);
 
     }
 
@@ -367,5 +370,53 @@ public class JocServiceImpl implements JocService {
         }
         
         return rezultat;
+    }
+
+    @Override
+    public boolean verificaCastigJoc(Long idJoc) {
+        ArrayList<Turn>turnuri = turnRepository.getTurnByIdJoc(idJoc);
+        for(Turn t: turnuri){
+            if(t.getValoareTurn()==800)
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String returneazaJucatorCastigator(Long idJoc) {
+        ArrayList<Turn>turnuri = turnRepository.getTurnByIdJoc(idJoc);
+        Turn turnCastigator = new Turn();
+        for(Turn t: turnuri){
+            if(t.getValoareTurn()==800)
+                turnCastigator = t;
+        }
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(turnCastigator.getUsername()).get();
+        utilizator.setNrJocuriCastigate(utilizator.getNrJocuriCastigate()+1);
+        utilizatorRepository.save(utilizator);
+        return turnCastigator.getUsername();
+    }
+
+    @Override
+    public void incheieJoc(Long idJoc) {
+        ArrayList<Turn>turnuri = turnRepository.getTurnByIdJoc(idJoc);
+        for(Turn t: turnuri){
+            turnRepository.delete(t);
+        }
+        ArrayList<Utilizator>utilizatori = utilizatorRepository.getAllByIdJoc(idJoc);
+
+        for(Utilizator u: utilizatori){
+            u.setSumaBani(0);
+            u.setPozitiePion(0);
+            u.setIdJoc(-1L);
+            utilizatorRepository.save(u);
+        }
+
+        List<ActiveCard>activeCards = cardActivRepository.getActiveCardByIdJoc(idJoc);
+        for(ActiveCard ac: activeCards)
+            cardActivRepository.delete(ac);
+
+        Joc joc = jocRepository.getJocByIdJoc(idJoc).get();
+        joc.setStatus(GameStatus.ENDED);
+        jocRepository.save(joc);
     }
 }

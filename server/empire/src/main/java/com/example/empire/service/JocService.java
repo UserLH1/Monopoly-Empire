@@ -35,4 +35,11 @@ public interface JocService {
     Long getGameTime(Long idJoc);
 
     List<UtilizatorJocDto> getJucatoriDinJoc(Long idJoc);
+
+    boolean verificaCastigJoc(Long idJoc);
+
+    String returneazaJucatorCastigator(Long idJoc);
+
+    public void incheieJoc(Long idJoc);
+
 }
