@@ -229,6 +229,119 @@ paths:
                   $ref: '#/components/schemas/Panou'
         '404':
           description: Jocul nu a fost gasit
+          
+  /api/jocuri/parasireJoc/{idJoc}:
+    post:
+      tags:
+        - joc
+      summary: actiune pentru parasire joc
+      operationId: parasireJoc
+      parameters:
+        - name: idJoc
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Jocul a fost parasit cu succes
+        '404':
+          description: Jocul nu a fost gasit
+          
+  /api/jocuri/jocCurent:
+    get:
+      tags:
+        - joc
+      summary: returneaza detaliile jocului in care se afla utilizatorul
+      operationId: returnCurrentGame
+      responses:
+        '200':
+          description: Jocul a fost returnat cu succes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Joc' 
+        
+  /api/jocuri/startJoc/{idJoc}: 
+    get:
+      tags:
+        - joc
+      summary: Incepe jocul
+      description: incepem jocul
+      operationId: startGame
+      parameters:
+        - name: idJoc
+          in: path
+          description: id-ul jocului (numar intreg pozitiv)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Jocul a fost inceput cu succes
+        '400':
+          description: Invalid id
+          
+  /api/jocuri/{idJoc}/timp:
+    get:
+      tags: 
+        - joc
+      summary: returnam timpul din joc
+      description: returnam timpul jocului
+      operationId: gameTime
+      parameters:
+        - name: idJoc
+          in: path
+          description: id-ul jocului (numar intreg pozitiv)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Jocul a fost inceput cu succes
+        '400':
+          description: Invalid id
+  
+  /api/jocuri/{idJoc}/verificareCastig:
+    get:
+      tags: 
+        - joc
+      summary: verificam daca cineva a castigat jocul
+      operationId: verificaCastigJoc
+      parameters:
+        - name: idJoc
+          in: path
+          description: id-ul jocului (numar intreg pozitiv)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Jocul a fost castigat de catre x. jocul nu a jost castigat inca.
+        '400':
+          description: Invalid id
+          
+  /api/jocuri/{idJoc}/verificareContinuitateJoc:
+    get:
+      tags: 
+        - joc
+      summary: verificam daca nu a ramas doar un singur jucator in joc.
+      operationId: verificaContinuitateJoc
+      parameters:
+        - name: idJoc
+          in: path
+          description: id-ul jocului (numar intreg pozitiv)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Jocul se continua!/ Jocul nu se poate continua.
+        '400':
+          description: Invalid id  
+  
+  
+          
   /api/jucatori/login:
     post:
       tags:
@@ -345,6 +458,166 @@ paths:
           description: Utilizator sters cu succes
         '404':
           description: Acest utilizator nu a fost gasit
+  
+  /api/jucatori/{username}/solicitaChirie:
+     post:
+      tags:
+        - utilizator
+      summary: Solicitam chirie
+      description: Solicitam chirie
+      operationId: solicitaChirie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chirias:
+                  type: string
+                proprietar:
+                  type: string
+              
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chirie solicitata cu succes.
+               
+        '404':
+          description: Nu s-a gasit un utilizator cu acest username
+  
+  /api/jucatori/{username}/platesteChirie:
+    put:
+      tags:
+        - utilizator
+      summary: Plateste chiria
+      description: plateste chiria
+      operationId: platestChirie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chirias:
+                  type: string
+                proprietar:
+                  type: string
+              
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chirie platita cu succes.
+        '400':
+          description: Nu ai suficienti bani.
+        '404':
+          description: Nu s-a gasit un utilizator cu acest username
+  
+  /api/jucatori/{username}/platesteChirie/oferaPanou:
+    put:
+      tags:
+        - utilizator
+      summary: Plateste chiria
+      description: plateste chiria
+      operationId: platestChirieCuPanou
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chirias:
+                  type: string
+                proprietar:
+                  type: string
+              
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chirie platita cu succes.
+        '400':
+          description: Nu ai panouri.
+        '404':
+          description: Nu s-a gasit un utilizator cu acest username
+  
+  /api/jucatori/{username}/platesteImpozit:
+    put:
+      tags:
+        - utilizator
+      summary: Plateste impozit
+      description: plateste impozit
+      operationId: platestImpozit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chirias:
+                  type: string
+                proprietar:
+                  type: string
+              
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Impozit platit cu succes.
+        '400':
+          description: Nu ai suficienti bani.
+        '404':
+          description: Nu s-a gasit un utilizator cu acest username
+  
+  /api/jucatori/{username}/platesteImpozitCuPanou:
+    put:
+      tags:
+        - utilizator
+      summary: Plateste impozit
+      description: plateste impozit
+      operationId: platesteImpozitCuPanou
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chirias:
+                  type: string
+                proprietar:
+                  type: string
+              
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chirie platita cu succes.
+        '400':
+          description: Nu ai suficienti bani.
+        '404':
+          description: Nu s-a gasit un utilizator cu acest username
+  
   
   /api/card:
     post:
@@ -655,100 +928,6 @@ paths:
                   $ref: '#/components/schemas/Panou'
         '404':
           description: Turnul nu a fost gasit
-
-  # Rută pentru părăsirea unui joc
-  /api/jocuri/parasireJoc/{idJoc}:
-    post:
-      tags:
-        - joc
-      summary: Părăsirea unui joc de către un jucător
-      description: Permite unui jucător să iasă dintr-un joc, eliminându-l din lista de jucători
-      operationId: parasireJoc
-      parameters:
-        - name: idJoc
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Jucătorul a părăsit jocul cu succes
-        '400':
-          description: Utilizatorul nu este în acest joc
-        '404':
-          description: Jocul nu a fost găsit
-
-  # Rută pentru verificarea jocului curent al unui utilizator
-  /api/jocuri/jocCurent:
-    get:
-      tags:
-        - joc
-      summary: Verifică jocul curent al utilizatorului
-      description: Returnează informații despre jocul în care se află utilizatorul curent
-      operationId: getJocCurent
-      responses:
-        '200':
-          description: Informații despre jocul curent sau mesaj că utilizatorul nu este în niciun joc
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  joc:
-                    $ref: '#/components/schemas/Joc'
-                  gameCode:
-                    type: integer
-                    example: 1123
-        '500':
-          description: Eroare la preluarea informațiilor
-
-  # Rută pentru pornirea jocului
-  /api/jocuri/startJoc/{idJoc}:
-    post:
-      tags:
-        - joc
-      summary: Pornește un joc
-      description: Schimbă starea jocului la START și inițializează cronometrul
-      operationId: startGame
-      parameters:
-        - name: idJoc
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Jocul a fost pornit cu succes
-        '400':
-          description: Nu sunt suficienți jucători sau utilizatorul nu este în acest joc
-        '404':
-          description: Jocul nu a fost găsit
-
-  # Rută pentru obținerea timpului de joc
-  /api/jocuri/{idJoc}/timp:
-    get:
-      tags:
-        - joc
-      summary: Obține timpul jocului
-      description: Returnează timpul scurs de la începerea jocului
-      operationId: getGameTimer
-      parameters:
-        - name: idJoc
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Timp joc obținut cu succes
-          content:
-            application/json:
-              schema:
-                type: integer
-                format: int64
-                example: 120
-        '404':
-          description: Jocul nu a fost găsit
   
 components:
   schemas:
