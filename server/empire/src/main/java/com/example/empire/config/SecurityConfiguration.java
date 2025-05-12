@@ -35,9 +35,9 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/jucator/**").permitAll()
-                        .requestMatchers("/api/jucator/login").permitAll()
-                        .requestMatchers("/api/jucator/register").permitAll()
+                        .requestMatchers("/api/jucatori/**").permitAll()
+                        .requestMatchers("/api/jucatori/login").permitAll()
+                        .requestMatchers("/api/jucatori/register").permitAll()
                         .requestMatchers("/api/joc/**").permitAll()
                         .requestMatchers("/api/joc/alaturareJoc").permitAll()
                         .requestMatchers("/api/alaturareJoc/**").hasAuthority("ADMINISTRATOR")
@@ -61,7 +61,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
