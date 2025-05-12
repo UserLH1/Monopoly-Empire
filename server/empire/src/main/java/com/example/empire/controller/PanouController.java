@@ -4,6 +4,7 @@ package com.example.empire.controller;
 import com.example.empire.config.JwtService;
 import com.example.empire.dto.CumparaPanouDto;
 import com.example.empire.dto.DetaliiPanouCompletDto;
+import com.example.empire.dto.DetaliiPozitieDto;
 import com.example.empire.dto.PanouCumparatDto;
 import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Joc;
@@ -111,8 +112,8 @@ public class PanouController {
     }
 
     @GetMapping("/pozitiiJoc")
-    ResponseEntity<ApiResponse> returneazaPozitiiJoc(@RequestParam int idJoc) {
-        ArrayList<DetaliiPozitieDto> pozitiiJocDtos = panouActivService.getAllPositionsByGameId(idJoc);
+    ResponseEntity<ApiResponse> returneazaPozitiiJoc() {
+        ArrayList<DetaliiPozitieDto> pozitiiJocDtos = panouService.getAllPositionsInGame();
         return ResponseEntity.ok(ApiResponse.success("Pozițiile jocului returnate cu succes", pozitiiJocDtos));
     }
 }

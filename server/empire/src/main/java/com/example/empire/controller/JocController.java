@@ -91,7 +91,6 @@ public class JocController {
         return ResponseEntity.ok(ApiResponse.success("Panouri returnate cu succes", panouri));
     }
 
-
     @PostMapping("/jocuri/alaturareJoc/{idJoc}") 
     public ResponseEntity<ApiResponse> addNewUser(@RequestHeader("Authorization") String authHeader, @PathVariable Long idJoc){
         String jwt = authHeader.substring(7);

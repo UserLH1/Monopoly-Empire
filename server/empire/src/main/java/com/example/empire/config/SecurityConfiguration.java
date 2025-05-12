@@ -47,6 +47,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/turn/joc/**").permitAll()
                         .requestMatchers("/api/panou/**").permitAll()
                         .requestMatchers("/api/panouri/**").permitAll()
+                        .requestMatchers("/pozitiiJoc").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement ->

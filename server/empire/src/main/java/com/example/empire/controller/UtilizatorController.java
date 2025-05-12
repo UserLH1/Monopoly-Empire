@@ -105,7 +105,7 @@ public class UtilizatorController {
         if(chirias.isEmpty())
             return ResponseEntity
                     .status(404)
-                    .body(ApiResponse.error(404,"Usernema-ul chiriasului nu exista"));
+                    .body(ApiResponse.error(404,"Username-ul chiriasului nu exista"));
         if(chirias.get().getIdJoc()!=optional.get().getIdJoc())
             return ResponseEntity
                     .status(404)
@@ -117,7 +117,7 @@ public class UtilizatorController {
     }
 
 
-    @PostMapping("/jucatori/{username}/platesteChirie")
+    @PutMapping("/jucatori/{username}/platesteChirie")
     public ResponseEntity<ApiResponse>platesteChiria(@PathVariable String username, @RequestBody SolicitaChirieDto solicitaChirieDto1){
 
         Optional<Utilizator> optional = utilizatorRepository.getUtilizatorByUsername(username);
@@ -149,7 +149,7 @@ public class UtilizatorController {
     }
 
 
-    @PostMapping("/jucatori/{username}/platesteChirie/oferaPanou")
+    @PutMapping("/jucatori/{username}/platesteChirie/oferaPanou")
     public ResponseEntity<ApiResponse>platesteChiriaOferaPanou(@PathVariable String username, @RequestBody SolicitaChirieDto solicitaChirieDto1){
 
         Optional<Utilizator> optional = utilizatorRepository.getUtilizatorByUsername(username);
