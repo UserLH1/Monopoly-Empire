@@ -1,5 +1,6 @@
 package com.example.empire.controller;
 
+import com.example.empire.dto.DetaliiPanouCompletDto;
 import com.example.empire.dto.TurnDto;
 import com.example.empire.service.TurnService;
 import com.example.empire.utils.ApiResponse;
@@ -24,22 +25,21 @@ public class TurnController {
     }
 
     @GetMapping("/turnuri")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR')")
     ResponseEntity<ApiResponse>returneazaToateTurnurile(){
         ArrayList<TurnDto> turnuriDto = turnService.returneazaTurnuri();
         return ResponseEntity.ok(ApiResponse.success("Turnuri returnate cu succes!",turnuriDto));
     }
+
 
     @GetMapping("/turnuri/jucatori/{username}")
     ResponseEntity<ApiResponse>returneazaTurnulUnuiJucator(@PathVariable String username){
         TurnDto turnDto = turnService.returneazaTurnulJucatorului(username);
         return ResponseEntity.ok(ApiResponse.success("Turnul jucatorului returnat cu succes!",turnDto));
     }
-
-    @GetMapping("/turnuri/jocuri/{idJoc}")
-    ResponseEntity<ApiResponse>returneazaToateTurnurileJocului(@PathVariable int idJoc){
-        ArrayList<TurnDto> turnuriDto = turnService.returneazaTurnurileJocului(idJoc);
-        return ResponseEntity.ok(ApiResponse.success("Turnurile din joc returnate cu succes!",turnuriDto));
+    @GetMapping("/turnuri/{idTurn}/panouri")
+    ResponseEntity<ApiResponse>returneazaPanourileUnuiTurn(@PathVariable int idTurn){
+        ArrayList<DetaliiPanouCompletDto>  panouriTurn =turnService.returneazaPanourileTurnului(idTurn);
+        return ResponseEntity.ok(ApiResponse.success("Panourile turnului returnate cu succes!",panouriTurn));
     }
 
     @GetMapping("/turnuri/{idTurn}")

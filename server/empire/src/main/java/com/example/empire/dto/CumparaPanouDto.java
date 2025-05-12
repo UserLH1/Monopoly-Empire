@@ -2,11 +2,11 @@ package com.example.empire.dto;
 
 public class CumparaPanouDto {
      private int idPanou;
-     private int idJoc;
+     private Long idJoc;
      private int idTurn;
      public CumparaPanouDto(){}
 
-    public CumparaPanouDto(int idPanou, int idJoc, int idTurn) {
+    public CumparaPanouDto(int idPanou, Long idJoc, int idTurn) {
         this.idPanou = idPanou;
         this.idJoc = idJoc;
         this.idTurn = idTurn;
@@ -20,11 +20,11 @@ public class CumparaPanouDto {
         this.idPanou = idPanou;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 

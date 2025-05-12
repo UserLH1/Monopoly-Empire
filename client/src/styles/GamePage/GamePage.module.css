@@ -124,15 +124,10 @@
   z-index: 100;
   width: 300px;
 }
-/* Add these classes for the new layout */
-
 .topBank {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  width: 300px;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .centerDiceArea {
@@ -222,4 +217,240 @@
 
 .copyButton:hover {
   background: #ff6b6b;
+}
+.gameHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.timerSection, .gameInfoSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.gameTimer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  min-width: 120px;
+  border: 2px solid #f39c12;
+}
+
+.timerLabel {
+  font-size: 0.8rem;
+  color: #f39c12;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 0.2rem;
+}
+
+.timerValue {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
+  font-family: 'Digital-7', 'Courier New', monospace;
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px rgba(243, 156, 18, 0.7);
+}
+
+/* Animație mai elegantă pentru actualizarea timpului */
+@keyframes highlight {
+  0% { text-shadow: 0 0 5px rgba(243, 156, 18, 0.7); }
+  50% { text-shadow: 0 0 20px rgba(243, 156, 18, 1), 0 0 30px rgba(255, 165, 0, 0.8); }
+  100% { text-shadow: 0 0 5px rgba(243, 156, 18, 0.7); }
+}
+
+.timerValue.updated {
+  animation: highlight 1s ease-in-out;
+}
+
+.gameCodeDisplay {
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.navigationButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.backButton, .exitButton {
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.backButton {
+  background-color: #4b6584;
+  color: white;
+}
+
+.backButton:hover {
+  background-color: #3c5270;
+  transform: translateY(-2px);
+}
+
+.exitButton {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.exitButton:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}
+
+.gameControlsHeader {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gameControls {
+  display: flex;
+  gap: 10px;
+}
+
+.gamePageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.mainHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controlsSection, .gameInfoSection {
+  flex: 1;
+  display: flex;
+}
+
+.controlsSection {
+  justify-content: flex-start;
+}
+
+.gameInfoSection {
+  justify-content: flex-end;
+}
+
+.timerSection {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gameTimer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  min-width: 120px;
+  border: 2px solid #f39c12;
+}
+
+.timerLabel {
+  font-size: 0.8rem;
+  color: #f39c12;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 0.2rem;
+}
+
+.timerValue {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
+  font-family: 'Digital-7', 'Courier New', monospace;
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px rgba(243, 156, 18, 0.7);
+}
+
+/* Animație mai elegantă pentru actualizarea timpului */
+@keyframes highlight {
+  0% { text-shadow: 0 0 5px rgba(243, 156, 18, 0.7); }
+  50% { text-shadow: 0 0 20px rgba(243, 156, 18, 1), 0 0 30px rgba(255, 165, 0, 0.8); }
+  100% { text-shadow: 0 0 5px rgba(243, 156, 18, 0.7); }
+}
+
+.timerValue.updated {
+  animation: highlight 1s ease-in-out;
+}
+
+.gameControls {
+  display: flex;
+  gap: 10px;
+}
+
+.backButton, .exitButton {
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.backButton {
+  background-color: #4b6584;
+  color: white;
+}
+
+.backButton:hover {
+  background-color: #3c5270;
+  transform: translateY(-2px);
+}
+
+.exitButton {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.exitButton:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}
+
+.gameCodeDisplay {
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }

@@ -16,14 +16,25 @@ public class Panou {
     private int idPanou;
     private String nume;
     private int pret;
-
+    private int valoareAdaugataTurn;
+    private int pozitieTablaJoc;
     public Panou(){
 
     }
-    public Panou(int idPanou, String nume, int pret) {
+    public Panou(int idPanou, String nume, int pret, int valoareAdaugataTurn, int pozitieTablaJoc) {
         this.idPanou = idPanou;
         this.nume = nume;
+        this.valoareAdaugataTurn = valoareAdaugataTurn;
         this.pret = pret;
+        this.pozitieTablaJoc = pozitieTablaJoc;
+    }
+
+    public int getPozitieTablaJoc() {
+        return pozitieTablaJoc;
+    }
+
+    public void setPozitieTablaJoc(int pozitieTablaJoc) {
+        this.pozitieTablaJoc = pozitieTablaJoc;
     }
 
     public int getIdPanou() {
@@ -48,5 +59,13 @@ public class Panou {
 
     public void setPret(int pret) {
         this.pret = pret;
+    }
+
+    public int getValoareAdaugataTurn() {
+        return valoareAdaugataTurn;
+    }
+
+    public void setValoareAdaugataTurn(int valoareAdaugataTurn) {
+        this.valoareAdaugataTurn = valoareAdaugataTurn;
     }
 }

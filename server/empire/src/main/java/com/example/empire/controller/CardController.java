@@ -4,6 +4,7 @@ import com.example.empire.dto.ActiveCardDto;
 import com.example.empire.dto.CardCastigatDto;
 import com.example.empire.dto.CardDto;
 import com.example.empire.dto.UseCardActivDto;
+import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.ActiveCard;
 import com.example.empire.model.Card;
 import com.example.empire.service.CardActivService;
@@ -34,38 +35,47 @@ public class CardController {
         return ResponseEntity.ok(ApiResponse.success("Cardul a fost castigat", null));
     }
 
-    @GetMapping("/carduri")
-    public ResponseEntity<ApiResponse>extrageInformatiiDespreToateCardurile(){
-        ArrayList<CardDto> carduriDto = cardService.getCarduri();
-        return ResponseEntity.ok(ApiResponse.success("Carduri returnat cu succes", carduriDto));
+    @GetMapping("/carduri/{status}")
+    public ResponseEntity<ApiResponse>extrageInformatiiDespreToateCardurileDupaStatus(@PathVariable String status){
+        if(status.equals("ACTIVE")) {
+            ArrayList<ActiveCardDto> activeCardDto = cardActivService.getAllActiveCards();
+            return ResponseEntity.ok(ApiResponse.success("Carduri active returnat cu succes", activeCardDto));
+        }
+        else if (status.equals("GENERAL")){
+            ArrayList<CardDto> card = cardService.getCarduri();
+            return ResponseEntity.ok(ApiResponse.success("Carduri returnat cu succes", card));
+        }
+        else throw new BadRequestException("Incorrect status");
     }
 
-    @GetMapping("/card/{status}/{idCard}")
-    public ResponseEntity<ApiResponse>extrageInformatiiDespreToateCardurile(@PathVariable String status, @PathVariable int idCard){
+    @GetMapping("/carduri/{status}/{idCard}")
+    public ResponseEntity<ApiResponse>extrageInformatiiDespreUnAnumitCard(@PathVariable String status, @PathVariable int idCard){
         if(status.equals("ACTIVE")) {
             ActiveCardDto activeCardDto = cardActivService.getActiveCardDetails(idCard);
-            return ResponseEntity.ok(ApiResponse.success("Carduri active returnat cu succes", activeCardDto));
+            return ResponseEntity.ok(ApiResponse.success("Cardur activ returnat cu succes", activeCardDto));
         }
         else{
             CardDto card = cardService.getCardDetails(idCard);
-            return ResponseEntity.ok(ApiResponse.success("Carduri returnat cu succes", card));
+            return ResponseEntity.ok(ApiResponse.success("Cardur returnat cu succes", card));
         }
     }
 
-    @GetMapping("/carduri/utilizator/{username}")
+    @GetMapping("/carduri/utilizatori/{username}")
     public ResponseEntity<ApiResponse>extragemToateCardurileUnuiUser(@PathVariable String username){
         ArrayList<ActiveCardDto> activeCardsDto = cardActivService.getAllUserCards(username);
         return ResponseEntity.ok(ApiResponse.success("Toate cardurile active ale unui utilizator",activeCardsDto));
     }
 
-    @GetMapping("/carduri/joc/{idJoc}")
-    public ResponseEntity<ApiResponse>extragemToateCardurileDinJoc(@PathVariable int idJoc){
+    @GetMapping("/carduri/jocuri/{idJoc}")
+    public ResponseEntity<ApiResponse>extragemToateCardurileDinJoc(@PathVariable Long idJoc){
         ArrayList<ActiveCardDto> activeCardsDto = cardActivService.getAllGameCards(idJoc);
-        return ResponseEntity.ok(ApiResponse.success("Toate cardurile folosite dintr-un joc", activeCardsDto));
+        return ResponseEntity.ok(ApiResponse.success("Toate cardurile active dintr-un joc", activeCardsDto));
     }
 
-    @PostMapping("/api/card/utilizeazaCard")
-    public ResponseEntity<ApiResponse>utilizeazaCard(@RequestBody UseCardActivDto useCardActivDto){
+    @PostMapping("/card/utilizeazaCard/{idCardActiv}")
+    public ResponseEntity<ApiResponse>utilizeazaCard(@PathVariable int idCardActiv, @RequestBody UseCardActivDto useCardActivDto){
+        useCardActivDto.setIdCardActiv(idCardActiv);
+        System.out.print(idCardActiv);
         cardActivService.useCard(useCardActivDto);
         return ResponseEntity.ok(ApiResponse.success("Card folosit cu succes", null));
     }

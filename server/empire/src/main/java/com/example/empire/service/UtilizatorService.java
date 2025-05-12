@@ -1,9 +1,6 @@
 package com.example.empire.service;
 
-import com.example.empire.dto.LoginDto;
-import com.example.empire.dto.UpdateMoneyDto;
-import com.example.empire.dto.UpdatePozitiePionDto;
-import com.example.empire.dto.UserDto;
+import com.example.empire.dto.*;
 import com.example.empire.model.Utilizator;
 import com.example.empire.utils.AuthenticationResponse;
 import org.springframework.stereotype.Service;
@@ -29,4 +26,10 @@ public interface UtilizatorService {
     public UserDto getUser(String username);
 
     public void stergeUser(String username);
+
+    public boolean solicitaChirie(SolicitaChirieDto solicitaChirieDto);
+
+    public boolean platesteChiria(SolicitaChirieDto solicitaChirieDto);
+
+    public boolean platesteChiriaOferaPanou(SolicitaChirieDto solicitaChirieDto);
 }

@@ -6,8 +6,13 @@ import com.example.empire.dto.CumparaPanouDto;
 import com.example.empire.dto.DetaliiPanouCompletDto;
 import com.example.empire.dto.PanouCumparatDto;
 import com.example.empire.exceptions.BadRequestException;
+import com.example.empire.model.Joc;
 import com.example.empire.model.Panou;
 import com.example.empire.model.PanouCumparat;
+import com.example.empire.model.Turn;
+import com.example.empire.repository.JocRepository;
+import com.example.empire.repository.PanouRepository;
+import com.example.empire.repository.TurnRepository;
 import com.example.empire.service.PanouActivService;
 import com.example.empire.service.PanouService;
 import com.example.empire.utils.ApiResponse;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Controller
 @CrossOrigin
@@ -24,11 +30,17 @@ public class PanouController {
     private final PanouService panouService;
     private final PanouActivService panouActivService;
 
+    private final PanouRepository panouRepository;
+    private final TurnRepository turnRepository;
+    private final JocRepository jocRepository;
     private final JwtService jwtService;
 
-    public PanouController(PanouService panouService, PanouActivService panouActivService, JwtService jwtService) {
+    public PanouController(PanouService panouService, PanouActivService panouActivService, PanouRepository panouRepository, TurnRepository turnRepository, JocRepository jocRepository, JwtService jwtService) {
         this.panouService = panouService;
         this.panouActivService = panouActivService;
+        this.panouRepository = panouRepository;
+        this.turnRepository = turnRepository;
+        this.jocRepository = jocRepository;
         this.jwtService = jwtService;
     }
 
@@ -64,17 +76,43 @@ public class PanouController {
         }
     }
 
-    @GetMapping("/panouri/{username}")
+    @GetMapping("/panouri/jucatori/{username}")
     ResponseEntity<ApiResponse>returneazaPanourileUnuiJucator(@PathVariable String username){
-        ArrayList<DetaliiPanouCompletDto> detaliiPanouCompletDtos = new ArrayList<DetaliiPanouCompletDto>();
+        ArrayList<DetaliiPanouCompletDto> detaliiPanouCompletDtos ;
         detaliiPanouCompletDtos = panouActivService.getAllUserPanels(username);
         return ResponseEntity.ok(ApiResponse.success("Panourile unui jucator returnate cu succes", detaliiPanouCompletDtos));
     }
 
     @PostMapping("/panou")
     ResponseEntity<ApiResponse>cumparaUnPanou(@RequestBody CumparaPanouDto cumparaPanouDto){
-        panouActivService.cumparaPanou(cumparaPanouDto);
-        return ResponseEntity.ok(ApiResponse.success("Panoul a fost cumparat cu succes", null));
+        Optional<Panou> optional = panouRepository.getPanouByIdPanou(cumparaPanouDto.getIdPanou());
+        if(optional.isPresent())
+        {
+            Optional<Turn> optionalTurn = turnRepository.getTurnByIdTurn(cumparaPanouDto.getIdTurn());
+            if(optionalTurn.isPresent()) {
+
+                Optional<Joc> optionalJoc = jocRepository.getJocByIdJoc(cumparaPanouDto.getIdJoc());
+                if(optionalJoc.isPresent()) {
+                    panouActivService.cumparaPanou(cumparaPanouDto);
+                    return ResponseEntity.ok(ApiResponse.success("Panoul a fost cumparat cu succes", null));
+                }
+                return  ResponseEntity
+                        .status(404)
+                        .body(ApiResponse.error(404, "Id-ul jocului nu există."));
+            }
+            return  ResponseEntity
+                    .status(404)
+                    .body(ApiResponse.error(404, "Turnul nu există."));
+        }
+
+        return  ResponseEntity
+                .status(404)
+                .body(ApiResponse.error(404, "Panoul nu există."));
     }
 
+    @GetMapping("/pozitiiJoc")
+    ResponseEntity<ApiResponse> returneazaPozitiiJoc(@RequestParam int idJoc) {
+        ArrayList<DetaliiPozitieDto> pozitiiJocDtos = panouActivService.getAllPositionsByGameId(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Pozițiile jocului returnate cu succes", pozitiiJocDtos));
+    }
 }

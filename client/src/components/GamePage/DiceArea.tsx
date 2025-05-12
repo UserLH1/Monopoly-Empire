@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "../../styles/GamePage/DiceArea.module.css";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DiceAreaProps {
   onRoll: (values: number[]) => void;
@@ -9,14 +10,33 @@ interface DiceAreaProps {
 export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
   const [diceValues, setDiceValues] = useState<number[]>([1, 1]);
   const [rolling, setRolling] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [result, setResult] = useState<number>(0);
+
+  useEffect(() => {
+    if (!rolling && diceValues[0] && diceValues[1]) {
+      const sum = diceValues[0] + diceValues[1];
+      setResult(sum);
+      setShowResult(true);
+      
+      // Ascunde rezultatul după 3 secunde
+      const timer = setTimeout(() => {
+        setShowResult(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [rolling, diceValues]);
 
   const rollDice = () => {
     if (disabled || rolling) return;
 
     setRolling(true);
+    setShowResult(false);
 
-    // Animation effect - rapidly change dice values
+    // Animation effect with better randomization
     let counter = 0;
+    const totalAnimations = 15;
     const interval = setInterval(() => {
       const values = [
         Math.floor(Math.random() * 6) + 1,
@@ -25,46 +45,125 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
       setDiceValues(values);
 
       counter++;
-      if (counter > 10) {
+      if (counter > totalAnimations) {
         clearInterval(interval);
-        setRolling(false);
-        onRoll(values);
+        
+        setTimeout(() => {
+          setRolling(false);
+          onRoll(values);
+        }, 300);
       }
-    }, 100);
+    }, 80);
+  };
+
+  // Renderează punctele în funcție de configurația standard a zarurilor
+  const renderDiceDots = (value: number) => {
+    switch (value) {
+      case 1:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.center}`}></div>
+          </div>
+        );
+      case 2:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 3:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.center}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 4:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.topRight}`}></div>
+            <div className={`${styles.dot} ${styles.bottomLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 5:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.topRight}`}></div>
+            <div className={`${styles.dot} ${styles.center}`}></div>
+            <div className={`${styles.dot} ${styles.bottomLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      case 6:
+        return (
+          <div className={styles.dotContainer}>
+            <div className={`${styles.dot} ${styles.topLeft}`}></div>
+            <div className={`${styles.dot} ${styles.topRight}`}></div>
+            <div className={`${styles.dot} ${styles.middleLeft}`}></div>
+            <div className={`${styles.dot} ${styles.middleRight}`}></div>
+            <div className={`${styles.dot} ${styles.bottomLeft}`}></div>
+            <div className={`${styles.dot} ${styles.bottomRight}`}></div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className={styles.diceArea}>
+    <motion.div 
+      className={styles.diceArea}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <AnimatePresence>
+        {showResult && (
+          <motion.div 
+            className={styles.diceResult}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ type: "spring", damping: 12 }}
+          >
+            <span className={styles.resultValue}>{result}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       <div className={styles.diceContainer}>
-        <div
+        <motion.div
           className={`${styles.dice} ${rolling ? styles.rolling : ""}`}
           data-value={diceValues[0]}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <div className={styles.face}>
-            {Array.from({ length: diceValues[0] }).map((_, i) => (
-              <div key={i} className={styles.dot}></div>
-            ))}
-          </div>
-        </div>
-        <div
+          {renderDiceDots(diceValues[0])}
+        </motion.div>
+        <motion.div
           className={`${styles.dice} ${rolling ? styles.rolling : ""}`}
           data-value={diceValues[1]}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <div className={styles.face}>
-            {Array.from({ length: diceValues[1] }).map((_, i) => (
-              <div key={i} className={styles.dot}></div>
-            ))}
-          </div>
-        </div>
+          {renderDiceDots(diceValues[1])}
+        </motion.div>
       </div>
 
-      <button
+      <motion.button
         className={styles.rollButton}
         onClick={rollDice}
         disabled={disabled || rolling}
+        whileHover={{ scale: 1.05, backgroundColor: "#ff6b6b" }}
+        whileTap={{ scale: 0.95 }}
       >
         {rolling ? "Rolling..." : "Roll Dice"}
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }

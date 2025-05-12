@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import styles from "../styles/HomePage.module.css";
@@ -12,9 +12,18 @@ type CreatedGameDetails = {
   };
 };
 
+type Game = {
+  idJoc: number;
+  nrJucatori: number;
+  statusJoc: string;
+  jucatori: string; // numele jucătorilor despărțite prin ;
+};
+
 export default function HomePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [currentGameId, setCurrentGameId] = useState<number | null>(null);
+  const [currentGameCode, setCurrentGameCode] = useState<string | null>(null);
 
   // For Join Game modal
   const [joinModalOpen, setJoinModalOpen] = useState(false);
@@ -24,6 +33,112 @@ export default function HomePage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [playerCount, setPlayerCount] = useState(3);
   const [username, setUsername] = useState(user?.name || "");
+
+  // Check if user is in a game
+  useEffect(() => {
+    checkCurrentGameFromServer();
+  }, []);
+
+  const checkCurrentGameFromServer = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !user) {
+      console.log("Nu există token sau utilizator, nu se face cererea");
+      return;
+    }
+    
+    try {
+      const response = await fetch("http://localhost:8080/api/jocuri/jocCurent", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+        
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Problema cu autentificarea
+          logout();
+          return;
+        }
+        throw new Error("Failed to check current game");
+      }
+      
+      const result = await response.json();
+        
+      if (result.data && result.data.joc) {
+        // Utilizatorul are un joc în curs
+        const gameCode = result.data.gameCode.toString();
+        const gameId = result.data.joc.idJoc;
+        
+        // Actualizează starea și localStorage
+        setCurrentGameId(gameId);
+        setCurrentGameCode(gameCode);
+        localStorage.setItem("gameId", gameCode);
+      } else {
+        // Utilizatorul nu are un joc în curs, curăță localStorage
+        localStorage.removeItem("gameId");
+        setCurrentGameId(null);
+        setCurrentGameCode(null);
+      }
+    } catch (error) {
+      console.error("Error checking current game:", error);
+    }
+  };
+
+  const checkCurrentGame = () => {
+    // Citește din localStorage doar pentru compatibilitate înapoi
+    // dar datele adevărate vor veni de la server prin checkCurrentGameFromServer
+    const storedGameId = localStorage.getItem("gameId");
+    if (storedGameId) {
+      setCurrentGameId(Number(storedGameId) - 1000);
+      setCurrentGameCode(storedGameId);
+    } else {
+      setCurrentGameId(null);
+      setCurrentGameCode(null);
+    }
+    
+    // Verifică și cu serverul pentru date actualizate
+    checkCurrentGameFromServer();
+  };
+
+  // Exit game function
+  const handleExitGame = async () => {
+    if (!currentGameId) return;
+    
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Authentication required");
+      return;
+    }
+    
+    if (window.confirm("Are you sure you want to exit this game?")) {
+      try {
+        const response = await fetch(`http://localhost:8080/api/jocuri/parasireJoc/${currentGameId}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to exit game");
+        }
+        
+        // Clear game ID from local storage
+        localStorage.removeItem("gameId");
+        setCurrentGameId(null);
+        setCurrentGameCode(null);
+        
+      } catch (error: any) {
+        alert(error.message);
+        console.error("Error exiting game:", error);
+      }
+    }
+  };
+
+  const handleJoinCurrentGame = () => {
+    navigate("/pending");
+  };
 
   const handleLogin = () => {
     navigate("/login");
@@ -75,12 +190,14 @@ export default function HomePage() {
         throw new Error(data.message || "Could not create game");
       }
 
-      // Save the game ID in localStorage
-      localStorage.setItem("gameId", data.data.idJoc.toString());
+      // Save the game ID (+1000 for game code) in localStorage
+      const gameCode = (data.data.idJoc + 1000).toString();
+      localStorage.setItem("gameId", gameCode);
 
       // Close modal and redirect to game page
       setCreateModalOpen(false);
-      navigate("/game");
+      navigate("/pending");
+
     } catch (error: any) {
       alert(error.message);
     }
@@ -92,50 +209,55 @@ export default function HomePage() {
       navigate("/login");
       return;
     }
+    
+    // Show modal to enter game code manually
     setJoinModalOpen(true);
   };
 
-  async function handleJoinSubmit() {
+  const joinGame = async (gameCode: string) => {
     const token = localStorage.getItem("token");
-
+  
     if (!token) {
       alert("Authentication required. Please login again.");
       navigate("/login");
       return;
     }
-
+  
     try {
-      const response = await fetch(
-        "http://localhost:8080/api/jocuri/alaturareJoc",
+      // transformăm codul de la utilizator în id real
+      const realGameId = Number(gameCode) - 1000;
+  
+      const response = await fetch( 
+        `http://localhost:8080/api/jocuri/alaturareJoc/${realGameId}`,
         {
-          method: "PUT",
+          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            cod: gameCode,
-            username: user?.name,
-          }),
         }
       );
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to join game");
       }
-
-      // Save the game code in localStorage
+  
+      // Salvăm în localStorage codul pe care l-a introdus userul
       localStorage.setItem("gameId", gameCode);
-
-      // Navigate to the game page
-      navigate("/game");
-    } catch (error: any) {
-      alert(error.message);
-    } finally {
+  
       setJoinModalOpen(false);
       setGameCode("");
+  
+      navigate("/pending");
+    } catch (error: any) {
+      // Aici afișăm mesajul personalizat de eroare
+      alert(error.message);
+      console.error("Error joining game:", error);
     }
+  };
+  
+  async function handleJoinSubmit() {
+    joinGame(gameCode);
   }
 
   return (
@@ -166,8 +288,20 @@ export default function HomePage() {
             Create Private Game
           </button>
           <button className={styles.playButton} onClick={handleJoinGame}>
-            Join Game
+            Join New Game
           </button>
+          
+          {/* Afișează butonul pentru jocul curent doar dacă există unul */}
+          {currentGameId !== null && (
+            <div className={styles.currentGameSection}>
+              <button className={`${styles.playButton} ${styles.continueButton}`} onClick={handleJoinCurrentGame}>
+                Continue Game #{currentGameCode}
+              </button>
+              <button className={`${styles.playButton} ${styles.exitButton}`} onClick={handleExitGame}>
+                Exit Current Game
+              </button>
+            </div>
+          )}
         </section>
 
         <section className={styles.stats}>

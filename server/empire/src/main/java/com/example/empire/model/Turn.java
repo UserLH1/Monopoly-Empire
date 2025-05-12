@@ -1,6 +1,8 @@
 package com.example.empire.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,13 +14,14 @@ import lombok.Setter;
 public class Turn {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idTurn;
     private String username;
     private int valoareTurn;
-    private int idJoc;
+    private Long idJoc;
 
     public Turn(){}
-    public Turn(int idTurn, String username, int valoareTurn, int idJoc) {
+    public Turn(int idTurn, String username, int valoareTurn, Long idJoc) {
         this.idTurn = idTurn;
         this.username = username;
         this.valoareTurn = valoareTurn;
@@ -49,11 +52,11 @@ public class Turn {
         this.valoareTurn = valoareTurn;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 }

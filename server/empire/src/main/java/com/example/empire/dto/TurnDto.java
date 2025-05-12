@@ -3,13 +3,13 @@ package com.example.empire.dto;
 public class TurnDto {
     private int idTurn;
     private String username;
-    private int idJoc;
+    private Long idJoc;
     private int valoareTurn;
 
     public TurnDto(){
 
     }
-    public TurnDto(int idTurn, String username, int idJoc, int valoareTurn) {
+    public TurnDto(int idTurn, String username, Long idJoc, int valoareTurn) {
         this.idTurn = idTurn;
         this.username = username;
         this.idJoc = idJoc;
@@ -32,11 +32,11 @@ public class TurnDto {
         this.username = username;
     }
 
-    public int getIdJoc() {
+    public Long getIdJoc() {
         return idJoc;
     }
 
-    public void setIdJoc(int idJoc) {
+    public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
     }
 
