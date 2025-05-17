@@ -10,17 +10,20 @@ public class JocDto {
     private int nrJucatori;
     private String statusJoc;
     private Long idJoc;
+    private String jucatorCurent;
+
 
     // Constructor fără argumente
     public JocDto() {
     }
 
     // Constructor cu argumente
-    public JocDto(String jucatori, int nrJucatori, String statusJoc, Long idJoc) {
+    public JocDto(String jucatori, int nrJucatori, String statusJoc, Long idJoc, String jucatorCurent) {
         this.jucatori = jucatori;
         this.nrJucatori = nrJucatori;
         this.statusJoc = statusJoc;
         this.idJoc = idJoc;
+        this.jucatorCurent = jucatorCurent;
     }
 
     // Getteri
@@ -55,5 +58,13 @@ public class JocDto {
 
     public void setIdJoc(Long idJoc) {
         this.idJoc = idJoc;
+    }
+
+    public String getJucatorCurent() {
+        return jucatorCurent;
+    }
+
+    public void setJucatorCurent(String jucatorCurent) {
+        this.jucatorCurent = jucatorCurent;
     }
 }

@@ -42,4 +42,6 @@ public interface JocService {
 
     public void incheieJoc(Long idJoc);
 
+    public String schimbaJucatorulCurent(Long idJoc);
+
 }

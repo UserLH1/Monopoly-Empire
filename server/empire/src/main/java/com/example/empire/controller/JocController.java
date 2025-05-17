@@ -257,5 +257,12 @@ public class JocController {
         }
     }
 
+    @PutMapping("/jocuri/{idJoc}")
+    public ResponseEntity<ApiResponse>schimbaJucatorulCurent(@PathVariable Long idJoc){
+
+        String jucatorCurent = jocService.schimbaJucatorulCurent(idJoc);
+        return ResponseEntity.ok(ApiResponse.success("Acum este randul jucatorului ", jucatorCurent ));
+    }
+
 }
 

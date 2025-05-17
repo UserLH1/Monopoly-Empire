@@ -19,7 +19,9 @@ public class Joc {
     private String jucatori;
     private int nrJucatori;
     private GameStatus status;
-    
+
+    private String jucatorulCurect;
+
     @CreationTimestamp
     @Column(name = "data_crearii", nullable = false, updatable = false)
     private LocalDateTime dataCrearii;
@@ -33,11 +35,12 @@ public class Joc {
     public Joc() {
     }
 
-    public Joc(Long idJoc, String jucatori, int nrJucatori, GameStatus status) {
+    public Joc(Long idJoc, String jucatori, int nrJucatori, GameStatus status, String jucatorulCurect) {
         this.idJoc = idJoc;
         this.jucatori = jucatori;
         this.nrJucatori = nrJucatori;
         this.status = status;
+        this.jucatorulCurect = jucatorulCurect;
     }
 
     public Long getIdJoc() {
@@ -87,7 +90,23 @@ public class Joc {
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
-    
+
+    public void setIdJoc(Long idJoc) {
+        this.idJoc = idJoc;
+    }
+
+    public String getJucatorulCurect() {
+        return jucatorulCurect;
+    }
+
+    public void setJucatorulCurect(String jucatorulCurect) {
+        this.jucatorulCurect = jucatorulCurect;
+    }
+
+    public void setDataCrearii(LocalDateTime dataCrearii) {
+        this.dataCrearii = dataCrearii;
+    }
+
     public void startGame() {
         if (this.startTime == null) {
             this.startTime = LocalDateTime.now();

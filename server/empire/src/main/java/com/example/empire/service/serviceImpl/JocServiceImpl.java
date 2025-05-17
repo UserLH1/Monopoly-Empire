@@ -187,6 +187,7 @@ public class JocServiceImpl implements JocService {
             jocDto.setStatusJoc(String.valueOf(joc.getStatus()));
             jocDto.setIdJoc(jocId);
             jocDto.setNrJucatori(joc.getNrJucatori());
+            jocDto.setJucatorCurent(joc.getJucatorulCurect());
             return jocDto;
         }
         else {
@@ -292,7 +293,7 @@ public class JocServiceImpl implements JocService {
         jocDto.setJucatori(joc.getJucatori());
         jocDto.setNrJucatori(joc.getNrJucatori());
         jocDto.setStatusJoc(joc.getStatus().toString());
-        
+        jocDto.setJucatorCurent(joc.getJucatorulCurect());
         return jocDto;
     }
 
@@ -313,7 +314,7 @@ public class JocServiceImpl implements JocService {
         
         // Setează timestamp-ul de început
         joc.setStartTime(LocalDateTime.now());
-        
+        joc.setJucatorulCurect(joc.getJucatori().split(";")[0]);
         // Inițializează cronometrul
         joc.setGameTimer(0L);
         
@@ -418,5 +419,30 @@ public class JocServiceImpl implements JocService {
         Joc joc = jocRepository.getJocByIdJoc(idJoc).get();
         joc.setStatus(GameStatus.ENDED);
         jocRepository.save(joc);
+    }
+
+    @Override
+    public String schimbaJucatorulCurent(Long idJoc) {
+
+        Joc joc = jocRepository.findById(idJoc)
+                .orElseThrow(() -> new RuntimeException("Jocul nu există"));
+
+        String jucatori[] = joc.getJucatori().split(";");
+        String jucatorulCurent = joc.getJucatorulCurect();
+
+        for(int i=0;i<jucatori.length; i++){
+            if(jucatorulCurent.equals(jucatori[i]))
+            {
+                if(i!= jucatori.length-1)
+                joc.setJucatorulCurect(jucatori[i+1]);
+                else
+                    joc.setJucatorulCurect(jucatori[0]);
+
+                break;
+            }
+        }
+        jocRepository.save(joc);
+
+        return joc.getJucatorulCurect();
     }
 }
