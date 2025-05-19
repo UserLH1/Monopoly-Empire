@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface UtilizatorRepository extends JpaRepository<Utilizator, String> {
     public Optional<Utilizator> getUtilizatorByUsername(String username);
     public ArrayList<Utilizator> getAllByIdJoc(Long idJoc);
+    
 }

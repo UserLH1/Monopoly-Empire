@@ -14,12 +14,16 @@ import com.example.empire.service.GameEventService;
 import com.example.empire.utils.ApiResponse;
 import com.example.empire.utils.AuthenticationResponse;
 import com.example.empire.config.JwtService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -69,6 +73,8 @@ public class UtilizatorController {
         ArrayList<UserDto> userDto = utilizatorService.extrageTotiJucatorii();
         return ResponseEntity.ok(ApiResponse.success("Returneaza toti jucatorii unui joc",userDto ));
     }
+    
+
 
     @PutMapping("/jucatori/{username}/sumaBani")
     public ResponseEntity<ApiResponse>updateUserMoney(@PathVariable String username, @RequestBody UpdateMoneyDto updateMoneyDto){

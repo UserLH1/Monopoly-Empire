@@ -32,4 +32,8 @@ public interface UtilizatorService {
     public boolean platesteChiria(SolicitaChirieDto solicitaChirieDto);
 
     public boolean platesteChiriaOferaPanou(SolicitaChirieDto solicitaChirieDto);
+
+    
+    
+
 }
