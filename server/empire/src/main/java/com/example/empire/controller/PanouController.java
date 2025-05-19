@@ -115,6 +115,10 @@ public class PanouController {
     @GetMapping("/pozitiiJoc")
     ResponseEntity<ApiResponse> returneazaPozitiiJoc() {
         ArrayList<DetaliiPozitieDto> pozitiiJocDtos = panouService.getAllPositionsInGame();
+        System.out.println("Pozitii jocDtos: " + pozitiiJocDtos);
+        if (pozitiiJocDtos.isEmpty()) {
+            return ResponseEntity.status(404).body(ApiResponse.error(404, "Nu există poziții în joc."));
+        }
         return ResponseEntity.ok(ApiResponse.success("Pozițiile jocului returnate cu succes", pozitiiJocDtos));
     }
 

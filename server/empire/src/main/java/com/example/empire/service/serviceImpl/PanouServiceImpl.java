@@ -64,7 +64,7 @@ public class PanouServiceImpl implements PanouService {
 
         DetaliiPozitieDto start = new DetaliiPozitieDto();
         start.setColor("#fffffff");
-        start.setPosition(0);
+        start.setPosition(1);
         start.setId(-1);
         start.setName("Start");
         start.setType("corner");
@@ -72,13 +72,13 @@ public class PanouServiceImpl implements PanouService {
         start.setValue(0);
 
         DetaliiPozitieDto impozit = new DetaliiPozitieDto();
-        start.setColor("#fffffff");
-        start.setPosition(2);
-        start.setId(-1);
-        start.setName("Impozit");
-        start.setType("Impozit");
-        start.setValueForTower(0);
-        start.setValue(0);
+         impozit.setColor("#fffffff");
+         impozit.setPosition(3);
+         impozit.setId(-1);
+         impozit.setName("Impozit");
+        impozit.setType("Impozit");
+        impozit.setValueForTower(0);
+        impozit.setValue(0);
 
 
         DetaliiPozitieDto cardEmpire = new DetaliiPozitieDto();
@@ -86,23 +86,23 @@ public class PanouServiceImpl implements PanouService {
         cardEmpire.setId(-1);
         cardEmpire.setType("empire");
         cardEmpire.setValueForTower(0);
-        cardEmpire.setPosition(4);
+        cardEmpire.setPosition(5);
 
         DetaliiPozitieDto inchisoare = new DetaliiPozitieDto();
         inchisoare.setId(-1);
-        inchisoare.setPosition(8);
+        inchisoare.setPosition(9);
         inchisoare.setName("Just Visiting / Jail");
         inchisoare.setType("corner");
 
         DetaliiPozitieDto cardSansa = new DetaliiPozitieDto();
         cardSansa.setType("chance");
         cardSansa.setName("Chance");
-        cardSansa.setPosition(12);
+        cardSansa.setPosition(13);
         cardSansa.setId(-1);
 
         DetaliiPozitieDto freeParking = new DetaliiPozitieDto();
         freeParking.setName("Free Parking");
-        freeParking.setPosition(15);
+        freeParking.setPosition(16);
         freeParking.setType("utility");
 
         DetaliiPozitieDto cardEmpire2 = new DetaliiPozitieDto();
@@ -110,25 +110,25 @@ public class PanouServiceImpl implements PanouService {
         cardEmpire2.setId(-1);
         cardEmpire2.setType("empire");
         cardEmpire2.setValueForTower(0);
-        cardEmpire2.setPosition(20);
+        cardEmpire2.setPosition(21);
 
         DetaliiPozitieDto toJail = new DetaliiPozitieDto();
         toJail.setType("corner");
-        toJail.setPosition(24);
+        toJail.setPosition(25);
         toJail.setName("Go to Jail");
 
         DetaliiPozitieDto cardSansa2 = new DetaliiPozitieDto();
-        cardSansa.setType("chance");
-        cardSansa.setName("Chance");
-        cardSansa.setPosition(27);
-        cardSansa.setId(-1);
+        cardSansa2.setType("chance");
+        cardSansa2.setName("Chance");
+        cardSansa2.setPosition(28);
+        cardSansa2.setId(-1);
 
         DetaliiPozitieDto cardEmpire3 = new DetaliiPozitieDto();
         cardEmpire3.setName("Empire Card");
         cardEmpire3.setId(-1);
         cardEmpire3.setType("empire");
         cardEmpire3.setValueForTower(0);
-        cardEmpire3.setPosition(29);
+        cardEmpire3.setPosition(30);
 
         pozitii.add(cardEmpire2);
         pozitii.add(cardEmpire);

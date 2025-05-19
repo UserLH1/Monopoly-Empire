@@ -289,7 +289,7 @@ function getTileTypeClass(type: string, styles: any) {
 // Calculate player token position with offset for multiple players
 function getPlayerTokenPosition(position: number, playerId: string) {
   const tileSize = BOARD_SIZE / 9;
-  
+
   // Find the player's index in the players array instead of parsing the ID
   // Get index from player's position in the array instead of ID parsing
   let playerIndex = 0;
@@ -298,9 +298,10 @@ function getPlayerTokenPosition(position: number, playerId: string) {
     playerIndex = parseInt(playerId.replace("p", "")) - 1;
   } else {
     // For username-based IDs, just use a simple hash to get a consistent index
-    playerIndex = playerId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 4;
+    playerIndex =
+      playerId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 4;
   }
-  
+
   const offsetX = (playerIndex % 2) * 20;
   const offsetY = Math.floor(playerIndex / 2) * 20;
 

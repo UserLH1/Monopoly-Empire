@@ -106,7 +106,7 @@ export default function GamePageComponent({
   });
   const [taxAmount, setTaxAmount] = useState(0);
 
-  const USE_LOCAL_JSON = true; // Set to false to use the database
+  const USE_LOCAL_JSON = false; // Set to false to use the database
 
   useEffect(() => {
     const loadTiles = async () => {
@@ -131,23 +131,175 @@ export default function GamePageComponent({
           setLoading(false);
         }
       } else {
-        // Load from database (your existing code)
+        // Load from database
         try {
           const token = localStorage.getItem("token");
 
-          const response = await fetch("http://localhost:8080/api/panouri", {
+          const response = await fetch("http://localhost:8080/api/pozitiiJoc", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
 
-          // Rest of your existing database loading code...
+          if (!response.ok) {
+            throw new Error("Failed to fetch panels from database");
+          }
+
+          const result = await response.json();
+          console.log("pozitii data:", result); // Log the parsed data instead
+
+          if (result.data && Array.isArray(result.data)) {
+            // First, build a mapping of the correct positions
+            const boardLayout: { [key: number]: number } = {};
+
+            // Map positions as they should appear on the board:
+            // Bottom row (left to right): 0-8
+            boardLayout[0] = 0; // GO (corner)
+            boardLayout[1] = 1; // Start
+            boardLayout[2] = 2; // Nerf
+            boardLayout[3] = 3; // Impozit
+            boardLayout[4] = 4; // Transformers
+            boardLayout[5] = 5; // Empire Card
+            boardLayout[6] = 6; // Yahoo
+            boardLayout[7] = 7; // Under Armour
+            boardLayout[8] = 8; // Levis
+
+            // Left row (bottom to top): 9-17
+            boardLayout[9] = 9; // Jail (corner)
+            boardLayout[10] = 10; // Polaroid
+            boardLayout[11] = 11; // Puma
+            boardLayout[12] = 12; // Candy Crush
+            boardLayout[13] = 13; // Unknown/Chance
+            boardLayout[14] = 14; // JetBlue
+            boardLayout[15] = 15; // Skype
+            boardLayout[16] = 16; // Free Parking/Utility
+            boardLayout[17] = 17; // Unknown/Chance
+
+            // Top row (left to right): 18-26
+            boardLayout[18] = 18; // Free Parking (corner)
+            boardLayout[19] = 19; // CocaCola
+            boardLayout[20] = 20; // Intel
+            boardLayout[21] = 21; // Empire Card
+            boardLayout[22] = 22; // Samsung
+            boardLayout[23] = 23; // McDonald's
+            boardLayout[24] = 24; // Netflix
+            boardLayout[25] = 25; // Go to Jail
+            boardLayout[26] = 26; // Nestle
+
+            // Right row (top to bottom): 27-35
+            boardLayout[27] = 27; // Go to Jail (corner)
+            boardLayout[28] = 28; // Chance
+            boardLayout[29] = 29; // Ebay
+            boardLayout[30] = 30; // Empire Card
+            boardLayout[31] = 31; // Amazon
+            boardLayout[32] = 32; // Universal
+            boardLayout[33] = 33; // Unknown/Chance
+            boardLayout[34] = 34; // Unknown/Chance
+            boardLayout[35] = 35; // Unknown/Chance
+
+            // Map the database panels to the Tile format expected by the app
+            // with corrected positioning
+            const tilesFromDb = result.data.map((panel: any) => {
+              // For special corner tiles, ensure proper position
+              if (panel.name === "Start") {
+                panel.position = 0; // GO should be at position 0
+              } else if (panel.name === "Just Visiting / Jail") {
+                panel.position = 9; // Jail should be at position 9
+              } else if (panel.name === "Free Parking") {
+                panel.position = 18; // Free Parking should be at position 18
+              } else if (panel.name === "Go to Jail") {
+                panel.position = 27; // Go to Jail should be at position 27
+              }
+
+              // Fix tax type
+              if (panel.type === "Impozit") {
+                panel.type = "tax";
+              }
+
+              return {
+                id: panel.id ? `t${panel.id}` : `tpos${panel.position}`,
+                position: panel.position,
+                type:
+                  panel.type?.toLowerCase() ||
+                  determineTileType(panel.position),
+                name: panel.name || `Position ${panel.position}`,
+                color: panel.color,
+                value: panel.value || 0,
+                logo: panel.logo,
+                valueForTower: panel.valueForTower || 0,
+              };
+            });
+
+            // Sort tiles by position to ensure correct board layout
+            tilesFromDb.sort((a: Tile, b: Tile) => a.position - b.position);
+
+            // Remove duplicate positions (keeping the first occurrence)
+            const uniqueTiles = tilesFromDb.filter(
+              (tile: Tile, index: number, self: Tile[]) =>
+                index ===
+                self.findIndex((t: Tile) => t.position === tile.position)
+            );
+
+            // Fill any gaps in positions if needed (optional)
+            const maxPosition = Math.max(
+              ...uniqueTiles.map((t: Tile) => t.position)
+            );
+            for (let i = 0; i <= maxPosition; i++) {
+              if (!uniqueTiles.find((t: Tile) => t.position === i)) {
+                uniqueTiles.push({
+                  id: `tpos${i}`,
+                  position: i,
+                  type: determineTileType(i),
+                  name: `Position ${i}`,
+                  color: null,
+                  value: 0,
+                  logo: null,
+                  valueForTower: 0,
+                });
+              }
+            }
+
+            setTiles(uniqueTiles);
+            console.log("Tiles loaded from database:", uniqueTiles.length);
+          } else {
+            console.error("Invalid panel data format from API");
+          }
         } catch (error) {
           console.error("Error fetching panels from database:", error);
         } finally {
           setLoading(false);
         }
       }
+    };
+
+    // Helper function to determine tile type based on position or other rules
+    const determineTileType = (position: number): TileType => {
+      // Corner positions for a 9x9 board (36 tiles total)
+      if (position === 0) return "corner"; // GO
+      if (position === 9) return "corner"; // Jail
+      if (position === 18) return "corner"; // Free Parking
+      if (position === 27) return "corner"; // Go to Jail
+
+      // Special positions - updated for 9 tiles per side
+      if (
+        position === 4 ||
+        position === 13 ||
+        position === 22 ||
+        position === 31
+      )
+        return "empire";
+      if (
+        position === 2 ||
+        position === 16 ||
+        position === 29 ||
+        position === 33
+      )
+        return "chance";
+      if (position === 6 || position === 20) return "tax";
+      if (position === 11 || position === 24) return "utility";
+
+      // Everything else is a brand
+      return "brand";
     };
 
     loadTiles();
