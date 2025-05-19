@@ -82,8 +82,16 @@ public class UtilizatorController {
         updatePozitiePionDto.setUsername(username);
         utilizatorService.updatePosition(updatePozitiePionDto);
         
-        // Emit event to all clients
-        gameEventService.emitPlayerMoveEvent(username, updatePozitiePionDto.getPozitiePion());
+        // Get the user's game ID from database
+        Optional<Utilizator> utilizator = utilizatorRepository.getUtilizatorByUsername(username);
+        if (utilizator.isPresent()) {
+            // Emit event to all clients
+            gameEventService.emitPlayerMoveEvent(
+                utilizator.get().getIdJoc().intValue(),  // Convert Long to Integer
+                username, 
+                updatePozitiePionDto.getPozitiePion()
+            );
+        }
         
         return ResponseEntity.ok(ApiResponse.success("Pozitia utilizatorului a fost modificata cu succes", null));
     }

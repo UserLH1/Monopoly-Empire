@@ -7,41 +7,59 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class GameEventService {
-    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    // Map of gameId -> Map of username -> emitter
+    private final Map<Integer, Map<String, SseEmitter>> gameEmitters = new ConcurrentHashMap<>();
     
-    public SseEmitter subscribe() {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        addEmitter(emitter);
-        return emitter;
-    }
-    
-    public void addEmitter(SseEmitter emitter) {
+    public void registerEmitter(Integer gameId, String username, SseEmitter emitter) {
+        // Create map for game if it doesn't exist
+        gameEmitters.computeIfAbsent(gameId, k -> new ConcurrentHashMap<>());
+        
+        // Store the emitter
+        gameEmitters.get(gameId).put(username, emitter);
+        
+        // Clean up on completion/timeout
         emitter.onCompletion(() -> {
-            emitters.remove(emitter);
-            System.out.println("SSE connection completed. Remaining connections: " + emitters.size());
-        });
-        emitter.onTimeout(() -> {
-            emitters.remove(emitter);
-            System.out.println("SSE connection timed out. Remaining connections: " + emitters.size());
-        });
-        emitter.onError(e -> {
-            emitters.remove(emitter);
-            System.out.println("SSE connection error: " + e.getMessage() + ". Remaining connections: " + emitters.size());
+            if (gameEmitters.containsKey(gameId)) {
+                gameEmitters.get(gameId).remove(username);
+                System.out.println("SSE connection completed for " + username + " in game " + gameId);
+            }
         });
         
-        emitters.add(emitter);
-        System.out.println("New SSE connection added. Total connections: " + emitters.size());
+        emitter.onTimeout(() -> {
+            if (gameEmitters.containsKey(gameId)) {
+                gameEmitters.get(gameId).remove(username);
+                System.out.println("SSE connection timed out for " + username + " in game " + gameId);
+            }
+            emitter.complete();
+        });
+        
+        emitter.onError(e -> {
+            if (gameEmitters.containsKey(gameId)) {
+                gameEmitters.get(gameId).remove(username);
+                System.out.println("SSE connection error for " + username + " in game " + gameId + ": " + e.getMessage());
+            }
+        });
+        
+        System.out.println("New SSE connection added for " + username + " in game " + gameId);
     }
     
-    public void emitPlayerMoveEvent(String username, int position) {
-        List<SseEmitter> deadEmitters = new ArrayList<>();
+    // Method to broadcast to all players in a specific game
+    public void emitPlayerMoveEvent(Integer gameId, String username, int position) {
+        if (!gameEmitters.containsKey(gameId)) {
+            System.out.println("No emitters found for game " + gameId);
+            return;
+        }
         
-        emitters.forEach(emitter -> {
+        Map<String, SseEmitter> emitters = gameEmitters.get(gameId);
+        List<String> deadConnections = new ArrayList<>();
+        
+        emitters.forEach((user, emitter) -> {
             try {
+                System.out.println("Sending move event to " + user + " in game " + gameId);
                 emitter.send(SseEmitter.event()
                     .name("playerMove")
                     .data(Map.of(
@@ -50,10 +68,12 @@ public class GameEventService {
                         "message", username + " a mutat pionul la pozitia " + position
                     )));
             } catch (IOException e) {
-                deadEmitters.add(emitter);
+                System.out.println("Failed to send to " + user + ": " + e.getMessage());
+                deadConnections.add(user);
             }
         });
         
-        emitters.removeAll(deadEmitters);
+        // Clean up dead connections
+        deadConnections.forEach(emitters::remove);
     }
 }

@@ -27,38 +27,32 @@ public class EventController {
     }
     
     @GetMapping("/subscribe")
-    public SseEmitter subscribe(@RequestParam(value = "token", required = false) String token) {
-        // Create emitter first so we can return it even if token is invalid
+    public SseEmitter subscribe(@RequestParam(value = "token", required = false) String token, 
+                                 @RequestParam(value = "gameId", required = false) Integer gameId) {
+        // Create emitter with longer timeout
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         
         try {
-            // Send immediate confirmation so client knows connection is established
-            emitter.send(SseEmitter.event()
-                  .name("connect")
-                  .data("SSE connection established"));
-                  
-            // Only validate token if we actually need authentication
+            // Extract username from token
+            String username = null;
             if (token != null && !token.isEmpty()) {
-                try {
-                    // Don't replace "Bearer " if it's not there
-                    String tokenValue = token.startsWith("Bearer ") ? token.substring(7) : token;
-                    String username = jwtService.extractUsername(tokenValue);
-                    
-                    if (username == null) {
-                        // Don't throw exception, just log warning
-                        System.out.println("WARNING: Invalid token in SSE connection");
-                    } else {
-                        System.out.println("SSE connection established for user: " + username);
-                    }
-                } catch (Exception e) {
-                    System.out.println("Token validation error: " + e.getMessage());
-                }
+                username = jwtService.extractUsername(token);
             }
             
-            // Register emitter regardless of token validity (for now)
-            gameEventService.addEmitter(emitter);
-            
-        } catch (IOException e) {
+            if (username != null && gameId != null) {
+                // Register this emitter for the specific game
+                gameEventService.registerEmitter(gameId, username, emitter);
+                
+                // Send initial connection message
+                emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("Connected to game " + gameId + " as " + username));
+            } else {
+                emitter.send(SseEmitter.event()
+                    .name("error")
+                    .data("Invalid token or missing game ID"));
+            }
+        } catch (Exception e) {
             emitter.completeWithError(e);
         }
         
