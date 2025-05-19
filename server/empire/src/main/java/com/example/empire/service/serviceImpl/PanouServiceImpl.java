@@ -1,22 +1,34 @@
 package com.example.empire.service.serviceImpl;
 
 import com.example.empire.dto.DetaliiPozitieDto;
+import com.example.empire.dto.PanouStatusDto;
 import com.example.empire.exceptions.BadRequestException;
 import com.example.empire.model.Panou;
+import com.example.empire.model.PanouCumparat;
+import com.example.empire.model.Turn;
+import com.example.empire.repository.PanouCumparatRepository;
 import com.example.empire.repository.PanouRepository;
+import com.example.empire.repository.TurnRepository;
 import com.example.empire.service.PanouService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PanouServiceImpl implements PanouService {
     private final PanouRepository panouRepository;
+    private final PanouCumparatRepository panouCumparatRepository;
+    private final TurnRepository turnRepository;
 
-    public PanouServiceImpl(PanouRepository panouRepository) {
+    public PanouServiceImpl(PanouRepository panouRepository, 
+                          PanouCumparatRepository panouCumparatRepository,
+                          TurnRepository turnRepository) {
         this.panouRepository = panouRepository;
+        this.panouCumparatRepository = panouCumparatRepository;
+        this.turnRepository = turnRepository;
     }
 
     @Override
@@ -129,5 +141,82 @@ public class PanouServiceImpl implements PanouService {
         pozitii.add(toJail);
         pozitii.add(freeParking);
         return pozitii;
+    }
+
+    @Override
+    public List<DetaliiPozitieDto> getAllPanouri() {
+        List<Panou> panouriEntities = panouRepository.findAll();
+        
+        return panouriEntities.stream()
+            .map(panou -> {
+                DetaliiPozitieDto dto = new DetaliiPozitieDto();
+                dto.setId(panou.getIdPanou());
+                dto.setName(panou.getNume());
+                dto.setValue(panou.getPret());
+                dto.setValueForTower(panou.getValoareAdaugataTurn());
+                dto.setPosition(panou.getPozitieTablaJoc());
+                dto.setColor(panou.getCuloare());
+                dto.setLogo(panou.getLogo());
+                
+                // Determine tile type based on name or position
+                String type = determineTileType(panou);
+                dto.setType(type);
+                
+                return dto;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private String determineTileType(Panou panou) {
+        String nume = panou.getNume().toLowerCase();
+        
+        if (nume.contains("go") || nume.equals("free parking") || 
+            nume.contains("jail") || nume.contains("visiting")) {
+            return "corner";
+        } else if (nume.contains("empire card")) {
+            return "empire";
+        } else if (nume.contains("chance")) {
+            return "chance";
+        } else if (nume.contains("tax")) {
+            return "tax";
+        } else if (nume.contains("utility")) {
+            return "utility";
+        } else {
+            return "brand"; // Default type
+        }
+    }
+
+    @Override
+    public PanouStatusDto getPanelStatusById(Integer idPanou) {
+        // Check if panel exists
+        Optional<Panou> optionalPanou = panouRepository.getPanouByIdPanou(idPanou);
+        if (!optionalPanou.isPresent()) {
+            throw new RuntimeException("Panel not found with id: " + idPanou);
+        }
+        
+        PanouStatusDto statusDto = new PanouStatusDto();
+        
+        // Get panel details
+        Panou panou = optionalPanou.get();
+        statusDto.setName(panou.getNume());
+        statusDto.setPrice(panou.getPret());
+        statusDto.setColor(panou.getCuloare());
+        statusDto.setPosition(panou.getPozitieTablaJoc());
+        
+        // Check if panel is purchased
+        Optional<PanouCumparat> optionalPanouCumparat = panouCumparatRepository.findByPanouIdPanou(idPanou);        statusDto.setPurchased(optionalPanouCumparat.isPresent());
+        
+        if (optionalPanouCumparat.isPresent()) {
+            PanouCumparat panouCumparat = optionalPanouCumparat.get();
+            
+            // Use turnRepository to get the Turn entity
+            Optional<Turn> turnOptional = turnRepository.getTurnByIdTurn(panouCumparat.getIdTurn());
+            if (turnOptional.isPresent()) {
+                Turn turn = turnOptional.get();
+                statusDto.setOwnerUsername(turn.getUsername());
+            }
+        }
+        
+        return statusDto;
     }
 }

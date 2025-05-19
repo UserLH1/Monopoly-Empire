@@ -22,6 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -115,5 +116,15 @@ public class PanouController {
     ResponseEntity<ApiResponse> returneazaPozitiiJoc() {
         ArrayList<DetaliiPozitieDto> pozitiiJocDtos = panouService.getAllPositionsInGame();
         return ResponseEntity.ok(ApiResponse.success("Pozițiile jocului returnate cu succes", pozitiiJocDtos));
+    }
+
+    @GetMapping("/panouri")
+    public ResponseEntity<ApiResponse> getAllPanouri() {
+        try {
+            List<DetaliiPozitieDto> panouri = panouService.getAllPanouri();
+            return ResponseEntity.ok(ApiResponse.success("Panourile au fost obținute cu succes", panouri));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error(500, "Eroare la obținerea panourilor: " + e.getMessage()));
+        }
     }
 }

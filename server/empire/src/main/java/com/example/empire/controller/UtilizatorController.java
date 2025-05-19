@@ -10,6 +10,7 @@ import com.example.empire.repository.TurnRepository;
 import com.example.empire.repository.UtilizatorRepository;
 import com.example.empire.service.JocService;
 import com.example.empire.service.UtilizatorService;
+import com.example.empire.service.GameEventService;
 import com.example.empire.utils.ApiResponse;
 import com.example.empire.utils.AuthenticationResponse;
 import com.example.empire.config.JwtService;
@@ -32,15 +33,17 @@ public class UtilizatorController {
     private final UtilizatorRepository utilizatorRepository;
     private final PanouCumparatRepository panouCumparatRepository;
     private final TurnRepository turnRepository;
+    private final GameEventService gameEventService;
 
     @Autowired
-    public UtilizatorController(UtilizatorService utilizatorService, JocService jocService, JwtService jwtService, UtilizatorRepository utilizatorRepository, PanouCumparatRepository panouCumparatRepository, TurnRepository turnRepository) {
+    public UtilizatorController(UtilizatorService utilizatorService, JocService jocService, JwtService jwtService, UtilizatorRepository utilizatorRepository, PanouCumparatRepository panouCumparatRepository, TurnRepository turnRepository, GameEventService gameEventService) {
         this.utilizatorService = utilizatorService;
         this.jocService = jocService;
         this.jwtService = jwtService;
         this.utilizatorRepository = utilizatorRepository;
         this.panouCumparatRepository = panouCumparatRepository;
         this.turnRepository = turnRepository;
+        this.gameEventService = gameEventService;
     }
 
     @PostMapping("/jucatori/register")
@@ -75,9 +78,13 @@ public class UtilizatorController {
     }
 
     @PutMapping("/jucatori/{username}/pozitiePion")
-    public ResponseEntity<ApiResponse>updateUserPosition(@PathVariable String username, @RequestBody UpdatePozitiePionDto updatePozitiePionDto){
+    public ResponseEntity<ApiResponse> updateUserPosition(@PathVariable String username, @RequestBody UpdatePozitiePionDto updatePozitiePionDto) {
         updatePozitiePionDto.setUsername(username);
         utilizatorService.updatePosition(updatePozitiePionDto);
+        
+        // Emit event to all clients
+        gameEventService.emitPlayerMoveEvent(username, updatePozitiePionDto.getPozitiePion());
+        
         return ResponseEntity.ok(ApiResponse.success("Pozitia utilizatorului a fost modificata cu succes", null));
     }
 

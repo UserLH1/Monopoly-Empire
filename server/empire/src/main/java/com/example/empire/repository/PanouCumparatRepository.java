@@ -12,4 +12,7 @@ import java.util.Optional;
 public interface PanouCumparatRepository extends JpaRepository<PanouCumparat,Integer> {
     Optional<PanouCumparat> findByIdPanouCumparat(int idPanou);
     List<PanouCumparat>getAllByIdTurn(int idTurn);
+    Optional<PanouCumparat> findByPanouIdPanou(Integer idPanou);
+
+    
 }

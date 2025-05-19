@@ -7,9 +7,9 @@ type ProtectedRouteProps = {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user } = useAuth();
-  console.log("ProtectedRoute user", user);
+  
   const token = localStorage.getItem("token");
-  console.log("ProtectedRoute token", token);
+ 
 
   if (!user || !token) {
     return <Navigate to="/login" replace />;

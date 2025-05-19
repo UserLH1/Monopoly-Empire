@@ -11,9 +11,14 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         System.out.println("CORS configuration applied");
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:5174")
+                // Add port 3000 for standard React apps
+                .allowedOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                // Add these headers needed for SSE
+                .exposedHeaders("Content-Type", "Cache-Control", "Connection", "Keep-Alive")
+                .allowCredentials(true)
+                // Add max age to avoid preflight requests for every SSE connection
+                .maxAge(3600);
     }
 }
