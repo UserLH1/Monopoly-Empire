@@ -233,4 +233,15 @@ public class UtilizatorController {
         }
     }
 
+    @PutMapping("/jucatori/{username}/primesteSalariu")
+    public ResponseEntity<ApiResponse> primesteSalariu(@PathVariable String username) {
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(username).orElseThrow(() -> new RuntimeException("Utilizatorul nu a fost găsit"));
+        Turn turn = turnRepository.getTurnByUsername(username).orElseThrow(() -> new RuntimeException("Turnul nu a fost găsit"));
+
+        utilizator.setSumaBani(utilizator.getSumaBani() + turn.getValoareTurn());
+        utilizatorRepository.save(utilizator);
+
+        return ResponseEntity.ok(ApiResponse.success("Salariul a fost primit cu succes", null));
+    }
+
 }
