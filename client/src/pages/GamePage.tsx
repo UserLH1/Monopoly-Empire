@@ -119,7 +119,7 @@ export default function GamePage() {
       try {
         const realGameId = Number(gameId) - 1000;
         const response = await fetch(`http://localhost:8080/api/jocuri/parasireJoc/${realGameId}`, {
-          method: "POST",
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
           },

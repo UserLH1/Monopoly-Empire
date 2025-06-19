@@ -22,6 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -114,6 +115,20 @@ public class PanouController {
     @GetMapping("/pozitiiJoc")
     ResponseEntity<ApiResponse> returneazaPozitiiJoc() {
         ArrayList<DetaliiPozitieDto> pozitiiJocDtos = panouService.getAllPositionsInGame();
+        System.out.println("Pozitii jocDtos: " + pozitiiJocDtos);
+        if (pozitiiJocDtos.isEmpty()) {
+            return ResponseEntity.status(404).body(ApiResponse.error(404, "Nu există poziții în joc."));
+        }
         return ResponseEntity.ok(ApiResponse.success("Pozițiile jocului returnate cu succes", pozitiiJocDtos));
+    }
+
+    @GetMapping("/panouri")
+    public ResponseEntity<ApiResponse> getAllPanouri() {
+        try {
+            List<DetaliiPozitieDto> panouri = panouService.getAllPanouri();
+            return ResponseEntity.ok(ApiResponse.success("Panourile au fost obținute cu succes", panouri));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error(500, "Eroare la obținerea panourilor: " + e.getMessage()));
+        }
     }
 }

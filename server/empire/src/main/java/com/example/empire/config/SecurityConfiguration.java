@@ -48,6 +48,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/panou/**").permitAll()
                         .requestMatchers("/api/panouri/**").permitAll()
                         .requestMatchers("/pozitiiJoc").permitAll()
+                        .requestMatchers("/api/events/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement ->
