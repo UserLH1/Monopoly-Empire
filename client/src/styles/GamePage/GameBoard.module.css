@@ -77,8 +77,17 @@
   justify-content: center;
   align-items: center;
   background-color: #f8f8f8;
-  z-index: 11;
-  font-weight: bold;
+  z-index: 5;
+  border: 2px solid #333;
+  /* Remove any width/height settings that might make corners bigger */
+}
+
+/* Update the cornerTile class if it exists */
+.cornerTile {
+  /* Keep styling for corners but don't make them larger */
+  border: 2px solid #333;
+  z-index: 5;
+  /* Remove any width/height settings that might make corners bigger */
 }
 
 .cornerTileContent {

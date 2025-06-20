@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "../../styles/GamePage/GameBoard.module.css";
-
+import BoardTile from "../BoardTile";
 // Define types for our Monopoly Empire game
 interface Player {
   id: string;
@@ -62,53 +62,52 @@ export default function GameBoard({
 
   // Function to calculate tile position on the board in the new direction
   function calculateTilePosition(position: number) {
-    // Convert 1-based position to 0-based for calculations
-    const adjustedPosition = position - 1;
-
     let style: React.CSSProperties = {};
     let className = "";
 
-    // LEFT column (positions 1-9) - BOTTOM TO TOP
-    if (adjustedPosition < 9) {
+    // LEFT column (positions 0-8) - BOTTOM TO TOP
+    if (position >= 0 && position <= 8) {
       style = {
         left: 0,
-        bottom: `${adjustedPosition * tileSize}px`,
-        width: adjustedPosition === 0 ? tileSize * 1.4 : tileSize,
-        height: adjustedPosition === 0 ? tileSize * 1.4 : tileSize,
+        bottom: `${position * tileSize}px`,
+        // Use same size for all tiles including corner at position 0
+        width: tileSize,
+        height: tileSize,
       };
-      className = adjustedPosition === 0 ? styles.cornerTile : styles.leftTile;
+      className = position === 0 ? styles.cornerTile : styles.leftTile;
     }
-    // TOP row (positions 10-18) - LEFT TO RIGHT
-    else if (adjustedPosition < 18) {
+    // TOP row (positions 9-17) - LEFT TO RIGHT
+    else if (position >= 9 && position <= 17) {
       style = {
         top: 0,
-        left: `${(adjustedPosition - 9 + 1) * tileSize}px`,
-        width: adjustedPosition === 9 ? tileSize * 1.4 : tileSize,
-        height: adjustedPosition === 9 ? tileSize * 1.4 : tileSize,
+        left: `${(position - 9) * tileSize}px`,
+        // Use same size for all tiles including corner at position 9
+        width: tileSize,
+        height: tileSize,
       };
-      className = adjustedPosition === 9 ? styles.cornerTile : styles.topTile;
+      className = position === 9 ? styles.cornerTile : styles.topTile;
     }
-    // RIGHT column (positions 19-27) - TOP TO BOTTOM
-    else if (adjustedPosition < 27) {
+    // RIGHT column (positions 18-26) - TOP TO BOTTOM
+    else if (position >= 18 && position <= 26) {
       style = {
         right: 0,
-        top: `${(adjustedPosition - 18 + 1) * tileSize}px`,
-        width: adjustedPosition === 18 ? tileSize * 1.4 : tileSize,
-        height: adjustedPosition === 18 ? tileSize * 1.4 : tileSize,
+        top: `${(position - 18) * tileSize}px`,
+        // Use same size for all tiles including corner at position 18
+        width: tileSize,
+        height: tileSize,
       };
-      className =
-        adjustedPosition === 18 ? styles.cornerTile : styles.rightTile;
+      className = position === 18 ? styles.cornerTile : styles.rightTile;
     }
-    // BOTTOM row (positions 28-36) - RIGHT TO LEFT
-    else {
+    // BOTTOM row (positions 27-35) - RIGHT TO LEFT
+    else if (position >= 27) {
       style = {
         bottom: 0,
-        right: `${(adjustedPosition - 27 + 1) * tileSize}px`,
-        width: adjustedPosition === 27 ? tileSize * 1.4 : tileSize,
-        height: adjustedPosition === 27 ? tileSize * 1.4 : tileSize,
+        right: `${(position - 27) * tileSize}px`,
+        // Use same size for all tiles including corner at position 27
+        width: tileSize,
+        height: tileSize,
       };
-      className =
-        adjustedPosition === 27 ? styles.cornerTile : styles.bottomTile;
+      className = position === 27 ? styles.cornerTile : styles.bottomTile;
     }
 
     return { style, className };
@@ -157,106 +156,16 @@ export default function GameBoard({
 
           return (
             <div
-              key={tile.id}
-              className={`${styles.tile} ${className} ${getTileTypeClass(
-                tile.type,
-                styles
-              )}`}
-              style={{
-                ...style,
-                backgroundColor: tile.type === "brand" ? tile.color : undefined,
-              }}
+              key={`pos-${tile.position}-${tile.id}`}
+              className={`${styles.tile} ${className}`}
+              style={style}
             >
-              {/* Tile content */}
-              <div className={styles.tileContent}>
-                {tile.type === "brand" && (
-                  <>
-                    <div
-                      className={styles.tileBanner}
-                      style={{ backgroundColor: tile.color }}
-                    ></div>
-                    <div className={styles.tileName}>{tile.name}</div>
-                    {tile.logo && (
-                      <div
-                        className={styles.tileLogo}
-                        style={{ backgroundImage: `url(${tile.logo})` }}
-                      ></div>
-                    )}
-                    {tile.value && (
-                      <div className={styles.tileValue}>${tile.value}</div>
-                    )}
-                  </>
-                )}
-
-                {tile.type === "corner" && (
-                  <div className={styles.cornerTileContent}>
-                    {tile.position === 0 && (
-                      <>
-                        <div className={styles.goArrow}>↑</div>
-                        <span className={styles.goText}>GO</span>
-                        <div className={styles.goCollect}>
-                          COLLECT $2M SALARY AS YOU PASS
-                        </div>
-                      </>
-                    )}
-                    {tile.position === 9 && (
-                      <>
-                        <div className={styles.jailSection}>
-                          <div className={styles.justVisiting}>
-                            JUST VISITING
-                          </div>
-                          <div className={styles.jailImage}></div>
-                          <div className={styles.jail}>JAIL</div>
-                        </div>
-                      </>
-                    )}
-                    {tile.position === 18 && <span>FREE PARKING</span>}
-                    {tile.position === 27 && (
-                      <>
-                        <span>GO TO</span>
-                        <span>JAIL</span>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {(tile.type === "chance" || tile.type === "empire") && (
-                  <div className={styles.cardTile}>
-                    <div
-                      className={styles.cardIcon}
-                      style={{
-                        backgroundColor:
-                          tile.type === "chance" ? "#FF5252" : "#2196F3",
-                      }}
-                    >
-                      {tile.type === "chance" ? "?" : "E"}
-                    </div>
-                    <span>{tile.name}</span>
-                  </div>
-                )}
-
-                {tile.type === "utility" && (
-                  <div className={styles.utilityTile}>
-                    {tile.name === "Tower Tax" && (
-                      <div className={styles.taxIcon}>💰</div>
-                    )}
-                    {tile.name === "Rival Tower" && (
-                      <div className={styles.rivalIcon}>🏢</div>
-                    )}
-                    <span>{tile.name}</span>
-                  </div>
-                )}
-
-                {tile.type === "tax" && (
-                  <div className={styles.taxTile}>
-                    <div className={styles.taxIcon}>💸</div>
-                    <span>{tile.name}</span>
-                    {tile.value && (
-                      <div className={styles.taxValue}>PAY ${tile.value}M</div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Use BoardTile component for tile content */}
+              <BoardTile
+                tile={tile}
+                position={tile.position}
+                totalTiles={TILE_COUNT}
+              />
             </div>
           );
         })}

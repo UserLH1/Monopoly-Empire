@@ -12,11 +12,6 @@ export default function BoardTile({
   position,
   totalTiles,
 }: BoardTileProps) {
-  const getTilePosition = () => {
-    const side = Math.floor((position * 4) / totalTiles);
-    return styles[`side${side}`];
-  };
-
   const getIconForType = () => {
     switch (tile.type) {
       case "chance":
@@ -28,7 +23,7 @@ export default function BoardTile({
       case "tax":
         return "💰";
       case "corner":
-        if (tile.name?.includes("Jail") && tile.position === 9) return "🔒";
+        if (tile.name?.includes("Jail")) return "🔒";
         if (tile.name?.includes("Start")) return "🏁";
         if (tile.name?.includes("Free Parking")) return "🅿️";
         if (tile.name?.includes("Go to Jail")) return "👮";
@@ -38,14 +33,19 @@ export default function BoardTile({
     }
   };
 
+  // Get CSS classes for special corner tiles
+  const getSpecialClass = () => {
+    if (tile.name?.includes("Go to Jail")) return styles.goToJailTile;
+    if (tile.name?.includes("Free Parking")) return styles.freeParkingTile;
+    return "";
+  };
+
   return (
     <div
-      className={`${styles.tile} ${getTilePosition()} ${
+      className={`${styles.tile} ${
         styles[`type${tile.type}`]
-      }`}
-      style={
-        { "--position": position % (totalTiles / 4) } as React.CSSProperties
-      }
+      } ${getSpecialClass()}`}
+      data-name={tile.name}
     >
       <div className={styles.tileContent}>
         {tile.type === "brand" && (

@@ -1,7 +1,6 @@
 .tile {
-  position: absolute;
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   border: 1px solid #ccc;
   background: white;
   display: flex;
@@ -14,6 +13,8 @@
   overflow: hidden;
 }
 
+/* Remove the positioning styles for side0, side1, etc. */
+
 .tile:hover {
   transform-origin: center;
   transform: scale(1.05);
@@ -22,21 +23,23 @@
   border-color: #333;
 }
 
+/* Update tileContent to use more explicit spacing */
 .tileContent {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 3px;
-  text-align: center;
+  /* Use space-around instead of space-between for better distribution */
+  justify-content: space-around;
+  padding: 4px 3px 18px 3px; /* Extra bottom padding to make room for values */
   box-sizing: border-box;
+  position: relative;
 }
 
 .colorBanner {
   width: 100%;
-  height: 15px;
+  height: 12px;
   position: absolute;
   top: 0;
   left: 0;
@@ -44,16 +47,28 @@
 }
 
 .tileName {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: bold;
   text-align: center;
-  margin-top: 16px;
+  /* Center text vertically */
+  margin: 4px 0;
+  padding: 0 4px;
   width: 100%;
+  /* Ensure text doesn't overflow */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 2px;
-  color: #333;
+  /* Make sure text color is visible */
+  color: #000000;
+  /* Increase visibility */
+  z-index: 5;
+  position: relative;
+}
+
+/* Position the logo/icon in the upper part */
+.tileLogo, .tileIcon {
+  margin-top: 14px; /* Space below color banner */
+  margin-bottom: 2px; /* Space above name */
 }
 
 .tileValue {
@@ -81,6 +96,14 @@
   bottom: 0;
   left: 0;
   right: 0;
+  font-size: 0.7rem;
+  font-weight: bold;
+  background-color: #f8f8f8;
+  border-top: 1px solid #eee;
+  width: 100%;
+  padding: 2px 4px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .towerValue {
@@ -96,8 +119,8 @@
 }
 
 .tileIcon {
-  font-size: 1.5rem;
-  margin: 5px 0;
+  font-size: 1.3rem;
+  margin: 3px 0;
 }
 
 .tileLogo {
@@ -152,39 +175,17 @@
   background: linear-gradient(to bottom, #4682B4, #B0C4DE) !important;
 }
 
-/* Positioning logic */
-.side0 { /* Top row */
-  top: 0;
-  left: calc(80px * var(--position));
-}
-
-.side1 { /* Right column */
-  top: calc(80px * var(--position));
-  right: 0;
-}
-
-.side2 { /* Bottom row */
-  bottom: 0;
-  right: calc(80px * var(--position));
-}
-
-.side3 { /* Left column */
-  bottom: calc(80px * var(--position));
-  left: 0;
-}
-
 /* Corner tiles */
 .side0.typecorner, .side1.typecorner, .side2.typecorner, .side3.typecorner {
-  width: 100px;
-  height: 100px;
-  z-index: 10;
-  font-size: 1.1rem;
+  /* Remove width/height settings if they exist */
+  width: auto;
+  height: auto;
+  font-size: inherit;
 }
 
 .side0.typecorner .tileIcon, .side1.typecorner .tileIcon, 
 .side2.typecorner .tileIcon, .side3.typecorner .tileIcon {
-  font-size: 2.5rem;
-  margin: 10px 0;
+  font-size: 1.3rem; /* Same as regular tiles */
 }
 
 .goToJailTile {
