@@ -289,3 +289,17 @@
   50% { transform: scale(1.3) translateY(-30px); }
   100% { transform: scale(1) translateY(0); }
 }
+
+.chanceCardContainer {
+  position: absolute;
+  left: 20px;
+  top: 250px; /* Adjust to position below player panel */
+  z-index: 5;
+}
+
+.empireCardContainer {
+  position: absolute;
+  right: 20px;
+  top: 250px; /* Adjust to position below player panel */
+  z-index: 5;
+}

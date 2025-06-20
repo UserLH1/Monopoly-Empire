@@ -8,7 +8,6 @@ import {
 } from "../../services/CardService";
 import styles from "../../styles/GamePage/GamePage.module.css";
 import { ActiveCard, Card, CardType } from "../../types/Card";
-import Bank from "./Bank";
 import CardDeck from "./CardDecks";
 import CardModal from "./CardModal";
 import DiceArea from "./DiceArea";
@@ -154,7 +153,6 @@ export default function GamePageComponent({
 
             // Map positions as they should appear on the board:
             // Bottom row (left to right): 0-8
-            boardLayout[0] = 0; // GO (corner)
             boardLayout[1] = 1; // Start
             boardLayout[2] = 2; // Nerf
             boardLayout[3] = 3; // Impozit
@@ -172,18 +170,18 @@ export default function GamePageComponent({
             boardLayout[13] = 13; // Unknown/Chance
             boardLayout[14] = 14; // JetBlue
             boardLayout[15] = 15; // Skype
-            boardLayout[16] = 16; // Free Parking/Utility
-            boardLayout[17] = 17; // Unknown/Chance
+            boardLayout[16] = 16; // Spotify
+            boardLayout[17] = 17; // Go to Jail (UPDATED)
 
             // Top row (left to right): 18-26
-            boardLayout[18] = 18; // Free Parking (corner)
+            boardLayout[18] = 18; // Ducati
             boardLayout[19] = 19; // CocaCola
             boardLayout[20] = 20; // Intel
             boardLayout[21] = 21; // Empire Card
             boardLayout[22] = 22; // Samsung
             boardLayout[23] = 23; // McDonald's
             boardLayout[24] = 24; // Netflix
-            boardLayout[25] = 25; // Go to Jail
+            boardLayout[25] = 25; // Free Parking (UPDATED)
             boardLayout[26] = 26; // Nestle
 
             // Right row (top to bottom): 27-35
@@ -202,13 +200,13 @@ export default function GamePageComponent({
             const tilesFromDb = result.data.map((panel: any) => {
               // For special corner tiles, ensure proper position
               if (panel.name === "Start") {
-                panel.position = 0; // GO should be at position 0
+                panel.position = 1; // GO should be at position 0
               } else if (panel.name === "Just Visiting / Jail") {
                 panel.position = 9; // Jail should be at position 9
               } else if (panel.name === "Free Parking") {
-                panel.position = 18; // Free Parking should be at position 18
+                panel.position = 25; // Free Parking now at position 25
               } else if (panel.name === "Go to Jail") {
-                panel.position = 27; // Go to Jail should be at position 27
+                panel.position = 17; // Go to Jail now at position 17
               }
 
               // Fix tax type
@@ -259,8 +257,34 @@ export default function GamePageComponent({
               }
             }
 
-            setTiles(uniqueTiles);
-            console.log("Tiles loaded from database:", uniqueTiles.length);
+            // Process tiles after all processing but before setting state
+            const finalTiles = uniqueTiles.map((tile: any) => {
+              // Ensure "Go to Jail" is at position 17
+              if (tile.name === "Go to Jail") {
+                return { ...tile, position: 17, type: "corner" };
+              }
+
+              // Ensure "Free Parking" is at position 25
+              if (tile.name === "Free Parking") {
+                return { ...tile, position: 25, type: "corner" };
+              }
+
+              // Fix position 18 (was Free Parking, now Ducati)
+              if (tile.name === "Ducati") {
+                return { ...tile, position: 18 };
+              }
+
+              // Fix position 27 (was Go to Jail, now Xbox)
+              if (tile.name === "Xbox") {
+                return { ...tile, position: 27 };
+              }
+
+              return tile;
+            });
+
+            setTiles(finalTiles);
+            console.log("Tiles procesed:", finalTiles.length);
+            console.log(finalTiles);
           } else {
             console.error("Invalid panel data format from API");
           }
@@ -275,10 +299,10 @@ export default function GamePageComponent({
     // Helper function to determine tile type based on position or other rules
     const determineTileType = (position: number): TileType => {
       // Corner positions for a 9x9 board (36 tiles total)
-      if (position === 0) return "corner"; // GO
+      if (position === 1) return "corner"; // GO
       if (position === 9) return "corner"; // Jail
-      if (position === 18) return "corner"; // Free Parking
-      if (position === 27) return "corner"; // Go to Jail
+      if (position === 17) return "corner"; // Free Parking
+      if (position === 25) return "corner"; // Go to Jail
 
       // Special positions - updated for 9 tiles per side
       if (
@@ -1182,12 +1206,6 @@ export default function GamePageComponent({
 
   return (
     <div className={styles.gamePageContainer}>
-      <div>
-        <div className={styles.topBank}>
-          <Bank totalMoney={bankMoney} onTransaction={() => {}} />
-        </div>
-      </div>
-
       <div className={styles.gameContent}>
         {players.map((player, index) => (
           <PlayerPanel
@@ -1219,17 +1237,8 @@ export default function GamePageComponent({
           </div>
         </div>
 
-        <div className={styles.cardDecks}>
-          <CardDeck
-            type="empire"
-            onDrawCard={() => handleDrawCard("empire")}
-            disabled={
-              gameStatus !== "playing" ||
-              currentPlayerIndex !==
-                players.findIndex((p) => p.name === user?.name)
-            }
-            remainingCards={empireCards.length}
-          />
+        {/* Left side - Chance deck positioned under left player panel */}
+        <div className={styles.leftDeckContainer}>
           <CardDeck
             type="chance"
             onDrawCard={() => handleDrawCard("chance")}
@@ -1239,6 +1248,20 @@ export default function GamePageComponent({
                 players.findIndex((p) => p.name === user?.name)
             }
             remainingCards={chanceCards.length}
+          />
+        </div>
+
+        {/* Right side - Empire deck positioned under right player panel */}
+        <div className={styles.rightDeckContainer}>
+          <CardDeck
+            type="empire"
+            onDrawCard={() => handleDrawCard("empire")}
+            disabled={
+              gameStatus !== "playing" ||
+              currentPlayerIndex !==
+                players.findIndex((p) => p.name === user?.name)
+            }
+            remainingCards={empireCards.length}
           />
         </div>
       </div>

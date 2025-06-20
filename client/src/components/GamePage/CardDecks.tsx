@@ -1,7 +1,7 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import styles from "../../styles/GamePage/CardDeck.module.css";
-import { Card, CardType } from "../../types/Card";
+import { CardType } from "../../types/Card";
 
 interface CardDeckProps {
   type: CardType;
@@ -10,27 +10,32 @@ interface CardDeckProps {
   remainingCards?: number;
 }
 
-export default function CardDeck({ type, onDrawCard, disabled, remainingCards = 15 }: CardDeckProps) {
+export default function CardDeck({
+  type,
+  onDrawCard,
+  disabled,
+  remainingCards = 15,
+}: CardDeckProps) {
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   const handleDraw = () => {
     if (disabled || isAnimating) return;
-    
+
     setIsAnimating(true);
     onDrawCard(type);
-    
+
     // După un timp, resetează animația
     setTimeout(() => {
       setIsAnimating(false);
     }, 1000);
   };
-  
+
   return (
-    <div 
+    <div
       className={`${styles.cardDeck} ${styles[type]}`}
       data-testid={`${type}-deck`}
     >
-      <motion.div 
+      <motion.div
         className={styles.deckContainer}
         whileHover={!disabled ? { scale: 1.05 } : {}}
         onClick={handleDraw}
@@ -44,11 +49,13 @@ export default function CardDeck({ type, onDrawCard, disabled, remainingCards = 
               style={{ marginTop: i * 2, marginLeft: i * 1 }}
             />
           ))}
-          
+
           {/* Cardul principal */}
           <motion.div
             className={`${styles.card} ${isAnimating ? styles.drawing : ""}`}
-            animate={isAnimating ? { y: -50, opacity: 0 } : { y: 0, opacity: 1 }}
+            animate={
+              isAnimating ? { y: -50, opacity: 0 } : { y: 0, opacity: 1 }
+            }
             transition={{ type: "spring" }}
           >
             <div className={styles.cardFace}>
@@ -59,10 +66,8 @@ export default function CardDeck({ type, onDrawCard, disabled, remainingCards = 
             </div>
           </motion.div>
         </AnimatePresence>
-        
-        <div className={styles.remainingCount}>
-          {remainingCards} rămase
-        </div>
+
+        <div className={styles.remainingCount}>{remainingCards} rămase</div>
       </motion.div>
     </div>
   );

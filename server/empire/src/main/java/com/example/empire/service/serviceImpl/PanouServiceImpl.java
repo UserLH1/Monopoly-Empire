@@ -63,7 +63,7 @@ public class PanouServiceImpl implements PanouService {
         }
 
         DetaliiPozitieDto start = new DetaliiPozitieDto();
-        start.setColor("#fffffff");
+        start.setColor("#ffffff");
         start.setPosition(1);
         start.setId(-1);
         start.setName("Start");
@@ -93,6 +93,9 @@ public class PanouServiceImpl implements PanouService {
         inchisoare.setPosition(9);
         inchisoare.setName("Just Visiting / Jail");
         inchisoare.setType("corner");
+        inchisoare.setValueForTower(0);
+        inchisoare.setValue(0);
+        inchisoare.setColor("#FF4500");
 
         DetaliiPozitieDto cardSansa = new DetaliiPozitieDto();
         cardSansa.setType("chance");
@@ -104,6 +107,8 @@ public class PanouServiceImpl implements PanouService {
         freeParking.setName("Free Parking");
         freeParking.setPosition(16);
         freeParking.setType("utility");
+        freeParking.setColor("#32CD32");
+
 
         DetaliiPozitieDto cardEmpire2 = new DetaliiPozitieDto();
         cardEmpire2.setName("Empire Card");
@@ -116,6 +121,7 @@ public class PanouServiceImpl implements PanouService {
         toJail.setType("corner");
         toJail.setPosition(25);
         toJail.setName("Go to Jail");
+        toJail.setColor("#FF4500");
 
         DetaliiPozitieDto cardSansa2 = new DetaliiPozitieDto();
         cardSansa2.setType("chance");

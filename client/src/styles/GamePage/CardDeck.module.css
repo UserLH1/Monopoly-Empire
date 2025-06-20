@@ -77,10 +77,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   font-size: 2.5rem;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.8);
@@ -182,4 +184,55 @@
   text-align: center;
   font-size: 12px;
   color: #666;
+}
+
+.cardDecksContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chanceCardDeck, .empireCardDeck {
+  width: 120px;
+  height: 180px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.chanceCardDeck:hover, .empireCardDeck:hover {
+  transform: translateY(-10px);
+}
+
+.cardBack {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.chanceCardDeck .cardBack {
+  background-color: #e74c3c; /* Red for Chance cards */
+}
+
+.empireCardDeck .cardBack {
+  background-color: #3498db; /* Blue for Empire cards */
+}
+
+.cardSymbol {
+  font-size: 40px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+}
+
+.cardTitle {
+  color: white;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 18px;
 }

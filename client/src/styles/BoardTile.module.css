@@ -9,45 +9,158 @@
   justify-content: center;
   box-sizing: border-box;
   transform-origin: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.tile:hover {
+  transform-origin: center;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  z-index: 100;
+  border-color: #333;
 }
 
 .tileContent {
-  transform: rotate(45deg);
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
+  padding: 3px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.colorBanner {
+  width: 100%;
+  height: 15px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .tileName {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
+  font-weight: bold;
   text-align: center;
-  transform: rotate(-45deg);
-  padding: 0.2rem;
+  margin-top: 16px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+  color: #333;
 }
 
-.colorBand {
+.tileValue {
+  font-size: 0.7rem;
+  font-weight: bold;
+  background-color: #f8f8f8;
+  border-top: 1px solid #eee;
+  width: 100%;
+  padding: 2px 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.tileDetails {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  background-color: #f8f8f8;
+  border-top: 1px solid #eee;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 8px;
+}
+
+.towerValue {
+  color: #2c7d2c;
+  display: flex;
+  align-items: center;
+}
+
+.towerValue::before {
+  content: "🏢";
+  font-size: 0.7rem;
+  margin-right: 1px;
+}
+
+.tileIcon {
+  font-size: 1.5rem;
+  margin: 5px 0;
+}
+
+.tileLogo {
+  width: 40px;
+  height: 30px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 5px 0;
+}
+
+/* Type-specific styling */
+.typebrand {
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+}
+
+.typechance {
+  background: linear-gradient(to bottom, #ffcdd2, #f8f9fa);
+}
+
+.typeempire {
+  background: linear-gradient(to bottom, #bbdefb, #f8f9fa);
+}
+
+.typetax {
+  background: linear-gradient(to bottom, #ffecb3, #f8f9fa);
+}
+
+.typeutility {
+  background: linear-gradient(to bottom, #c8e6c9, #f8f9fa);
+}
+
+.typecorner {
+  background: linear-gradient(to bottom, #e1bee7, #f8f9fa);
+  border: 2px solid #333;
+}
+
+/* Specific corner tiles */
+.tile[title="Start"], .tile[data-name="Start"] {
+  background: linear-gradient(to bottom, #FF4500, #FFA07A) !important;
+}
+
+.tile[title="Go to Jail"], .tile[data-name="Go to Jail"] {
+  background: linear-gradient(to bottom, #FF6347, #FFC0CB) !important;
+}
+
+.tile[title="Free Parking"], .tile[data-name="Free Parking"] {
+  background: linear-gradient(to bottom, #32CD32, #98FB98) !important;
+}
+
+.tile[title="Just Visiting / Jail"], .tile[data-name="Just Visiting / Jail"] {
+  background: linear-gradient(to bottom, #4682B4, #B0C4DE) !important;
 }
 
 /* Positioning logic */
 .side0 { /* Top row */
   top: 0;
   left: calc(80px * var(--position));
-  transform: rotate(180deg);
 }
 
 .side1 { /* Right column */
   top: calc(80px * var(--position));
   right: 0;
-  transform: rotate(270deg);
 }
 
 .side2 { /* Bottom row */
@@ -58,5 +171,34 @@
 .side3 { /* Left column */
   bottom: calc(80px * var(--position));
   left: 0;
-  transform: rotate(90deg);
+}
+
+/* Corner tiles */
+.side0.typecorner, .side1.typecorner, .side2.typecorner, .side3.typecorner {
+  width: 100px;
+  height: 100px;
+  z-index: 10;
+  font-size: 1.1rem;
+}
+
+.side0.typecorner .tileIcon, .side1.typecorner .tileIcon, 
+.side2.typecorner .tileIcon, .side3.typecorner .tileIcon {
+  font-size: 2.5rem;
+  margin: 10px 0;
+}
+
+.goToJailTile {
+  background: #ffdddd !important;
+}
+
+.goToJailTile .tileIcon {
+  font-size: 2rem;
+}
+
+.freeParkingTile {
+  background: #eeffee !important;
+}
+
+.freeParkingTile .tileIcon {
+  font-size: 2rem;
 }

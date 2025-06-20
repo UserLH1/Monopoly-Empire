@@ -1,13 +1,21 @@
 export interface Tile {
   id: string;
   position: number;
+  type: TileType;
   name: string;
-  type: "property" | "chance" | "community" | "tax" | "corner" | "empire" | "brand" | "utility";
-  color?: string;
-  price?: number;
-  value?: number;
-  logo?: string;
+  color: string | null;
+  value: number; // Made non-optional
+  logo: string | null;
+  valueForTower: number; // Added this property
 }
+
+export type TileType =
+  | "empire"
+  | "chance"
+  | "corner"
+  | "brand"
+  | "utility"
+  | "tax";
 
 export interface Brand {
   id: string;
@@ -22,10 +30,10 @@ export interface Player {
   name: string;
   money: number;
   properties: Property[];
-  brands: Brand[];  // Added brands array
+  brands: Brand[]; // Added brands array
   color: string;
   position: number;
-  towerHeight: number;  // Added tower height property
+  towerHeight: number; // Added tower height property
 }
 
 export interface Property {

@@ -1,5 +1,5 @@
+import { motion } from "framer-motion";
 import styles from "../../styles/GamePage/PlayerPanel.module.css";
-import { motion } from "framer-motion"; // Asigură-te că ai instalat framer-motion
 
 interface Player {
   id: string;
@@ -31,8 +31,9 @@ export default function PlayerPanel({
   isCurrentPlayer,
   position,
 }: PlayerPanelProps) {
-  // Calculate tower height as percentage (max tower height in Empire is 8 brands)
-  const towerPercentage = (player.towerHeight / 8) * 100;
+  // Calculate tower percentage based on max value of 800
+  const towerPercentage = Math.min((player.towerHeight / 800) * 100, 100);
+  const brandCount = player.brands.length;
 
   return (
     <motion.div
@@ -52,7 +53,7 @@ export default function PlayerPanel({
         </div>
         <h3 className={styles.playerName}>{player.name}</h3>
         {isCurrentPlayer && (
-          <motion.div 
+          <motion.div
             className={styles.activeIndicator}
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
@@ -60,7 +61,7 @@ export default function PlayerPanel({
             🎮
           </motion.div>
         )}
-        <motion.div 
+        <motion.div
           className={styles.money}
           key={player.money}
           animate={{ scale: [1, 1.1, 1] }}
@@ -70,13 +71,15 @@ export default function PlayerPanel({
         </motion.div>
       </div>
 
-      <div className={styles.content}>
+      <div className={styles.towerWrapper}>
         <div className={styles.towerContainer}>
-          <div className={styles.towerLabel}>Empire Tower</div>
           <div className={styles.tower}>
             <motion.div
               className={styles.towerFill}
-              style={{ height: `${towerPercentage}%` }}
+              style={{
+                height: `${towerPercentage}%`,
+                background: `linear-gradient(to top, ${player.color}88, ${player.color})`,
+              }}
               initial={{ height: "0%" }}
               animate={{ height: `${towerPercentage}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
@@ -86,9 +89,9 @@ export default function PlayerPanel({
                 key={brand.id}
                 className={styles.brandLogo}
                 style={{
-                  bottom: `${(index / 8) * 100}%`,
-                  backgroundImage: `url(${brand.logo})`,
-                  backgroundColor: brand.color,
+                  bottom: `${(index / (player.brands.length || 1)) * 100}%`,
+                  backgroundImage: brand.logo ? `url(${brand.logo})` : "none",
+                  backgroundColor: brand.logo ? "transparent" : brand.color,
                 }}
                 title={brand.name}
                 initial={{ scale: 0 }}
@@ -99,28 +102,15 @@ export default function PlayerPanel({
           </div>
         </div>
 
-        <div className={styles.cardCount}>
-          <motion.div 
-            className={styles.cardType}
-            whileHover={{ scale: 1.05 }}
-          >
-            <span>Brands:</span>
-            <span className={styles.count}>{player.brands.length}</span>
-          </motion.div>
-          <motion.div 
-            className={styles.cardType}
-            whileHover={{ scale: 1.05 }}
-          >
-            <span>Empire Cards:</span>
-            <span className={styles.count}>0</span>
-          </motion.div>
-          <motion.div 
-            className={styles.cardType}
-            whileHover={{ scale: 1.05 }}
-          >
-            <span>Chance Cards:</span>
-            <span className={styles.count}>0</span>
-          </motion.div>
+        <div className={styles.statsContainer}>
+          <div className={styles.statBox}>
+            <div className={styles.statValue}>{player.towerHeight}</div>
+            <div className={styles.statLabel}>Tower Value</div>
+          </div>
+          <div className={styles.statBox}>
+            <div className={styles.statValue}>{brandCount}</div>
+            <div className={styles.statLabel}>Brands</div>
+          </div>
         </div>
       </div>
     </motion.div>

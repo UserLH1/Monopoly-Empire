@@ -50,6 +50,69 @@ export default function GameBoard({
   const [prevPositions, setPrevPositions] = useState<{ [key: string]: number }>(
     {}
   );
+  const [tilesPerSide, setTilesPerSide] = useState({
+    top: 9, // 9 tiles for top row (including corners)
+    right: 9, // 9 tiles for right side (including corners)
+    bottom: 9, // 9 tiles for bottom row (including corners)
+    left: 9, // 9 tiles for left side (including corners)
+  });
+
+  // Calculate tile size based on board size and number of tiles per side
+  const tileSize = BOARD_SIZE / Math.max(tilesPerSide.top, tilesPerSide.right);
+
+  // Function to calculate tile position on the board in the new direction
+  function calculateTilePosition(position: number) {
+    // Convert 1-based position to 0-based for calculations
+    const adjustedPosition = position - 1;
+
+    let style: React.CSSProperties = {};
+    let className = "";
+
+    // LEFT column (positions 1-9) - BOTTOM TO TOP
+    if (adjustedPosition < 9) {
+      style = {
+        left: 0,
+        bottom: `${adjustedPosition * tileSize}px`,
+        width: adjustedPosition === 0 ? tileSize * 1.4 : tileSize,
+        height: adjustedPosition === 0 ? tileSize * 1.4 : tileSize,
+      };
+      className = adjustedPosition === 0 ? styles.cornerTile : styles.leftTile;
+    }
+    // TOP row (positions 10-18) - LEFT TO RIGHT
+    else if (adjustedPosition < 18) {
+      style = {
+        top: 0,
+        left: `${(adjustedPosition - 9 + 1) * tileSize}px`,
+        width: adjustedPosition === 9 ? tileSize * 1.4 : tileSize,
+        height: adjustedPosition === 9 ? tileSize * 1.4 : tileSize,
+      };
+      className = adjustedPosition === 9 ? styles.cornerTile : styles.topTile;
+    }
+    // RIGHT column (positions 19-27) - TOP TO BOTTOM
+    else if (adjustedPosition < 27) {
+      style = {
+        right: 0,
+        top: `${(adjustedPosition - 18 + 1) * tileSize}px`,
+        width: adjustedPosition === 18 ? tileSize * 1.4 : tileSize,
+        height: adjustedPosition === 18 ? tileSize * 1.4 : tileSize,
+      };
+      className =
+        adjustedPosition === 18 ? styles.cornerTile : styles.rightTile;
+    }
+    // BOTTOM row (positions 28-36) - RIGHT TO LEFT
+    else {
+      style = {
+        bottom: 0,
+        right: `${(adjustedPosition - 27 + 1) * tileSize}px`,
+        width: adjustedPosition === 27 ? tileSize * 1.4 : tileSize,
+        height: adjustedPosition === 27 ? tileSize * 1.4 : tileSize,
+      };
+      className =
+        adjustedPosition === 27 ? styles.cornerTile : styles.bottomTile;
+    }
+
+    return { style, className };
+  }
 
   useEffect(() => {
     // Check for position changes in any player
@@ -223,55 +286,6 @@ export default function GameBoard({
     </div>
   );
 }
-// Helper functions for layout
-function calculateTilePosition(position: number) {
-  const tileSize = BOARD_SIZE / 9; // Each side has 9 spaces
-  const offset = tileSize / 2;
-  let style: React.CSSProperties = {};
-  let className = "";
-
-  // Determine which edge the tile is on
-  if (position < 9) {
-    // Bottom edge (GO is at position 0)
-    style = {
-      bottom: 0,
-      left: `${BOARD_SIZE - (position + 1) * tileSize}px`,
-      width: position === 0 ? tileSize * 1.4 : tileSize,
-      height: position === 0 ? tileSize * 1.4 : tileSize,
-    };
-    className = position === 0 ? styles.cornerTile : styles.bottomTile;
-  } else if (position < 18) {
-    // Left edge
-    style = {
-      left: 0,
-      bottom: `${(position - 9 + 1) * tileSize}px`,
-      width: position === 9 ? tileSize * 1.4 : tileSize,
-      height: position === 9 ? tileSize * 1.4 : tileSize,
-    };
-    className = position === 9 ? styles.cornerTile : styles.leftTile;
-  } else if (position < 27) {
-    // Top edge
-    style = {
-      top: 0,
-      left: `${(position - 18) * tileSize}px`,
-      width: position === 18 ? tileSize * 1.4 : tileSize,
-      height: position === 18 ? tileSize * 1.4 : tileSize,
-    };
-    className = position === 18 ? styles.cornerTile : styles.topTile;
-  } else {
-    // Right edge
-    style = {
-      right: 0,
-      top: `${BOARD_SIZE - (position - 27 + 1) * tileSize}px`,
-      width: position === 27 ? tileSize * 1.4 : tileSize,
-      height: position === 27 ? tileSize * 1.4 : tileSize,
-    };
-    className = position === 27 ? styles.cornerTile : styles.rightTile;
-  }
-
-  return { style, className };
-}
-
 // Get CSS class based on tile type
 function getTileTypeClass(type: string, styles: any) {
   const typeClasses: { [key: string]: string } = {

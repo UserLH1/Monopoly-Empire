@@ -526,3 +526,22 @@
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
+.leftDeckContainer {
+  position: absolute;
+  left: 20px;
+  top: 500px; /* Position below left player panel */
+  z-index: 20;
+  width: 200px;
+  display: flex;
+  justify-content: center;
+}
+
+.rightDeckContainer {
+  position: absolute;
+  right: 20px;
+  top: 500px; /* Position below right player panel */
+  z-index: 20;
+  width: 200px;
+  display: flex;
+  justify-content: center;
+}
