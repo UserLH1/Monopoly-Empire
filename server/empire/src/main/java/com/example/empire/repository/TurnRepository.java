@@ -14,4 +14,9 @@ public interface TurnRepository extends JpaRepository<Turn, Integer> {
     public ArrayList<Turn>getTurnByIdJoc(Long idJoc);
     public Optional<Turn>getTurnByIdTurn(int idTurn);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT t.idJoc) FROM Turn t WHERE t.username = :username")
+    int countDistinctIdJocByUsername(@org.springframework.data.repository.query.Param("username") String username);
+
+
 }
+

@@ -35,6 +35,8 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Use our custom CORS config
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/jucatori/login").permitAll()
+
                         .requestMatchers("/api/jucatori/**").permitAll()
                         .requestMatchers("/api/jucatori/login").permitAll()
                         .requestMatchers("/api/jucatori/register").permitAll()
