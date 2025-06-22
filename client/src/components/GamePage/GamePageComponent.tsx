@@ -6,44 +6,24 @@ import {
   fetchUserCards,
   useCard,
 } from "../../services/CardService";
+
+// Import types from type definition files
+import { ActiveCard, Card, CardEffect, CardType } from "../../types/Card";
+import {
+  Brand,
+  GameState,
+  Player,
+  Tile,
+  TileType,
+} from "../../types/GameTypes";
+import { PlayerPanelPosition, RentInfo } from "../../types/UI";
+
 import styles from "../../styles/GamePage/GamePage.module.css";
-import { ActiveCard, Card, CardType } from "../../types/Card";
 import CardDeck from "./CardDecks";
 import CardModal from "./CardModal";
 import DiceArea from "./DiceArea";
 import GameBoard from "./GameBoard";
 import PlayerPanel from "./PlayerPanels";
-
-type TileType = "empire" | "chance" | "corner" | "brand" | "utility" | "tax";
-
-type Player = {
-  id: string;
-  name: string;
-  color: string;
-  money: number;
-  position: number;
-  properties: any[];
-  brands: any[];
-  towerHeight: number;
-};
-
-type Tile = {
-  id: string;
-  position: number;
-  type: TileType;
-  name: string;
-  color?: string;
-  value?: number;
-  logo?: string;
-};
-
-type Brand = {
-  id: string;
-  name: string;
-  logo: string;
-  value: number;
-  color: string;
-};
 
 const PLAYER_COLORS = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12"];
 
@@ -72,9 +52,7 @@ export default function GamePageComponent({
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [bankMoney, setBankMoney] = useState(15000);
-  const [gameStatus, setGameStatus] = useState<
-    "waiting" | "playing" | "finished"
-  >("waiting");
+  const [gameStatus, setGameStatus] = useState<GameState["status"]>("waiting");
   const [loading, setLoading] = useState(true);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const [showCardModal, setShowCardModal] = useState<boolean>(false);
@@ -85,20 +63,24 @@ export default function GamePageComponent({
   const [showPurchaseModal, setShowPurchaseModal] = useState<boolean>(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notification, setNotification] = useState("");
-
+  const [showMoveAlert, setShowMoveAlert] = useState(false);
+  const [moveAlertMessage, setMoveAlertMessage] = useState("");
   const displayNotification = (message: string) => {
     setNotification(message);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 3000);
   };
-  // New state variables for rent and tax
+
+  // Use RentInfo type from UI.ts
   const [showRentModal, setShowRentModal] = useState(false);
   const [showTaxModal, setShowTaxModal] = useState(false);
-  const [rentInfo, setRentInfo] = useState<{
-    owner: string;
-    amount: number;
-    property: Tile | null;
-  }>({
+  const displayMoveAlert = (message: string) => {
+    setMoveAlertMessage(message);
+    setShowMoveAlert(true);
+    // Keep the alert visible longer than regular notifications
+    setTimeout(() => setShowMoveAlert(false), 5000);
+  };
+  const [rentInfo, setRentInfo] = useState<RentInfo>({
     owner: "",
     amount: 0,
     property: null,
@@ -119,9 +101,11 @@ export default function GamePageComponent({
             const tilesFromJson = importedData.default.tiles.map((tile) => ({
               ...tile,
               type: tile.type as TileType,
+              //@ts-ignore
+              valueForTower: tile.valueForTower || 0, // Ensure valueForTower exists
             }));
 
-            setTiles(tilesFromJson);
+            setTiles(tilesFromJson as Tile[]); // Add type assertion here
             console.log("Tiles loaded from JSON:", tilesFromJson.length);
             setLoading(false);
           });
@@ -145,7 +129,7 @@ export default function GamePageComponent({
           }
 
           const result = await response.json();
-          console.log("pozitii data:", result); // Log the parsed data instead
+          console.log("pozitii data:", result);
 
           if (result.data && Array.isArray(result.data)) {
             // First, build a mapping of the correct positions
@@ -185,7 +169,7 @@ export default function GamePageComponent({
             boardLayout[26] = 26; // Nestle
 
             // Right row (top to bottom): 27-35
-            boardLayout[27] = 27; // Go to Jail (corner)
+            boardLayout[27] = 27; // Xbox
             boardLayout[28] = 28; // Chance
             boardLayout[29] = 29; // Ebay
             boardLayout[30] = 30; // Empire Card
@@ -196,17 +180,20 @@ export default function GamePageComponent({
             boardLayout[35] = 35; // Unknown/Chance
 
             // Map the database panels to the Tile format expected by the app
-            // with corrected positioning
             const tilesFromDb = result.data.map((panel: any) => {
               // For special corner tiles, ensure proper position
               if (panel.name === "Start") {
-                panel.position = 1; // GO should be at position 0
+                panel.position = 1;
+                panel.color = "#FF4500"; // Orange-red color for Start
               } else if (panel.name === "Just Visiting / Jail") {
-                panel.position = 9; // Jail should be at position 9
+                panel.position = 9;
+                panel.color = "#4682B4"; // Steel blue for Jail
               } else if (panel.name === "Free Parking") {
-                panel.position = 25; // Free Parking now at position 25
+                panel.position = 25;
+                panel.color = "#32CD32"; // Lime green for Free Parking
               } else if (panel.name === "Go to Jail") {
-                panel.position = 17; // Go to Jail now at position 17
+                panel.position = 17;
+                panel.color = "#FF6347"; // Tomato red for Go to Jail
               }
 
               // Fix tax type
@@ -219,13 +206,13 @@ export default function GamePageComponent({
                 position: panel.position,
                 type:
                   panel.type?.toLowerCase() ||
-                  determineTileType(panel.position),
+                  (determineTileType(panel.position) as TileType),
                 name: panel.name || `Position ${panel.position}`,
                 color: panel.color,
                 value: panel.value || 0,
                 logo: panel.logo,
                 valueForTower: panel.valueForTower || 0,
-              };
+              } as Tile;
             });
 
             // Sort tiles by position to ensure correct board layout
@@ -238,35 +225,45 @@ export default function GamePageComponent({
                 self.findIndex((t: Tile) => t.position === tile.position)
             );
 
-            // Fill any gaps in positions if needed (optional)
+            // Fill any gaps in positions if needed
             const maxPosition = Math.max(
               ...uniqueTiles.map((t: Tile) => t.position)
             );
-            for (let i = 0; i <= maxPosition; i++) {
+            for (let i = 1; i <= maxPosition; i++) {
               if (!uniqueTiles.find((t: Tile) => t.position === i)) {
                 uniqueTiles.push({
                   id: `tpos${i}`,
                   position: i,
-                  type: determineTileType(i),
+                  type: determineTileType(i) as TileType,
                   name: `Position ${i}`,
                   color: null,
                   value: 0,
                   logo: null,
                   valueForTower: 0,
-                });
+                } as Tile);
               }
             }
 
             // Process tiles after all processing but before setting state
-            const finalTiles = uniqueTiles.map((tile: any) => {
+            const finalTiles = uniqueTiles.map((tile: Tile) => {
               // Ensure "Go to Jail" is at position 17
               if (tile.name === "Go to Jail") {
-                return { ...tile, position: 17, type: "corner" };
+                return {
+                  ...tile,
+                  position: 17,
+                  type: "corner" as TileType,
+                  color: "#FF6347",
+                };
               }
 
               // Ensure "Free Parking" is at position 25
               if (tile.name === "Free Parking") {
-                return { ...tile, position: 25, type: "corner" };
+                return {
+                  ...tile,
+                  position: 25,
+                  type: "corner" as TileType,
+                  color: "#32CD32",
+                };
               }
 
               // Fix position 18 (was Free Parking, now Ducati)
@@ -283,8 +280,7 @@ export default function GamePageComponent({
             });
 
             setTiles(finalTiles);
-            console.log("Tiles procesed:", finalTiles.length);
-            console.log(finalTiles);
+            console.log("Tiles processed:", finalTiles);
           } else {
             console.error("Invalid panel data format from API");
           }
@@ -298,29 +294,17 @@ export default function GamePageComponent({
 
     // Helper function to determine tile type based on position or other rules
     const determineTileType = (position: number): TileType => {
-      // Corner positions for a 9x9 board (36 tiles total)
+      // Corner positions
       if (position === 1) return "corner"; // GO
       if (position === 9) return "corner"; // Jail
-      if (position === 17) return "corner"; // Free Parking
-      if (position === 25) return "corner"; // Go to Jail
+      if (position === 17) return "corner"; // Go to Jail
+      if (position === 25) return "corner"; // Free Parking
 
-      // Special positions - updated for 9 tiles per side
-      if (
-        position === 4 ||
-        position === 13 ||
-        position === 22 ||
-        position === 31
-      )
-        return "empire";
-      if (
-        position === 2 ||
-        position === 16 ||
-        position === 29 ||
-        position === 33
-      )
-        return "chance";
-      if (position === 6 || position === 20) return "tax";
-      if (position === 11 || position === 24) return "utility";
+      // Special positions
+      if ([5, 21, 30].includes(position)) return "empire";
+      if ([3, 13, 28].includes(position)) return "chance";
+      if ([6, 20].includes(position)) return "tax";
+      if ([11, 24].includes(position)) return "utility";
 
       // Everything else is a brand
       return "brand";
@@ -444,7 +428,7 @@ export default function GamePageComponent({
         const generalCards = await fetchCards("GENERAL");
         console.log("All cards:", generalCards);
 
-        // Folosește cardType în loc de tip pentru filtrare
+        // Use cardType instead of tip for filtering
         const empireCards = generalCards.filter(
           (card: any) =>
             card.cardType && card.cardType.toUpperCase() === "EMPIRE"
@@ -553,6 +537,12 @@ export default function GamePageComponent({
   };
 
   const handleDiceRoll = async (diceValues: number[]) => {
+    // Check if the current user is the active player
+    if (user?.name !== players[currentPlayerIndex]?.name) {
+      displayNotification("Not your turn!");
+      return;
+    }
+
     const diceSum = diceValues[0] + diceValues[1];
     const currentPlayer = players[currentPlayerIndex];
     const newPosition = (currentPlayer.position + diceSum) % tiles.length;
@@ -561,12 +551,33 @@ export default function GamePageComponent({
       `Rolling dice for ${currentPlayer.name}: ${diceSum}. New position: ${newPosition}`
     );
 
-    handlePlayerMoved(newPosition);
+    // Handle the move first
+    await handlePlayerMoved(newPosition);
 
-    // Move to next player after delay
-    setTimeout(() => {
-      setCurrentPlayerIndex((prev) => (prev + 1) % players.length);
-    }, 2000);
+    // Then tell the backend to advance to next player
+    try {
+      const token = localStorage.getItem("token");
+      const gameId = localStorage.getItem("gameId");
+      if (!gameId) return;
+
+      const realGameId = Number(gameId) - 1000;
+
+      // Call API to change the current player
+      await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/schimbaJucator`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Don't update the currentPlayerIndex here - wait for SSE event
+    } catch (error) {
+      console.error("Error changing player turn:", error);
+    }
   };
 
   const handlePlayerMoved = async (newPosition: number) => {
@@ -906,7 +917,7 @@ export default function GamePageComponent({
     }
   };
 
-  // Modifică funcția handleDrawCard pentru a actualiza numărul de carduri
+  // Update the handleDrawCard function to update the number of cards
   const handleDrawCard = async (type: CardType) => {
     if (!user || !user.name) return;
 
@@ -919,14 +930,14 @@ export default function GamePageComponent({
       setDrawnCard(card);
       setShowCardModal(true);
 
-      // Actualizează numărul de carduri disponibile
+      // Update the number of available cards
       if (type === "empire") {
         setEmpireCards((prev) => prev.filter((c) => c.idCard !== card.idCard));
       } else {
         setChanceCards((prev) => prev.filter((c) => c.idCard !== card.idCard));
       }
 
-      // Actualizează cardurile utilizatorului
+      // Update user cards
       fetchUserCards(user.name).then((cards) => setUserCards(cards));
     } catch (error) {
       console.error(`Error drawing ${type} card:`, error);
@@ -953,7 +964,7 @@ export default function GamePageComponent({
   };
 
   const handleCardEffect = (card: Card) => {
-    switch (card.efectSpecial) {
+    switch (card.efectSpecial as CardEffect) {
       case "MOVE_FORWARD":
         setPlayers((prev) => {
           const newPlayers = [...prev];
@@ -1116,78 +1127,78 @@ export default function GamePageComponent({
       `http://localhost:8080/api/events/subscribe?token=${token}&gameId=${realGameId}`
     );
 
-    // Add a debug log for every event
-    eventSource.onmessage = (event) => {
-      console.log("SSE raw message:", event);
-    };
+    // Add these event listeners:
 
+    // 1. For general connection status
     eventSource.addEventListener("connect", (event) => {
       console.log("SSE connected:", event.data);
     });
 
+    // 2. For player moves (keep existing one)
     eventSource.addEventListener("playerMove", (event) => {
       console.log("Player move event received:", event.data);
       try {
         const data = JSON.parse(event.data);
-        displayNotification(data.message);
+
+        // If this move is not by the current user, show prominent alert
+        if (data.username !== user?.name) {
+          displayMoveAlert(data.message);
+        } else {
+          // For your own moves, use regular notification
+          displayNotification(data.message);
+        }
+
         fetchPlayerData();
       } catch (error) {
         console.error("Error parsing playerMove event:", error);
       }
     });
 
-    return () => eventSource.close();
-  }, [loading, players.length]);
+    // 3. Add new listener for turn changes
+    eventSource.addEventListener("turnChange", (event) => {
+      console.log("Turn change event received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
 
-  // Make sure this useEffect runs AFTER your data is loaded
-  useEffect(() => {
-    if (loading || !players.length) {
-      console.log("Skipping SSE setup until game data is loaded");
-      return;
-    }
-
-    const token = localStorage.getItem("token") || "";
-    const gameId = localStorage.getItem("gameId");
-
-    if (!gameId) {
-      console.error("No game ID found");
-      return;
-    }
-
-    const realGameId = Number(gameId) - 1000;
-
-    console.log(`Setting up SSE connection for game ${realGameId}`);
-    try {
-      const eventSource = new EventSource(
-        `http://localhost:8080/api/events/subscribe?token=${token}&gameId=${realGameId}`
-      );
-
-      eventSource.addEventListener("connect", (event) => {
-        console.log("SSE connected:", event.data);
-      });
-
-      eventSource.addEventListener("playerMove", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          displayNotification(data.message);
-          fetchPlayerData();
-        } catch (error) {
-          console.error("Error parsing playerMove event:", error);
+        // Display whose turn it is now
+        if (data.currentPlayer !== user?.name) {
+          displayMoveAlert(`It's ${data.currentPlayer}'s turn now!`);
+        } else {
+          displayNotification("It's your turn now!");
         }
-      });
 
-      eventSource.onerror = (error) => {
-        console.error("SSE connection error:", error);
-      };
+        // Update the current player index
+        const playerIndex = players.findIndex(
+          (p) => p.name === data.currentPlayer
+        );
+        if (playerIndex >= 0) {
+          setCurrentPlayerIndex(playerIndex);
+        }
+      } catch (error) {
+        console.error("Error parsing turnChange event:", error);
+      }
+    });
 
-      return () => {
-        console.log("Cleaning up SSE connection");
-        eventSource.close();
-      };
-    } catch (error) {
-      console.error("Error creating SSE connection:", error);
-    }
-  }, [loading, players.length]);
+    // 4. Add listener for initial game state
+    eventSource.addEventListener("gameState", (event) => {
+      console.log("Game state event received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        if (data.currentPlayer) {
+          const playerIndex = players.findIndex(
+            (p) => p.name === data.currentPlayer
+          );
+          if (playerIndex >= 0) {
+            setCurrentPlayerIndex(playerIndex);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing gameState event:", error);
+      }
+    });
+
+    return () => eventSource.close();
+  }, [loading, players.length, user?.name]);
 
   if (loading || gameStatus === "waiting" || players.length === 0) {
     return (
@@ -1212,13 +1223,7 @@ export default function GamePageComponent({
             key={player.id}
             player={player}
             isCurrentPlayer={currentPlayerIndex === index}
-            position={
-              playerPositions[index] as
-                | "topLeft"
-                | "topRight"
-                | "bottomLeft"
-                | "bottomRight"
-            }
+            position={playerPositions[index] as PlayerPanelPosition}
           />
         ))}
 
@@ -1232,7 +1237,11 @@ export default function GamePageComponent({
           <div className={styles.centerDiceArea}>
             <DiceArea
               onRoll={handleDiceRoll}
-              disabled={gameStatus !== "playing"}
+              disabled={
+                gameStatus !== "playing" ||
+                user?.name !== players[currentPlayerIndex]?.name
+              }
+              currentPlayerName={players[currentPlayerIndex]?.name}
             />
           </div>
         </div>
@@ -1241,13 +1250,10 @@ export default function GamePageComponent({
         <div className={styles.leftDeckContainer}>
           <CardDeck
             type="chance"
-            onDrawCard={() => handleDrawCard("chance")}
-            disabled={
-              gameStatus !== "playing" ||
-              currentPlayerIndex !==
-                players.findIndex((p) => p.name === user?.name)
-            }
+            onDrawCard={() => {}} // Remove functionality by providing empty function
+            disabled={true} // Always disabled - can't click
             remainingCards={chanceCards.length}
+            displayOnly={true} // Add this new prop to indicate it's for display only
           />
         </div>
 
@@ -1255,13 +1261,10 @@ export default function GamePageComponent({
         <div className={styles.rightDeckContainer}>
           <CardDeck
             type="empire"
-            onDrawCard={() => handleDrawCard("empire")}
-            disabled={
-              gameStatus !== "playing" ||
-              currentPlayerIndex !==
-                players.findIndex((p) => p.name === user?.name)
-            }
+            onDrawCard={() => {}} // Remove functionality by providing empty function
+            disabled={true} // Always disabled - can't click
             remainingCards={empireCards.length}
+            displayOnly={true} // Add this new prop to indicate it's for display only
           />
         </div>
       </div>
@@ -1360,6 +1363,14 @@ export default function GamePageComponent({
       {/* Notification toast */}
       {showNotification && (
         <div className={styles.notification}>{notification}</div>
+      )}
+
+      {/* Prominent move alert */}
+      {showMoveAlert && (
+        <div className={styles.moveAlert}>
+          <div className={styles.moveAlertIcon}>🎲</div>
+          <div className={styles.moveAlertText}>{moveAlertMessage}</div>
+        </div>
       )}
 
       <CardModal

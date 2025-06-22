@@ -1,14 +1,3 @@
-export interface Tile {
-  id: string;
-  position: number;
-  type: TileType;
-  name: string;
-  color: string | null;
-  value: number; // Made non-optional
-  logo: string | null;
-  valueForTower: number; // Added this property
-}
-
 export type TileType =
   | "empire"
   | "chance"
@@ -17,23 +6,43 @@ export type TileType =
   | "utility"
   | "tax";
 
+export interface Tile {
+  id: string;
+  position: number;
+  type: TileType;
+  name: string;
+  color: string | null;
+  value: number;
+  logo: string | null;
+  valueForTower: number;
+}
+
 export interface Brand {
   id: string;
   name: string;
-  color: string;
-  value: number;
   logo: string;
+  value: number;
+  color: string;
 }
 
 export interface Player {
   id: string;
   name: string;
-  money: number;
-  properties: Property[];
-  brands: Brand[]; // Added brands array
   color: string;
+  money: number;
   position: number;
-  towerHeight: number; // Added tower height property
+  properties: any[]; // You can define a Property interface if needed
+  brands: Brand[];
+  towerHeight: number;
+}
+
+export interface GameState {
+  id: number;
+  status: "waiting" | "playing" | "finished";
+  players: Player[];
+  currentPlayerIndex: number;
+  bankMoney: number;
+  gameTime: number | null;
 }
 
 export interface Property {

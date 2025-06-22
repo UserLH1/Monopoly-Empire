@@ -1,6 +1,6 @@
 {
   "tiles": [
-    { "id": "t1", "position": 0, "type": "corner", "name": "GO" },
+    { "id": "t1", "position": 1, "type": "corner", "name": "GO" },
     {
       "id": "t1",
       "position": 1,

@@ -79,9 +79,24 @@
   background-color: #f8f8f8;
   z-index: 5;
   border: 2px solid #333;
+  overflow: visible;
+
   /* Remove any width/height settings that might make corners bigger */
 }
-
+.cornerTile .tileIcon {
+  font-size: 1.5rem;
+  margin: 5px 0;
+  color: #000;
+  z-index: 10;
+}
+.cornerTile .tileName {
+  font-size: 0.7rem;
+  color: #000;
+  text-align: center;
+  z-index: 10;
+  margin-top: 2px;
+  font-weight: bold;
+}
 /* Update the cornerTile class if it exists */
 .cornerTile {
   /* Keep styling for corners but don't make them larger */

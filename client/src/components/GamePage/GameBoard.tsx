@@ -1,41 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "../../styles/GamePage/GameBoard.module.css";
+import { Player, Tile } from "../../types/GameTypes";
 import BoardTile from "../BoardTile";
-// Define types for our Monopoly Empire game
-interface Player {
-  id: string;
-  name: string;
-  color: string;
-  money: number;
-  position: number;
-  properties: string[];
-  brands: Brand[];
-  towerHeight: number;
-}
-
-interface Brand {
-  id: string;
-  name: string;
-  logo: string;
-  value: number;
-  color: string;
-}
-
-interface Tile {
-  id: string;
-  position: number;
-  type: "corner" | "brand" | "empire" | "utility" | "chance" | "tax";
-  name: string;
-  color?: string;
-  value?: number;
-  logo?: string;
-}
-
-interface GameBoardProps {
-  tiles: Tile[];
-  currentPlayer: number;
-  players: Player[];
-}
 
 // Monopoly Empire specific board configuration
 const BOARD_SIZE = 800; // px
@@ -45,7 +11,11 @@ export default function GameBoard({
   tiles,
   currentPlayer,
   players,
-}: GameBoardProps) {
+}: {
+  tiles: Tile[];
+  currentPlayer: number;
+  players: Player[];
+}) {
   const [animatingPlayer, setAnimatingPlayer] = useState<string | null>(null);
   const [prevPositions, setPrevPositions] = useState<{ [key: string]: number }>(
     {}
@@ -66,7 +36,8 @@ export default function GameBoard({
     let className = "";
 
     // LEFT column (positions 0-8) - BOTTOM TO TOP
-    if (position >= 0 && position <= 8) {
+    if (position >= 1 && position <= 9) {
+      position = position - 1;
       style = {
         left: 0,
         bottom: `${position * tileSize}px`,
@@ -74,7 +45,7 @@ export default function GameBoard({
         width: tileSize,
         height: tileSize,
       };
-      className = position === 0 ? styles.cornerTile : styles.leftTile;
+      className = position === 1 ? styles.cornerTile : styles.leftTile;
     }
     // TOP row (positions 9-17) - LEFT TO RIGHT
     else if (position >= 9 && position <= 17) {
@@ -88,26 +59,26 @@ export default function GameBoard({
       className = position === 9 ? styles.cornerTile : styles.topTile;
     }
     // RIGHT column (positions 18-26) - TOP TO BOTTOM
-    else if (position >= 18 && position <= 26) {
+    else if (position >= 17 && position <= 25) {
       style = {
         right: 0,
-        top: `${(position - 18) * tileSize}px`,
-        // Use same size for all tiles including corner at position 18
+        top: `${(position - 17) * tileSize}px`,
+        // Use same size for all tiles including corner at position 17
         width: tileSize,
         height: tileSize,
       };
       className = position === 18 ? styles.cornerTile : styles.rightTile;
     }
     // BOTTOM row (positions 27-35) - RIGHT TO LEFT
-    else if (position >= 27) {
+    else if (position >= 25) {
       style = {
         bottom: 0,
-        right: `${(position - 27) * tileSize}px`,
+        right: `${(position - 25) * tileSize}px`,
         // Use same size for all tiles including corner at position 27
         width: tileSize,
         height: tileSize,
       };
-      className = position === 27 ? styles.cornerTile : styles.bottomTile;
+      className = position === 25 ? styles.cornerTile : styles.bottomTile;
     }
 
     return { style, className };

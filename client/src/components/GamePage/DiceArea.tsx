@@ -1,13 +1,18 @@
-import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import styles from "../../styles/GamePage/DiceArea.module.css";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface DiceAreaProps {
   onRoll: (values: number[]) => void;
-  disabled?: boolean;
+  disabled: boolean;
+  currentPlayerName?: string; // Add this line
 }
 
-export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
+export default function DiceArea({
+  onRoll,
+  disabled,
+  currentPlayerName,
+}: DiceAreaProps) {
   const [diceValues, setDiceValues] = useState<number[]>([1, 1]);
   const [rolling, setRolling] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -18,12 +23,12 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
       const sum = diceValues[0] + diceValues[1];
       setResult(sum);
       setShowResult(true);
-      
+
       // Ascunde rezultatul după 3 secunde
       const timer = setTimeout(() => {
         setShowResult(false);
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [rolling, diceValues]);
@@ -47,7 +52,7 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
       counter++;
       if (counter > totalAnimations) {
         clearInterval(interval);
-        
+
         setTimeout(() => {
           setRolling(false);
           onRoll(values);
@@ -116,7 +121,7 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className={styles.diceArea}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -124,7 +129,7 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
     >
       <AnimatePresence>
         {showResult && (
-          <motion.div 
+          <motion.div
             className={styles.diceResult}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -135,7 +140,7 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       <div className={styles.diceContainer}>
         <motion.div
           className={`${styles.dice} ${rolling ? styles.rolling : ""}`}
@@ -164,6 +169,12 @@ export default function DiceArea({ onRoll, disabled = false }: DiceAreaProps) {
       >
         {rolling ? "Rolling..." : "Roll Dice"}
       </motion.button>
+
+      {currentPlayerName && (
+        <div className={styles.currentPlayer}>
+          {disabled ? "Waiting for turn" : `${currentPlayerName}'s turn`}
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -236,3 +236,13 @@
   letter-spacing: 1px;
   font-size: 18px;
 }
+
+.displayOnly {
+  opacity: 0.8;
+  pointer-events: none; /* Ensures it can't be clicked */
+}
+
+.displayOnly:hover {
+  transform: none; /* Remove any hover effects */
+  box-shadow: var(--card-shadow); /* Keep default shadow */
+}

@@ -25,14 +25,21 @@ public class JocServiceImpl implements JocService {
     private final TurnRepository turnRepository;
     private final CardActivRepository cardActivRepository;
     private final PanouCumparatRepository panouCumparatRepository;
+    private final EventController eventController;
 
     @Autowired
-    public JocServiceImpl(JocRepository jocRepository, UtilizatorRepository utilizatorRepository, TurnRepository turnRepository, CardActivRepository cardActivRepository, PanouCumparatRepository panouCumparatRepository) {
-       this.jocRepository = jocRepository;
+    public JocServiceImpl(JocRepository jocRepository, 
+                     UtilizatorRepository utilizatorRepository, 
+                     TurnRepository turnRepository, 
+                     CardActivRepository cardActivRepository, 
+                     PanouCumparatRepository panouCumparatRepository,
+                     EventController eventController) {
+        this.jocRepository = jocRepository;
         this.utilizatorRepository = utilizatorRepository;
         this.turnRepository = turnRepository;
         this.cardActivRepository = cardActivRepository;
         this.panouCumparatRepository = panouCumparatRepository;
+        this.eventController = eventController;
     }
 
     @Override
@@ -187,7 +194,7 @@ public class JocServiceImpl implements JocService {
             jocDto.setStatusJoc(String.valueOf(joc.getStatus()));
             jocDto.setIdJoc(jocId);
             jocDto.setNrJucatori(joc.getNrJucatori());
-            jocDto.setJucatorCurent(joc.getJucatorulCurect());
+            jocDto.setJucatorCurent(joc.getJucatorulCurent());
             return jocDto;
         }
         else {
@@ -293,7 +300,7 @@ public class JocServiceImpl implements JocService {
         jocDto.setJucatori(joc.getJucatori());
         jocDto.setNrJucatori(joc.getNrJucatori());
         jocDto.setStatusJoc(joc.getStatus().toString());
-        jocDto.setJucatorCurent(joc.getJucatorulCurect());
+        jocDto.setJucatorCurent(joc.getJucatorulCurent());
         return jocDto;
     }
 
@@ -314,12 +321,23 @@ public class JocServiceImpl implements JocService {
         
         // Setează timestamp-ul de început
         joc.setStartTime(LocalDateTime.now());
-        joc.setJucatorulCurect(joc.getJucatori().split(";")[0]);
+        joc.setJucatorulCurent(joc.getJucatori().split(";")[0]);
         // Inițializează cronometrul
         joc.setGameTimer(0L);
         
         // Salvează modificările
         jocRepository.save(joc);
+
+        SSECommand gameStartEvent = new SSECommand(
+        "gameState", 
+        Map.of(
+            "message", "Game has started!",
+            "currentPlayer", joc.getJucatorulCurent(),
+            "gameStatus", joc.getStatus().toString()
+        )
+    );
+        eventController.sendToGame(idJoc, gameStartEvent);
+
     }
 
     @Override
@@ -421,28 +439,37 @@ public class JocServiceImpl implements JocService {
         jocRepository.save(joc);
     }
 
-    @Override
-    public String schimbaJucatorulCurent(Long idJoc) {
+@Override
+public String schimbaJucatorulCurent(Long idJoc) {
+    Joc joc = jocRepository.findById(idJoc)
+            .orElseThrow(() -> new RuntimeException("Jocul nu există"));
 
-        Joc joc = jocRepository.findById(idJoc)
-                .orElseThrow(() -> new RuntimeException("Jocul nu există"));
+    String jucatori[] = joc.getJucatori().split(";");
+    String jucatorulCurent = joc.getJucatorulCurent();
 
-        String jucatori[] = joc.getJucatori().split(";");
-        String jucatorulCurent = joc.getJucatorulCurect();
-
-        for(int i=0;i<jucatori.length; i++){
-            if(jucatorulCurent.equals(jucatori[i]))
-            {
-                if(i!= jucatori.length-1)
-                joc.setJucatorulCurect(jucatori[i+1]);
-                else
-                    joc.setJucatorulCurect(jucatori[0]);
-
-                break;
-            }
+    for(int i=0; i<jucatori.length; i++){
+        if(jucatorulCurent.equals(jucatori[i])) {
+            if(i != jucatori.length-1)
+                joc.setJucatorulCurent(jucatori[i+1]);
+            else
+                joc.setJucatorulCurent(jucatori[0]);
+            break;
         }
-        jocRepository.save(joc);
-
-        return joc.getJucatorulCurect();
     }
+    jocRepository.save(joc);
+    
+    // Send SSE event to notify all clients about turn change
+    SSECommand turnChangeEvent = new SSECommand(
+        "turnChange", 
+        Map.of(
+            "message", "It's " + joc.getJucatorulCurent() + "'s turn now!",
+            "currentPlayer", joc.getJucatorulCurent()
+        )
+    );
+    
+    // Use your EventController to send the event to all clients connected to this game
+    eventController.sendToGame(idJoc, turnChangeEvent);
+
+    return joc.getJucatorulCurent();
+}   
 }

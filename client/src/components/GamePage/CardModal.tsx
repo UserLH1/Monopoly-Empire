@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Card, CardType } from "../../types/Card";
 import styles from "../../styles/GamePage/CardModal.module.css";
+import { Card } from "../../types/Card";
 
 interface CardModalProps {
   card: Card | null;
@@ -9,11 +9,17 @@ interface CardModalProps {
   onUseCard?: () => void;
 }
 
-export default function CardModal({ card, isOpen, onClose, onUseCard }: CardModalProps) {
+export default function CardModal({
+  card,
+  isOpen,
+  onClose,
+  onUseCard,
+}: CardModalProps) {
   if (!isOpen || !card) return null;
 
   // Determinăm tipul de card (chance sau empire)
-  const cardType = card.cardType?.toLowerCase() === "chance" ? "chance" : "empire";
+  const cardType =
+    card.cardType?.toLowerCase() === "chance" ? "chance" : "empire";
 
   return (
     <motion.div
@@ -36,17 +42,17 @@ export default function CardModal({ card, isOpen, onClose, onUseCard }: CardModa
         </div>
 
         <div className={styles.cardContent}>
-          {card.imagineUrl && (
+          {card.imagine && (
             <div className={styles.cardImage}>
-              <img src={card.imagineUrl} alt={card.descriere} />
+              <img src={card.imagine} alt={card.descriere} />
             </div>
           )}
-          
+
           <h3 className={styles.cardTitle}>
-            {card.nume || card.descriere.split('.')[0]}
+            {card.titlu || card.descriere.split(".")[0]}
           </h3>
           <p className={styles.cardDescription}>{card.descriere}</p>
-          
+
           {card.valoare && (
             <div className={styles.cardValue}>
               <span>Valoare: ${card.valoare}</span>

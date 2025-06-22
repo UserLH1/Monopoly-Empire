@@ -1,20 +1,21 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import styles from "../../styles/GamePage/CardDeck.module.css";
-import { CardType } from "../../types/Card";
 
 interface CardDeckProps {
-  type: CardType;
-  onDrawCard: (type: CardType) => void;
+  type: "empire" | "chance";
+  onDrawCard: () => void;
   disabled: boolean;
-  remainingCards?: number;
+  remainingCards: number;
+  displayOnly?: boolean; // Add this prop
 }
 
 export default function CardDeck({
   type,
   onDrawCard,
   disabled,
-  remainingCards = 15,
+  remainingCards,
+  displayOnly = false,
 }: CardDeckProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -22,7 +23,7 @@ export default function CardDeck({
     if (disabled || isAnimating) return;
 
     setIsAnimating(true);
-    onDrawCard(type);
+    onDrawCard();
 
     // După un timp, resetează animația
     setTimeout(() => {
@@ -32,13 +33,28 @@ export default function CardDeck({
 
   return (
     <div
-      className={`${styles.cardDeck} ${styles[type]}`}
-      data-testid={`${type}-deck`}
+      className={`${styles.cardDeck} ${styles[type]} ${
+        displayOnly ? styles.displayOnly : ""
+      }`}
+      onClick={displayOnly ? undefined : handleDraw}
+      style={{
+        cursor: displayOnly ? "default" : disabled ? "not-allowed" : "pointer",
+      }}
     >
+      <div className={styles.deckLabel}>
+        {type === "empire" ? "Empire" : "Chance"}
+      </div>
+      <div className={styles.cardCount}>{remainingCards}</div>
+
+      {!displayOnly && (
+        <div className={styles.deckInstruction}>
+          {disabled ? "Wait for your turn" : "Click to draw"}
+        </div>
+      )}
+
       <motion.div
         className={styles.deckContainer}
         whileHover={!disabled ? { scale: 1.05 } : {}}
-        onClick={handleDraw}
       >
         <AnimatePresence>
           {/* Card-uri de fundal pentru efect de pachet */}
@@ -66,8 +82,6 @@ export default function CardDeck({
             </div>
           </motion.div>
         </AnimatePresence>
-
-        <div className={styles.remainingCount}>{remainingCards} rămase</div>
       </motion.div>
     </div>
   );
