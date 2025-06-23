@@ -15,17 +15,21 @@ export type CardEffect =
 
 export interface Card {
   idCard: number; // Modificat din id în idCard
+  idCardActiv?: number; // Add this property
   titlu: string;
   descriere: string;
   cardType: CardType;
   valoare: number | null;
   efectSpecial: CardEffect | null;
   imagine: string | null;
+  folosit?: boolean;
 }
 
-export interface ActiveCard extends Card {
-  idCardActiv: number;
-  username: string;
-  folosit: boolean;
-  dataObtinere: string;
+export interface ActiveCard {
+  idCard: number;
+  idCardActiv?: number; // Original property name
+  idCardActive?: number; // Property name from server response
+  username?: string;
+  idJoc?: number;
+  folosit?: boolean;
 }

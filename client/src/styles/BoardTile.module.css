@@ -203,3 +203,70 @@
 .freeParkingTile .tileIcon {
   font-size: 2rem;
 }
+
+/* Add these styles to fix the corner tiles */
+
+/* Special handling for corner tiles to prevent text overlap */
+.typecorner .tileContent {
+  padding-bottom: 0px; /* Reduce bottom padding for corner tiles */
+  justify-content: center; /* Center content vertically */
+}
+
+/* Hide the bottom detail bars on corner tiles */
+.typecorner .tileDetails,
+.typecorner .tileValue {
+  display: none; /* Don't show the bottom value bar on corner tiles */
+}
+
+/* Make the name area larger for corner tiles */
+.typecorner .tileName {
+  font-size: 0.8rem; /* Slightly larger text */
+  max-width: 90%; /* Allow more space for text */
+  margin-top: 5px; /* Add space after the icon */
+  line-height: 1.2; /* Add some line height for better readability */
+  white-space: normal; /* Allow text to wrap */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Make corner tile icons more prominent */
+.typecorner .tileIcon {
+  font-size: 1.6rem; /* Larger icon */
+  margin-bottom: 8px; /* More space below icon */
+}
+
+/* Extra styling for specific corners to make them stand out */
+.goToJailTile .tileIcon, 
+.freeParkingTile .tileIcon {
+  font-size: 2rem;
+  margin-bottom: 10px; /* More space below larger icons */
+}
+
+/* Improve corner tile backgrounds */
+.typecorner {
+  background: linear-gradient(to bottom, #e1bee7, #f5eef8) !important;
+  border: 2px solid #9c27b0;
+}
+
+/* Better styling for specific corner tiles */
+.tile[data-name="Start"] {
+  background: linear-gradient(to bottom, #43a047, #a5d6a7) !important;
+  border: 2px solid #2e7d32;
+}
+
+.tile[data-name="Go to Jail"] {
+  background: linear-gradient(to bottom, #e53935, #ef9a9a) !important;
+  border: 2px solid #c62828;
+}
+
+.tile[data-name="Free Parking"] {
+  background: linear-gradient(to bottom, #fb8c00, #ffcc80) !important;
+  border: 2px solid #ef6c00;
+}
+
+.tile[data-name="Just Visiting / Jail"] {
+  background: linear-gradient(to bottom, #1e88e5, #90caf9) !important;
+  border: 2px solid #1565c0;
+}

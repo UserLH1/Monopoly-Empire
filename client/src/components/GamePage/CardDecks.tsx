@@ -44,13 +44,6 @@ export default function CardDeck({
       <div className={styles.deckLabel}>
         {type === "empire" ? "Empire" : "Chance"}
       </div>
-      <div className={styles.cardCount}>{remainingCards}</div>
-
-      {!displayOnly && (
-        <div className={styles.deckInstruction}>
-          {disabled ? "Wait for your turn" : "Click to draw"}
-        </div>
-      )}
 
       <motion.div
         className={styles.deckContainer}
@@ -82,7 +75,16 @@ export default function CardDeck({
             </div>
           </motion.div>
         </AnimatePresence>
+
+        {/* Card count badge */}
+        <div className={styles.cardCount}>{remainingCards}</div>
       </motion.div>
+
+      {!displayOnly && (
+        <div className={styles.deckInstruction}>
+          {disabled ? "Wait for your turn" : "Click to draw"}
+        </div>
+      )}
     </div>
   );
 }

@@ -246,3 +246,62 @@
   transform: none; /* Remove any hover effects */
   box-shadow: var(--card-shadow); /* Keep default shadow */
 }
+
+/* Add these new styles */
+.deckLabel {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 4px 10px;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.cardCount {
+  position: absolute;
+  bottom: -15px;
+  right: -15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fff;
+}
+
+.empire .cardCount {
+  background: linear-gradient(135deg, #1a5276, #2980b9);
+  color: white;
+}
+
+.chance .cardCount {
+  background: linear-gradient(135deg, #922b21, #c0392b);
+  color: white;
+}
+
+.deckInstruction {
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  font-style: italic;
+  color: #666;
+}

@@ -185,7 +185,7 @@ export default function GamePageComponent({
               if (panel.name === "Start") {
                 panel.position = 1;
                 panel.color = "#FF4500"; // Orange-red color for Start
-              } else if (panel.name === "Just Visiting / Jail") {
+              } else if (panel.name === "Just Visiting ") {
                 panel.position = 9;
                 panel.color = "#4682B4"; // Steel blue for Jail
               } else if (panel.name === "Free Parking") {
@@ -325,7 +325,7 @@ export default function GamePageComponent({
         `http://localhost:8080/api/jocuri/${realGameId}/jucatori`,
 
         {
-          method: "POST",
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -416,6 +416,7 @@ export default function GamePageComponent({
 
         setPlayers(gamePlayers);
         setGameStatus("playing");
+        setTimeout(ensureCurrentPlayerIsSet, 1000);
       } catch (error) {
         console.error("Error fetching game data:", error);
       }
@@ -555,11 +556,18 @@ export default function GamePageComponent({
 
     const diceSum = diceValues[0] + diceValues[1];
     const currentPlayer = players[currentPlayerIndex];
-    const newPosition = (currentPlayer.position + diceSum) % tiles.length;
+    const BOARD_SIZE = 36;
+
+    const newPosition =
+      ((currentPlayer.position + diceSum - 1) % BOARD_SIZE) + 1;
 
     console.log(
-      `Rolling dice for ${currentPlayer.name}: ${diceSum}. New position: ${newPosition}`
+      `Rolling dice for ${currentPlayer.name}: ${diceSum}. Moving from ${currentPlayer.position} to ${newPosition}`
     );
+    displayNotification(
+      `${currentPlayer.name} rolled ${diceValues[0]} + ${diceValues[1]} = ${diceSum}`
+    );
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Handle the player's move
     await handlePlayerMoved(newPosition);
@@ -590,6 +598,13 @@ export default function GamePageComponent({
   };
 
   const handlePlayerMoved = async (newPosition: number) => {
+    setPlayers((prevPlayers) =>
+      prevPlayers.map((player) =>
+        player.id === players[currentPlayerIndex].id
+          ? { ...player, position: newPosition }
+          : player
+      )
+    );
     // Get the current position before updating
     const currentPosition = players[currentPlayerIndex].position;
     const currentPlayer = players[currentPlayerIndex];
@@ -635,6 +650,9 @@ export default function GamePageComponent({
       ) {
         // Player passed "Go" - give them salary
         try {
+          console.log(
+            `Player ${currentPlayer.name} passed Start. Giving salary...`
+          );
           const salaryResponse = await fetch(
             `http://localhost:8080/api/jucatori/${currentPlayer.name}/primesteSalariu`,
             {
@@ -714,6 +732,9 @@ export default function GamePageComponent({
                 },
               }
             );
+            console.log(
+              `Checking panel status for panel ${panelId} at position ${landedTile.position}`
+            );
 
             if (!panelStatusResponse.ok) {
               console.error(
@@ -780,6 +801,8 @@ export default function GamePageComponent({
 
   // Helper functions for rent and tax modals
   const displayRentModal = (owner: string, property: Tile, amount: number) => {
+    console.log("Showing rent modal for:", property.name, "Owner:", owner);
+
     setRentInfo({
       owner,
       amount,
@@ -901,6 +924,7 @@ export default function GamePageComponent({
   };
 
   // Handle tax payment
+  // Update your handlePayTax function to use available endpoints
   const handlePayTax = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -908,55 +932,82 @@ export default function GamePageComponent({
 
       // Check if player has enough money
       if (currentPlayer.money < taxAmount) {
-        // Handle insufficient funds case - must pay with property
-        const response = await fetch(
-          `http://localhost:8080/api/jucatori/${currentPlayer.name}/platesteImpozitCuPanou`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // Handle insufficient funds - must pay with property
+        try {
+          const response = await fetch(
+            `http://localhost:8080/api/jucatori/${currentPlayer.name}/platesteImpozitCuPanou`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          alert(errorData.message || "Failed to pay tax with property");
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(
+              `Tax payment failed: ${response.status} - ${errorText}`
+            );
+            displayNotification(
+              "Failed to pay tax with property. Try again later."
+            );
+            throw new Error(errorText || "Failed to pay tax with property");
+          }
+
+          // Success - refresh player data and show notification
+          displayNotification("Tax paid with property!");
+          fetchPlayerData();
+        } catch (error) {
+          console.error("Error paying tax with property:", error);
+          displayNotification("Error processing tax payment");
         }
       } else {
-        // Pay with money
-        const response = await fetch(
-          `http://localhost:8080/api/jucatori/${currentPlayer.name}/platesteImpozit`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        // Pay with money - directly using the existing endpoint without userId parameter
+        try {
+          // Call the platesteImpozit endpoint directly - no need for profile
+          const response = await fetch(
+            `http://localhost:8080/api/jucatori/${currentPlayer.name}/platesteImpozit`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to pay tax");
           }
-        );
 
-        if (!response.ok) {
-          throw new Error("Failed to pay tax");
+          // Update player money locally
+          setPlayers((prev) => {
+            const newPlayers = [...prev];
+            const updatedPlayer = { ...newPlayers[currentPlayerIndex] };
+            updatedPlayer.money -= taxAmount;
+            newPlayers[currentPlayerIndex] = updatedPlayer;
+            return newPlayers;
+          });
+
+          // Show success notification
+          displayNotification(`Tax of $${taxAmount} paid successfully!`);
+        } catch (error) {
+          console.error("Error paying tax:", error);
+          displayNotification("Failed to pay tax. Please try again.");
+          return; // Don't close modal so they can retry
         }
-
-        // Update player money locally
-        setPlayers((prev) => {
-          const newPlayers = [...prev];
-          const updatedPlayer = { ...newPlayers[currentPlayerIndex] };
-          updatedPlayer.money -= taxAmount;
-          newPlayers[currentPlayerIndex] = updatedPlayer;
-          return newPlayers;
-        });
       }
 
+      // Close the modal only if successful
       setShowTaxModal(false);
-      fetchPlayerData(); // Refresh data to ensure state is consistent
     } catch (error) {
-      console.error("Error paying tax:", error);
+      console.error("Error in tax payment process:", error);
+      displayNotification("Tax payment error occurred");
     }
   };
 
-  // Update the handleDrawCard function to update the number of cards
   const handleDrawCard = async (type: CardType) => {
     if (!user || !user.name) return;
 
@@ -967,6 +1018,12 @@ export default function GamePageComponent({
       const realGameId = Number(gameId) - 1000;
       const card = await drawRandomCard(type, realGameId, user.name);
       setDrawnCard(card);
+
+      // Immediately fetch updated user cards to ensure they're available
+      const updatedUserCards = await fetchUserCards(user.name);
+      setUserCards(updatedUserCards);
+
+      // Now show the modal after data is refreshed
       setShowCardModal(true);
 
       // Update the number of available cards
@@ -975,9 +1032,6 @@ export default function GamePageComponent({
       } else {
         setChanceCards((prev) => prev.filter((c) => c.idCard !== card.idCard));
       }
-
-      // Update user cards
-      fetchUserCards(user.name).then((cards) => setUserCards(cards));
     } catch (error) {
       console.error(`Error drawing ${type} card:`, error);
     }
@@ -987,18 +1041,45 @@ export default function GamePageComponent({
     if (!drawnCard || !user || !user.name) return;
 
     try {
+      console.log("Trying to use card:", drawnCard);
+
+      // First check if the drawn card already has idCardActiv (from drawRandomCard)
+      if (drawnCard.idCardActiv) {
+        console.log(
+          "Using card with idCardActiv from drawn card:",
+          drawnCard.idCardActiv
+        );
+        await useCard(drawnCard.idCardActiv);
+        setShowCardModal(false);
+        handleCardEffect(drawnCard);
+        fetchUserCards(user.name).then((cards) => setUserCards(cards));
+        return;
+      }
+
+      // Fallback: look in userCards
       const activeCard = userCards.find(
         (card) => card.idCard === drawnCard.idCard && !card.folosit
       );
 
-      if (activeCard) {
-        await useCard(activeCard.idCardActiv);
+      console.log("Found in user cards:", activeCard);
+
+      // FIX: Check for both property names (idCardActiv and idCardActive)
+      if (activeCard && (activeCard.idCardActiv || activeCard.idCardActive)) {
+        const cardId = activeCard.idCardActiv || activeCard.idCardActive;
+        console.log("Using card with ID:", cardId);
+        await useCard(cardId as number);
         setShowCardModal(false);
         handleCardEffect(drawnCard);
         fetchUserCards(user.name).then((cards) => setUserCards(cards));
+      } else {
+        console.error(
+          "No valid card instance found with idCardActiv/idCardActive"
+        );
+        displayNotification("Error: Card cannot be used at this time");
       }
     } catch (error) {
       console.error("Error using card:", error);
+      displayNotification("Error using card");
     }
   };
 
@@ -1179,15 +1260,63 @@ export default function GamePageComponent({
       try {
         const data = JSON.parse(event.data);
 
-        // If this move is not by the current user, show prominent alert
+        // If this move is not by the current user, show prominent alert and animate token
         if (data.username !== user?.name) {
-          displayMoveAlert(data.message);
-        } else {
-          // For your own moves, use regular notification
-          displayNotification(data.message);
-        }
+          // Find the tile name based on the position
+          const landedTile = tiles.find(
+            (tile) => tile.position === data.position
+          );
+          const tileName = landedTile
+            ? landedTile.name
+            : `position ${data.position}`;
+          console.log(
+            `Received move for ${data.username} to position ${data.position} (${tileName})`
+          );
+          // Create enhanced message
+          let enhancedMessage = data.message;
+          if (landedTile) {
+            enhancedMessage = `${data.username} moved to ${tileName}`;
+          }
+          console.log("Enhanced message:", enhancedMessage);
 
-        fetchPlayerData();
+          displayMoveAlert(enhancedMessage);
+
+          // Immediately update the opponent's position for animation
+          setPlayers((prevPlayers) => {
+            return prevPlayers.map((player) => {
+              if (player.name === data.username) {
+                console.log(
+                  `Moving ${player.name}'s token from ${player.position} to ${data.position}`
+                );
+                return {
+                  ...player,
+                  position: data.position,
+                };
+              }
+              return player;
+            });
+          });
+
+          // After animation completes, fetch all player data to ensure consistency
+          setTimeout(() => {
+            fetchPlayerData();
+          }, 1200); // Slightly longer than animation duration
+        } else {
+          // Do the same for your own notifications
+          const landedTile = tiles.find(
+            (tile) => tile.position === data.position
+          );
+          const tileName = landedTile
+            ? landedTile.name
+            : `position ${data.position}`;
+
+          let enhancedMessage = data.message;
+          if (landedTile) {
+            enhancedMessage = `You moved to ${tileName}`;
+          }
+
+          displayNotification(enhancedMessage);
+        }
       } catch (error) {
         console.error("Error parsing playerMove event:", error);
       }
@@ -1302,7 +1431,43 @@ export default function GamePageComponent({
         <h2>Loading game data...</h2>
       </div>
     );
-  }
+  } // Add this function around line 365, after fetchCurrentPlayer
+  const ensureCurrentPlayerIsSet = () => {
+    // If serverCurrentPlayer is null but we have players, set the first player
+    if (!serverCurrentPlayer && players.length > 0) {
+      console.log("No current player set, defaulting to first player");
+      const firstPlayer = players[0].name;
+      setServerCurrentPlayer(firstPlayer);
+      setCurrentPlayerIndex(0);
+
+      // Also update in localStorage
+      localStorage.setItem("currentPlayer", firstPlayer);
+
+      // Optionally, also update on the server if there's an API for it
+      const token = localStorage.getItem("token");
+      const gameId = localStorage.getItem("gameId");
+      if (token && gameId) {
+        const realGameId = Number(gameId) - 1000;
+
+        // Call the server to explicitly set the current player
+        fetch(`http://localhost:8080/api/jocuri/${realGameId}/schimbaJucator`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log("Current player updated on server");
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating current player:", error);
+          });
+      }
+    }
+  };
 
   const playerPositions =
     players.length === 2
@@ -1335,12 +1500,13 @@ export default function GamePageComponent({
               onRoll={handleDiceRoll}
               disabled={
                 gameStatus !== "playing" ||
-                (serverCurrentPlayer
-                  ? user?.name !== serverCurrentPlayer
-                  : user?.name !== players[currentPlayerIndex]?.name)
+                (serverCurrentPlayer !== null &&
+                  user?.name !== serverCurrentPlayer)
               }
               currentPlayerName={
-                serverCurrentPlayer || players[currentPlayerIndex]?.name
+                serverCurrentPlayer ||
+                players[currentPlayerIndex]?.name ||
+                "Starting player"
               }
             />
           </div>
@@ -1438,22 +1604,71 @@ export default function GamePageComponent({
       {/* Tax Modal */}
       {showTaxModal && (
         <div className={styles.modalOverlay}>
-          <div className={styles.taxModal}>
-            <h3>Pay Tax</h3>
-            <p>Tax Amount: ${taxAmount}</p>
-            <p>Your Money: ${players[currentPlayerIndex].money}</p>
+          <div className={`${styles.taxModal} ${styles.enhancedModal}`}>
+            <div className={styles.modalHeader}>
+              <h3>
+                <span className={styles.taxIcon}>💰</span>
+                Government Tax
+              </h3>
+            </div>
 
-            <div className={styles.buttonGroup}>
-              <button className={styles.payButton} onClick={handlePayTax}>
-                {players[currentPlayerIndex].money >= taxAmount
-                  ? "Pay with Money"
-                  : "Pay with Property"}
-              </button>
+            <div className={styles.modalBody}>
+              <div className={styles.taxDetails}>
+                <div className={styles.taxInfo}>
+                  <p className={styles.taxAmount}>
+                    <span className={styles.label}>Amount Due:</span>
+                    <span className={styles.value}>${taxAmount}</span>
+                  </p>
+                  <p className={styles.playerBalance}>
+                    <span className={styles.label}>Your Balance:</span>
+                    <span className={styles.value}>
+                      ${players[currentPlayerIndex].money}
+                    </span>
+                  </p>
+                  {players[currentPlayerIndex].money < taxAmount && (
+                    <p className={styles.insufficientFunds}>
+                      <span className={styles.warningIcon}>⚠️</span>
+                      Insufficient funds! You must pay with property.
+                    </p>
+                  )}
+                </div>
+
+                <div className={styles.taxDescription}>
+                  Income tax must be paid to continue your business operations.
+                  {players[currentPlayerIndex].brands.length > 0 &&
+                    players[currentPlayerIndex].money < taxAmount && (
+                      <p>
+                        You will need to offer one of your properties as
+                        payment.
+                      </p>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              {players[currentPlayerIndex].money >= taxAmount ? (
+                <button
+                  className={`${styles.payButton} ${styles.moneyButton}`}
+                  onClick={handlePayTax}
+                >
+                  <span className={styles.buttonIcon}>💵</span>
+                  Pay with Cash
+                </button>
+              ) : (
+                <button
+                  className={`${styles.payButton} ${styles.propertyButton}`}
+                  onClick={handlePayTax}
+                >
+                  <span className={styles.buttonIcon}>🏢</span>
+                  Pay with Property
+                </button>
+              )}
               <button
                 className={styles.cancelButton}
                 onClick={() => setShowTaxModal(false)}
               >
-                Close
+                Cancel
               </button>
             </div>
           </div>

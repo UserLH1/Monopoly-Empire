@@ -208,9 +208,18 @@ public class CardActivServiceImpl implements CardActivService {
 
     @Override
     public void useCard(UseCardActivDto useCardActivDto) {
-
-        ActiveCard activeCard = cardActiveRepository.getActiveCardByIdCardActiv(useCardActivDto.getIdCardActiv()).get();
-        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(useCardActivDto.getUsername()).get();
+        // First safely retrieve the card
+        ActiveCard activeCard = cardActiveRepository.getActiveCardByIdCardActiv(useCardActivDto.getIdCardActiv())
+            .orElseThrow(() -> new BadRequestException("Card activ cu ID " + useCardActivDto.getIdCardActiv() + " nu există."));
+        
+        // Then safely retrieve the user
+        Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(useCardActivDto.getUsername())
+            .orElseThrow(() -> new BadRequestException("Utilizatorul " + useCardActivDto.getUsername() + " nu există."));
+        
+        // Debug info to help diagnose issues
+        System.out.println("Found active card ID: " + activeCard.getIdCardActiv() + " for card type: " + activeCard.getCard().getIdCard());
+        System.out.println("Found user: " + utilizator.getUsername());
+        
         int idCard = activeCard.getCard().getIdCard();
         if(idCard==1)
             useCard1(utilizator);

@@ -120,6 +120,8 @@ export default function DiceArea({
     }
   };
 
+  const isDiceButtonDisabled = disabled || rolling;
+
   return (
     <motion.div
       className={styles.diceArea}
@@ -161,17 +163,23 @@ export default function DiceArea({
       </div>
 
       <motion.button
-        className={styles.rollButton}
+        className={`${styles.rollButton} ${
+          isDiceButtonDisabled ? styles.disabledButton : styles.enabledButton
+        }`}
         onClick={rollDice}
-        disabled={disabled || rolling}
-        whileHover={{ scale: 1.05, backgroundColor: "#ff6b6b" }}
-        whileTap={{ scale: 0.95 }}
+        disabled={isDiceButtonDisabled}
+        whileHover={{ scale: isDiceButtonDisabled ? 1 : 1.05 }}
+        whileTap={{ scale: isDiceButtonDisabled ? 1 : 0.95 }}
       >
         {rolling ? "Rolling..." : "Roll Dice"}
       </motion.button>
 
       {currentPlayerName && (
-        <div className={styles.currentPlayer}>
+        <div
+          className={`${styles.currentPlayer} ${
+            disabled ? styles.waitingTurn : styles.activeTurn
+          }`}
+        >
           {disabled ? "Waiting for turn" : `${currentPlayerName}'s turn`}
         </div>
       )}

@@ -2,7 +2,8 @@
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(135deg, #1d2b53 0%, #2d3f6f 100%);
+  background: linear-gradient(135deg, #1d2b64 0%, #2d3f6f 50%, #252941 100%); /* Enhanced gradient */
+  background-attachment: fixed;
   padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
@@ -10,23 +11,27 @@
   justify-content: center;
   align-items: center;
 }
-.towerArea {
+
+/* Add subtle animated pattern overlay */
+.gamePageContainer::before {
+  content: '';
   position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 30;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.5;
 }
 
 .gameContent {
   position: relative;
   width: 100%;
-  max-width: 1400px;
-  height: calc(100vh - 40px);
-  margin: 0 auto;
+  max-width: 1500px;
+  height: 90vh;
+  min-height: 700px;
 }
 
 .boardArea {
@@ -34,62 +39,64 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 800px;
-  height: 800px;
-  z-index: 10;
+  width: 80%;
+  max-width: 800px;
+  aspect-ratio: 1 / 1;
 }
 
 .cardDecks {
   position: absolute;
-  display: flex;
-  justify-content: center;
-  gap: 100px;
-  bottom: 200px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-
-.controlsArea {
-  position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
-  max-width: 800px;
+  display: flex;
+  gap: 30px; /* More space between decks */
+  z-index: 20;
+}
+
+/* Game header styling improvements */
+.gameHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  z-index: 20;
+  align-items: center;
+  padding: 1rem;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px); /* Modern blur effect */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
 
-/* Player panel positions */
-:global(.playerTopLeft) {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 30;
+/* Enhanced timer styling */
+.gameTimer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(to bottom, #3a1c71, #d76d77, #ffaf7b); /* Beautiful gradient */
+  padding: 0.7rem 1.7rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  min-width: 140px;
 }
 
-:global(.playerTopRight) {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 30;
+.timerLabel {
+  font-size: 0.8rem;
+  color: white;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 0.2rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-:global(.playerBottomLeft) {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 30;
-}
-
-:global(.playerBottomRight) {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  z-index: 30;
+.timerValue {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  font-family: 'Digital-7', 'Courier New', monospace;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
 
 /* Animation for dice rolling */
@@ -418,113 +425,169 @@
   background-color: #f44336;
   color: white;
 }
-.notification {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
+
+/* Enhanced Modal Styles */
+.enhancedModal {
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  width: 400px;
+  max-width: 95vw;
+  overflow: hidden;
+  transform: translateY(0);
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalAppear {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #1a5276, #2980b9);
   color: white;
-  padding: 10px 20px;
-  border-radius: 4px;
-  z-index: 1000;
-  animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+  padding: 18px 25px;
+  border-radius: 16px 16px 0 0;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.modalHeader h3 {
+  margin: 0;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
 }
 
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+.taxIcon {
+  margin-right: 15px;
+  font-size: 24px;
 }
 
-.gameTimer {
+.modalBody {
+  padding: 25px;
+}
+
+.taxDetails {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 0.6rem 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  min-width: 120px;
-  border: 2px solid #f39c12;
+  gap: 20px;
 }
 
-.timerLabel {
-  font-size: 0.8rem;
-  color: #f39c12;
-  text-transform: uppercase;
-  font-weight: bold;
-  letter-spacing: 1px;
-  margin-bottom: 0.2rem;
+.taxInfo {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  padding: 15px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.timerValue {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: white;
-  font-family: 'Digital-7', 'Courier New', monospace;
-  letter-spacing: 2px;
-  text-shadow: 0 0 5px rgba(243, 156, 18, 0.7);
-}
-
-/* Animație mai elegantă pentru actualizarea timpului */
-@keyframes highlight {
-  0% { text-shadow: 0 0 5px rgba(243, 156, 18, 0.7); }
-  50% { text-shadow: 0 0 20px rgba(243, 156, 18, 1), 0 0 30px rgba(255, 165, 0, 0.8); }
-  100% { text-shadow: 0 0 5px rgba(243, 156, 18, 0.7); }
-}
-
-.timerValue.updated {
-  animation: highlight 1s ease-in-out;
-}
-
-.gameControls {
+.taxAmount, .playerBalance {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-size: 17px;
 }
 
-.backButton, .exitButton {
-  padding: 0.5rem 1.2rem;
-  border: none;
+.label {
+  font-weight: 500;
+  color: #555;
+}
+
+.value {
+  font-weight: 700;
+  color: #333;
+}
+
+.insufficientFunds {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #feebc8;
+  border-left: 4px solid #e67e22;
+  color: #7d4a00;
   border-radius: 4px;
-  font-weight: bold;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.warningIcon {
+  margin-right: 10px;
+}
+
+.taxDescription {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #666;
+  border-top: 1px solid #eaeaea;
+  padding-top: 15px;
+}
+
+.modalFooter {
+  padding: 20px 25px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #eaeaea;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.payButton {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.buttonIcon {
+  margin-right: 8px;
+}
+
+.moneyButton {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.moneyButton:hover {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(46, 204, 113, 0.4);
+}
+
+.propertyButton {
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  color: white;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.propertyButton:hover {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
+}
+
+.cancelButton {
+  padding: 12px 24px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #555;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
 }
 
-.backButton {
-  background-color: #4b6584;
-  color: white;
-}
-
-.backButton:hover {
-  background-color: #3c5270;
+.cancelButton:hover {
+  background: #f8f8f8;
   transform: translateY(-2px);
-}
-
-.exitButton {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.exitButton:hover {
-  background-color: #c0392b;
-  transform: translateY(-2px);
-}
-
-.gameCodeDisplay {
-  color: white;
-  font-weight: bold;
-  font-size: 1.2rem;
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .leftDeckContainer {
   position: absolute;

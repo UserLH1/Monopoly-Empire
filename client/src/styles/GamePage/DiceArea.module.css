@@ -212,3 +212,28 @@
     transform: translateX(100%);
   }
 }
+
+.disabledButton {
+  background-color: #cccccc !important;
+  color: #888888 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+  box-shadow: none !important;
+}
+
+.enabledButton {
+  background-color: #e74c3c;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.activeTurn {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.waitingTurn {
+  color: #e74c3c;
+  font-style: italic;
+}

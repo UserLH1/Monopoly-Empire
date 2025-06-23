@@ -91,7 +91,7 @@ public class PanouServiceImpl implements PanouService {
         DetaliiPozitieDto inchisoare = new DetaliiPozitieDto();
         inchisoare.setId(-1);
         inchisoare.setPosition(9);
-        inchisoare.setName("Just Visiting / Jail");
+        inchisoare.setName("Just Visiting");
         inchisoare.setType("corner");
         inchisoare.setValueForTower(0);
         inchisoare.setValue(0);

@@ -100,7 +100,23 @@ export async function drawRandomCard(
     };
 
     // Înregistrăm cardul ca fiind câștigat
-    await addCardToUser(formattedCard.idCard, username, gameId);
+    const cardResponse = await addCardToUser(
+      formattedCard.idCard,
+      username,
+      gameId
+    );
+    console.log("Server response from adding card:", cardResponse);
+
+    // Extract the idCardActiv from the response and add it to the formatted card
+    if (cardResponse && cardResponse.data && cardResponse.data.idCardActiv) {
+      formattedCard.idCardActiv = cardResponse.data.idCardActiv;
+      console.log("Card saved with activeCardId:", formattedCard.idCardActiv);
+    } else {
+      console.warn(
+        "Failed to get idCardActiv from server response:",
+        cardResponse
+      );
+    }
 
     return formattedCard;
   } catch (error) {
@@ -191,8 +207,30 @@ export async function addCardToUser(
 export async function useCard(activeCardId: number, targetUsername?: string) {
   const token = localStorage.getItem("token");
 
+  // Parse the user JSON string to get the username
+  let username = targetUsername;
+
+  if (!username) {
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      try {
+        const userObject = JSON.parse(userString);
+        username = userObject.name; // Extract name from the JSON object
+      } catch (error) {
+        console.error("Error parsing user JSON:", error);
+      }
+    }
+  }
+
+  if (!username) {
+    console.error("Cannot use card: No username available");
+    throw new Error("Username required to use card");
+  }
+
+  console.log(`Using card ${activeCardId} for user ${username}`);
+
   const payload = {
-    username: targetUsername,
+    username: username, // Now this will be the actual username "test"
   };
   console.log("activeCardId:", activeCardId);
   const response = await fetch(
@@ -208,6 +246,8 @@ export async function useCard(activeCardId: number, targetUsername?: string) {
   );
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Error using card ${activeCardId}: ${errorText}`);
     throw new Error("Failed to use card");
   }
 

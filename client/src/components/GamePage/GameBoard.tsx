@@ -16,10 +16,12 @@ export default function GameBoard({
   currentPlayer: number;
   players: Player[];
 }) {
-  const [animatingPlayer, setAnimatingPlayer] = useState<string | null>(null);
-  const [prevPositions, setPrevPositions] = useState<{ [key: string]: number }>(
+  const [prevPositions, setPrevPositions] = useState<Record<string, number>>(
     {}
   );
+  const [animatingPlayers, setAnimatingPlayers] = useState<
+    Record<string, boolean>
+  >({});
   const [tilesPerSide, setTilesPerSide] = useState({
     top: 9, // 9 tiles for top row (including corners)
     right: 9, // 9 tiles for right side (including corners)
@@ -85,25 +87,41 @@ export default function GameBoard({
   }
 
   useEffect(() => {
-    // Check for position changes in any player
+    // When players change, check for position changes
+    const newAnimatingPlayers: Record<string, boolean> = {};
+
     players.forEach((player) => {
       const prevPos = prevPositions[player.id];
+
+      // If position has changed and we have a previous position, animate
       if (prevPos !== undefined && prevPos !== player.position) {
-        // Position changed, trigger animation
-        setAnimatingPlayer(player.id);
-        const timer = setTimeout(() => {
-          setAnimatingPlayer(null);
-        }, 1000);
-        return () => clearTimeout(timer);
+        console.log(
+          `Player ${player.name} is animating from ${prevPos} to ${player.position}`
+        );
+        newAnimatingPlayers[player.id] = true;
+
+        // Stop animation after it completes
+        setTimeout(() => {
+          setAnimatingPlayers((prev) => ({
+            ...prev,
+            [player.id]: false,
+          }));
+        }, 1500); // Animation duration - slightly longer than the CSS transition
       }
     });
 
-    // Update position records
+    // Start new animations
+    setAnimatingPlayers((prev) => ({
+      ...prev,
+      ...newAnimatingPlayers,
+    }));
+
+    // Update previous positions after checking
     setPrevPositions(
       players.reduce((acc, player) => {
         acc[player.id] = player.position;
         return acc;
-      }, {} as { [key: string]: number })
+      }, {} as Record<string, number>)
     );
   }, [players]);
 
@@ -143,22 +161,24 @@ export default function GameBoard({
 
         {/* Player tokens */}
         {players.map((player) => {
-          const { x, y } = getPlayerTokenPosition(player.position, player.id);
+          const pos = getPlayerTokenPosition(player.position, player.id);
+          const isAnimating = animatingPlayers[player.id];
 
           return (
             <div
-              key={player.id}
+              key={`player-${player.id}`}
               className={`${styles.playerToken} ${
-                animatingPlayer === player.id ? styles.movingToken : ""
+                isAnimating ? styles.animatingToken : ""
               }`}
               style={{
+                left: `${pos.x}px`,
+                top: `${pos.y}px`,
                 backgroundColor: player.color,
-                left: `${x}px`,
-                top: `${y}px`,
-                zIndex: animatingPlayer === player.id ? 100 : 20,
               }}
             >
-              <span>{player.name.charAt(0)}</span>
+              <div className={styles.playerTokenLabel}>
+                {player.name.charAt(0)}
+              </div>
             </div>
           );
         })}
@@ -181,48 +201,46 @@ function getTileTypeClass(type: string, styles: any) {
 }
 
 // Calculate player token position with offset for multiple players
+// Update this function
 function getPlayerTokenPosition(position: number, playerId: string) {
   const tileSize = BOARD_SIZE / 9;
 
-  // Find the player's index in the players array instead of parsing the ID
-  // Get index from player's position in the array instead of ID parsing
+  // Calculate player index for offsets
   let playerIndex = 0;
   if (playerId.startsWith("p") && /p\d+/.test(playerId)) {
-    // Handle "p1", "p2" style IDs
     playerIndex = parseInt(playerId.replace("p", "")) - 1;
   } else {
-    // For username-based IDs, just use a simple hash to get a consistent index
     playerIndex =
       playerId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 4;
   }
 
-  const offsetX = (playerIndex % 2) * 20;
-  const offsetY = Math.floor(playerIndex / 2) * 20;
+  const offsetX = (playerIndex % 2) * 20 - 10;
+  const offsetY = Math.floor(playerIndex / 2) * 20 - 10;
 
-  // Base positioning logic similar to calculateTilePosition
-  if (position < 9) {
-    // Bottom row
-    return {
-      x: BOARD_SIZE - (position + 0.5) * tileSize + offsetX,
-      y: BOARD_SIZE - tileSize / 2 + offsetY,
-    };
-  } else if (position < 18) {
-    // Left column
+  // Match the position mapping from calculateTilePosition
+  if (position >= 1 && position <= 9) {
+    // LEFT COLUMN (bottom to top)
     return {
       x: tileSize / 2 + offsetX,
-      y: BOARD_SIZE - (position - 9 + 0.5) * tileSize + offsetY,
+      y: BOARD_SIZE - position * tileSize + tileSize / 2 + offsetY,
     };
-  } else if (position < 27) {
-    // Top row
+  } else if (position >= 9 && position <= 17) {
+    // TOP ROW (left to right)
     return {
-      x: (position - 18 + 0.5) * tileSize + offsetX,
+      x: (position - 9 + 0.5) * tileSize + offsetX,
       y: tileSize / 2 + offsetY,
     };
-  } else {
-    // Right column
+  } else if (position >= 17 && position <= 25) {
+    // RIGHT COLUMN (top to bottom)
     return {
       x: BOARD_SIZE - tileSize / 2 + offsetX,
-      y: (position - 27 + 0.5) * tileSize + offsetY,
+      y: (position - 17 + 0.5) * tileSize + offsetY,
+    };
+  } else {
+    // BOTTOM ROW (right to left)
+    return {
+      x: BOARD_SIZE - (position - 25 + 0.5) * tileSize + offsetX,
+      y: BOARD_SIZE - tileSize / 2 + offsetY,
     };
   }
 }
