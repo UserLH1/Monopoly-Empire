@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import com.example.empire.config.JwtService;  // Make sure this matches the actual package
+import com.example.empire.config.JwtService;
+import com.example.empire.config.SSECommand;  
 import java.io.IOException;
 
 
@@ -87,5 +88,10 @@ public class EventController {
         }
         
         return emitter;
+    }
+    
+    public void sendToGame(Long gameId, SSECommand command) {
+        // Simply delegate to GameEventService
+        gameEventService.sendToGame(gameId, command);
     }
 }

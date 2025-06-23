@@ -1,5 +1,7 @@
 package com.example.empire.service.serviceImpl;
 
+import com.example.empire.config.SSECommand;
+import com.example.empire.controller.EventController;
 import com.example.empire.dto.*;
 import com.example.empire.enums.GameStatus;
 import com.example.empire.exceptions.BadRequestException;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -444,32 +447,71 @@ public String schimbaJucatorulCurent(Long idJoc) {
     Joc joc = jocRepository.findById(idJoc)
             .orElseThrow(() -> new RuntimeException("Jocul nu există"));
 
-    String jucatori[] = joc.getJucatori().split(";");
+    String[] jucatori = joc.getJucatori().split(";");
     String jucatorulCurent = joc.getJucatorulCurent();
-
-    for(int i=0; i<jucatori.length; i++){
-        if(jucatorulCurent.equals(jucatori[i])) {
-            if(i != jucatori.length-1)
-                joc.setJucatorulCurent(jucatori[i+1]);
-            else
-                joc.setJucatorulCurent(jucatori[0]);
-            break;
+    
+    // If current player is null, set to first player
+    if (jucatorulCurent == null) {
+        if (jucatori.length > 0) {
+            joc.setJucatorulCurent(jucatori[0]);
+            jocRepository.save(joc);
+            
+            // Send SSE event - CHANGED HERE: gameEventService → eventController
+            SSECommand turnChangeEvent = new SSECommand(
+                "turnChange", 
+                Map.of(
+                    "message", "Game started! It's " + jucatori[0] + "'s turn now!",
+                    "currentPlayer", jucatori[0]
+                )
+            );
+            eventController.sendToGame(idJoc, turnChangeEvent);  // Changed here
+            
+            return jucatori[0];
+        } else {
+            throw new RuntimeException("Nu există jucători în acest joc");
         }
     }
+
+    // Find the next player (existing logic)
+    for (int i = 0; i < jucatori.length; i++) {
+        if (jucatorulCurent.equals(jucatori[i])) {
+            String nextPlayer;
+            if (i != jucatori.length - 1)
+                nextPlayer = jucatori[i + 1];
+            else
+                nextPlayer = jucatori[0];
+                
+            joc.setJucatorulCurent(nextPlayer);
+            jocRepository.save(joc);
+            
+            // Send SSE event - CHANGED HERE: gameEventService → eventController
+            SSECommand turnChangeEvent = new SSECommand(
+                "turnChange", 
+                Map.of(
+                    "message", "It's " + nextPlayer + "'s turn now!",
+                    "currentPlayer", nextPlayer
+                )
+            );
+            eventController.sendToGame(idJoc, turnChangeEvent);  // Changed here
+            
+            return nextPlayer;
+        }
+    }
+    
+    // If we get here, current player is not in the player list
+    joc.setJucatorulCurent(jucatori[0]);
     jocRepository.save(joc);
     
-    // Send SSE event to notify all clients about turn change
+    // Send SSE event - CHANGED HERE: gameEventService → eventController
     SSECommand turnChangeEvent = new SSECommand(
         "turnChange", 
         Map.of(
-            "message", "It's " + joc.getJucatorulCurent() + "'s turn now!",
-            "currentPlayer", joc.getJucatorulCurent()
+            "message", "Player not found, resetting to " + jucatori[0] + "'s turn!",
+            "currentPlayer", jucatori[0]
         )
     );
+    eventController.sendToGame(idJoc, turnChangeEvent);  // Changed here
     
-    // Use your EventController to send the event to all clients connected to this game
-    eventController.sendToGame(idJoc, turnChangeEvent);
-
-    return joc.getJucatorulCurent();
+    return jucatori[0];
 }   
 }

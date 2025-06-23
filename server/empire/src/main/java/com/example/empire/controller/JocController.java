@@ -145,6 +145,12 @@ public class JocController {
                 .body(ApiResponse.error(500, "A apărut o eroare: " + e.getMessage()));
         }
     }
+@PostMapping("/jocuri/parasireJoc/{idJoc}")
+public ResponseEntity<ApiResponse> parasireJocPost(@RequestHeader("Authorization") String authHeader, @PathVariable Long idJoc) {
+    // Just delegate to the existing PUT implementation
+    return parasireJoc(authHeader, idJoc);
+}
+    
 
     @GetMapping("/jocuri/jocCurent")
     public ResponseEntity<ApiResponse> getJocCurent(@RequestHeader("Authorization") String authHeader) {
@@ -264,5 +270,18 @@ public class JocController {
         return ResponseEntity.ok(ApiResponse.success("Acum este randul jucatorului ", jucatorCurent ));
     }
 
+@PostMapping("/jocuri/{idJoc}/schimbaJucator")
+public ResponseEntity<ApiResponse> schimbaJucator(@PathVariable Long idJoc) {
+    System.out.println("schimbaJucator called with idJoc: " + idJoc);
+    
+    try {
+        String nextPlayer = jocService.schimbaJucatorulCurent(idJoc);
+        System.out.println("Next player: " + nextPlayer);
+        return ResponseEntity.ok(ApiResponse.success("Next player's turn", nextPlayer));
+    } catch (Exception e) {
+        System.out.println("Error in schimbaJucator: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(ApiResponse.error(500, e.getMessage()));
+    }
 }
-
+}

@@ -39,8 +39,8 @@ public class StatisticiController {
             if (aParticipat) {
                 gamesPlayed++;
                 if (joc.getStatus() == GameStatus.FINISHED &&
-                    joc.getJucatorulCurect() != null &&
-                    joc.getJucatorulCurect().equalsIgnoreCase(user.getUsername())) {
+                    joc.getJucatorulCurent() != null &&
+                    joc.getJucatorulCurent().equalsIgnoreCase(user.getUsername())) {
                     wins++;
                 }
             }

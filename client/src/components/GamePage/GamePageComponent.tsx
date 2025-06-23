@@ -323,7 +323,9 @@ export default function GamePageComponent({
 
       const response = await fetch(
         `http://localhost:8080/api/jocuri/${realGameId}/jucatori`,
+
         {
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -342,7 +344,7 @@ export default function GamePageComponent({
             name: player.username || `Player ${index + 1}`,
             color: PLAYER_COLORS[index],
             money: player.sumaBani || 1500,
-            position: player.pozitiePion || 0,
+            position: player.pozitiePion || 1, // Changed default from 0 to 1
             properties: [],
             brands: [],
             towerHeight: 0,
@@ -421,6 +423,14 @@ export default function GamePageComponent({
 
     fetchGameData();
   }, []);
+  useEffect(() => {
+    fetchCurrentPlayer();
+
+    // Fetch every 10 seconds as a fallback in case SSE fails
+    const intervalId = setInterval(fetchCurrentPlayer, 10000);
+
+    return () => clearInterval(intervalId);
+  }, [players.length]);
 
   useEffect(() => {
     const fetchCardData = async () => {
@@ -502,7 +512,7 @@ export default function GamePageComponent({
 
       const realGameId = Number(gameId) - 1000;
 
-      // Update each player's position to 0
+      // Update each player's position to 1 (Start) instead of 0
       const promises = players.map((player) =>
         fetch(`http://localhost:8080/api/jucatori/${player.name}/pozitiePion`, {
           method: "PUT",
@@ -511,19 +521,19 @@ export default function GamePageComponent({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            pozitiePion: 0,
+            pozitiePion: 1, // Changed from 0 to 1
           }),
         })
       );
 
       await Promise.all(promises);
-      console.log("All player positions initialized to start");
+      console.log("All player positions initialized to Start (position 1)");
 
       // Update positions locally too
       setPlayers((prev) => {
         const updatedPlayers = prev.map((player) => ({
           ...player,
-          position: 0,
+          position: 1, // Changed from 0 to 1
         }));
         console.log(
           "Player positions after initialization:",
@@ -551,10 +561,10 @@ export default function GamePageComponent({
       `Rolling dice for ${currentPlayer.name}: ${diceSum}. New position: ${newPosition}`
     );
 
-    // Handle the move first
+    // Handle the player's move
     await handlePlayerMoved(newPosition);
 
-    // Then tell the backend to advance to next player
+    // After the move is complete, change to next player
     try {
       const token = localStorage.getItem("token");
       const gameId = localStorage.getItem("gameId");
@@ -569,35 +579,28 @@ export default function GamePageComponent({
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
 
-      // Don't update the currentPlayerIndex here - wait for SSE event
+      // The next player will be updated via SSE event
     } catch (error) {
       console.error("Error changing player turn:", error);
     }
   };
 
   const handlePlayerMoved = async (newPosition: number) => {
-    // Update player position locally
-    setPlayers((prev) => {
-      const newPlayers = [...prev];
-      const updatedPlayer = { ...newPlayers[currentPlayerIndex] };
-      updatedPlayer.position = newPosition;
-      newPlayers[currentPlayerIndex] = updatedPlayer;
-      console.log(
-        "Players after position update:",
-        newPlayers.map((p) => `${p.name} at position ${p.position}`)
-      );
-      return newPlayers;
-    });
+    // Get the current position before updating
+    const currentPosition = players[currentPlayerIndex].position;
+    const currentPlayer = players[currentPlayerIndex];
 
-    // Update position in database
+    console.log(
+      `Moving player ${currentPlayer.name} from ${currentPosition} to ${newPosition}`
+    );
+
+    // Update position in database with details about the move
     try {
       const token = localStorage.getItem("token");
-      const currentPlayer = players[currentPlayerIndex];
 
       const response = await fetch(
         `http://localhost:8080/api/jucatori/${currentPlayer.name}/pozitiePion`,
@@ -609,6 +612,7 @@ export default function GamePageComponent({
           },
           body: JSON.stringify({
             pozitiePion: newPosition,
+            oldPosition: currentPosition, // Include old position for animation
           }),
         }
       );
@@ -622,7 +626,42 @@ export default function GamePageComponent({
         `Player ${currentPlayer.name} position updated to ${newPosition}`
       );
 
-      // After position is updated, check the tile action
+      // Check if player passed the Start position (position 1)
+      // This happens when we move from a higher position to a lower position
+      // Or when we land exactly on position 1 from a non-zero position
+      if (
+        (currentPosition > newPosition && newPosition !== 0) ||
+        newPosition === 1
+      ) {
+        // Player passed "Go" - give them salary
+        try {
+          const salaryResponse = await fetch(
+            `http://localhost:8080/api/jucatori/${currentPlayer.name}/primesteSalariu`,
+            {
+              method: "PUT",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (salaryResponse.ok) {
+            // Show notification about salary
+            displayNotification(
+              `${currentPlayer.name} passed Start and received a salary!`
+            );
+
+            // Refresh player data to update money
+            fetchPlayerData();
+          } else {
+            console.error("Failed to give salary");
+          }
+        } catch (error) {
+          console.error("Error giving salary:", error);
+        }
+      }
+
+      // Rest of your existing code for handling tile actions...
       const gameId = localStorage.getItem("gameId");
       if (!gameId) return;
 
@@ -1156,28 +1195,24 @@ export default function GamePageComponent({
 
     // 3. Add new listener for turn changes
     eventSource.addEventListener("turnChange", (event) => {
-      console.log("Turn change event received:", event.data);
+      console.log("TURN CHANGE EVENT RECEIVED:", event.data);
       try {
         const data = JSON.parse(event.data);
+        console.log("Current player from server:", data.currentPlayer);
 
-        // Display whose turn it is now
-        if (data.currentPlayer !== user?.name) {
-          displayMoveAlert(`It's ${data.currentPlayer}'s turn now!`);
-        } else {
-          displayNotification("It's your turn now!");
+        // Store in localStorage for persistence
+        if (data.currentPlayer) {
+          localStorage.setItem("currentPlayer", data.currentPlayer);
+          setServerCurrentPlayer(data.currentPlayer);
         }
 
-        // Update the current player index
-        const playerIndex = players.findIndex(
-          (p) => p.name === data.currentPlayer
-        );
-        if (playerIndex >= 0) {
-          setCurrentPlayerIndex(playerIndex);
-        }
+        // Rest of your existing code...
       } catch (error) {
         console.error("Error parsing turnChange event:", error);
       }
     });
+
+    // And add this to restore from localStorage on page load
 
     // 4. Add listener for initial game state
     eventSource.addEventListener("gameState", (event) => {
@@ -1199,6 +1234,67 @@ export default function GamePageComponent({
 
     return () => eventSource.close();
   }, [loading, players.length, user?.name]);
+
+  // Add this state to track whose turn it is from the server
+  const [serverCurrentPlayer, setServerCurrentPlayer] = useState<string | null>(
+    null
+  );
+  useEffect(() => {
+    const storedCurrentPlayer = localStorage.getItem("currentPlayer");
+    if (storedCurrentPlayer && players.length > 0) {
+      setServerCurrentPlayer(storedCurrentPlayer);
+
+      const playerIndex = players.findIndex(
+        (p) => p.name === storedCurrentPlayer
+      );
+      if (playerIndex >= 0) {
+        setCurrentPlayerIndex(playerIndex);
+      }
+    }
+  }, [players.length]);
+
+  // Add this function to fetch the current player from the server
+  const fetchCurrentPlayer = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const gameId = localStorage.getItem("gameId");
+      if (!gameId) return;
+
+      const realGameId = Number(gameId) - 1000;
+
+      const response = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch current player");
+      }
+
+      const result = await response.json();
+      const currentPlayerFromServer = result.data?.jucatorCurent;
+
+      console.log("Current player from server:", currentPlayerFromServer);
+
+      if (currentPlayerFromServer) {
+        setServerCurrentPlayer(currentPlayerFromServer);
+
+        // Also update the currentPlayerIndex to match
+        const playerIndex = players.findIndex(
+          (p) => p.name === currentPlayerFromServer
+        );
+        if (playerIndex >= 0) {
+          setCurrentPlayerIndex(playerIndex);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching current player:", error);
+    }
+  };
 
   if (loading || gameStatus === "waiting" || players.length === 0) {
     return (
@@ -1239,9 +1335,13 @@ export default function GamePageComponent({
               onRoll={handleDiceRoll}
               disabled={
                 gameStatus !== "playing" ||
-                user?.name !== players[currentPlayerIndex]?.name
+                (serverCurrentPlayer
+                  ? user?.name !== serverCurrentPlayer
+                  : user?.name !== players[currentPlayerIndex]?.name)
               }
-              currentPlayerName={players[currentPlayerIndex]?.name}
+              currentPlayerName={
+                serverCurrentPlayer || players[currentPlayerIndex]?.name
+              }
             />
           </div>
         </div>

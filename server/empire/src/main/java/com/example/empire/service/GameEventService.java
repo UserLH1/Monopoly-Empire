@@ -2,6 +2,7 @@ package com.example.empire.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import com.example.empire.config.SSECommand;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,5 +76,30 @@ public class GameEventService {
         
         // Clean up dead connections
         deadConnections.forEach(emitters::remove);
+    }
+
+    // Update the method:
+    public void sendToGame(Long gameId, SSECommand command) {
+        Map<String, SseEmitter> emitters = gameEmitters.get(gameId.intValue());
+        if (emitters != null) {
+            List<String> deadConnections = new ArrayList<>();
+            
+            emitters.forEach((username, emitter) -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                        .name(command.getEventName())
+                        .data(command.getPayload()));
+                    System.out.println("Sent " + command.getEventName() + " event to " + username + " in game " + gameId);
+                } catch (IOException e) {
+                    System.out.println("Failed to send to " + username + ": " + e.getMessage());
+                    deadConnections.add(username);
+                }
+            });
+            
+            // Clean up dead connections
+            deadConnections.forEach(emitters::remove);
+        } else {
+            System.out.println("No emitters found for game " + gameId);
+        }
     }
 }
