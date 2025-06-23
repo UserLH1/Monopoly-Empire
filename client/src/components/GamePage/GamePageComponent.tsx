@@ -185,7 +185,7 @@ export default function GamePageComponent({
               if (panel.name === "Start") {
                 panel.position = 1;
                 panel.color = "#FF4500"; // Orange-red color for Start
-              } else if (panel.name === "Just Visiting ") {
+              } else if (panel.name === "Jail (Just Visiting)") {
                 panel.position = 9;
                 panel.color = "#4682B4"; // Steel blue for Jail
               } else if (panel.name === "Free Parking") {
@@ -724,38 +724,42 @@ export default function GamePageComponent({
 
           // Check the panel's status directly using our new API
           try {
-            const panelStatusResponse = await fetch(
-              `http://localhost:8080/api/panouri/status/${panelId}`,
+            const panelsResponse = await fetch(
+              `http://localhost:8080/api/jocuri/${realGameId}/panouri`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
               }
             );
-            console.log(
-              `Checking panel status for panel ${panelId} at position ${landedTile.position}`
-            );
-
-            if (!panelStatusResponse.ok) {
+            if (!panelsResponse.ok) {
               console.error(
-                `Failed to fetch panel status for panel ${panelId}`
+                `Failed to fetch game panels (HTTP ${panelsResponse.status})`
               );
               return;
             }
 
-            const panelStatusData = await panelStatusResponse.json();
-            const statusInfo = panelStatusData.data;
+            const panelsData = await panelsResponse.json();
+            const purchasedPanels = panelsData.data || [];
+            console.log(
+              `Purchased panels for game ${realGameId}:`,
+              purchasedPanels
+            );
 
-            if (statusInfo && statusInfo.purchased) {
-              // Panel is owned - check if it's owned by current player
-              if (statusInfo.ownerUsername !== currentPlayer.name) {
-                // Owned by another player - calculate and charge rent
+            const panelInfo = purchasedPanels.find(
+              (panel: any) => panel.idPanouGeneral === panelId
+            );
+            console.log("Panel info in move:", panelInfo);
+
+            if (panelInfo) {
+              console.log(
+                `Panel found: ${panelInfo.numePanou}, Owner: ${panelInfo.proprietar}`
+              );
+              // Panel is purchased - check if current player is the owner
+              if (panelInfo.proprietar !== currentPlayer.name) {
+                // Panel is owned by another player - calculate and charge rent
                 const rentAmount = Math.floor((landedTile.value || 0) * 0.1); // 10% of value
-                displayRentModal(
-                  statusInfo.ownerUsername,
-                  landedTile,
-                  rentAmount
-                );
+                displayRentModal(panelInfo.proprietar, landedTile, rentAmount);
               } else {
                 // Player landed on their own property
                 displayNotification(`You own ${landedTile.name}!`);
@@ -766,7 +770,7 @@ export default function GamePageComponent({
               setShowPurchaseModal(true);
             }
           } catch (error) {
-            console.error("Error checking panel status:", error);
+            console.error("Error checking panel ownership:", error);
           }
         }
       } else if (landedTile.type === "tax") {
@@ -827,19 +831,96 @@ export default function GamePageComponent({
   const handlePayRent = async () => {
     try {
       const token = localStorage.getItem("token");
-      const currentPlayer = players[currentPlayerIndex];
+      const gameId = localStorage.getItem("gameId");
+      const realUser = localStorage.getItem("user");
+      const userName = realUser ? JSON.parse(realUser).name : null;
+      const currentPlayer = userName;
 
-      // Check if player has enough money
-      if (currentPlayer.money < rentInfo.amount) {
-        // Handle insufficient funds case
-        alert("You don't have enough money to pay rent!");
-        // Optionally implement property offering functionality or bankruptcy
-        return;
+      if (!gameId || !token) return;
+      const realGameId = Number(gameId) - 1000;
+
+      // Get the latest panels data to determine the current owner
+      const panelsResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/panouri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!panelsResponse.ok) {
+        throw new Error("Failed to fetch current panel ownership data");
       }
 
-      // Make API call to pay rent
+      const panelsData = await panelsResponse.json();
+      const purchasedPanels = panelsData.data || [];
+
+      // Get panel ID from the rentInfo
+      const panelId = parseInt(rentInfo.property?.id.replace("t", "") || "0");
+
+      // Find the current owner from the panels list
+      const panelInfo = purchasedPanels.find(
+        (panel: any) => panel.idPanouGeneral === panelId
+      );
+      console.log("Panel info:", panelInfo);
+
+      // If panel is no longer owned or ownership changed, handle accordingly
+      if (!panelInfo) {
+        console.log("Panel is no longer owned by anyone");
+        setShowRentModal(false);
+        displayNotification("This property is no longer owned by anyone!");
+        return;
+      }
+      const idturnPropietar = panelInfo.idTurn;
+
+      // Fetch turns to find the owner's username based on turn ID
+      const turnResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/turnuri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!turnResponse.ok) {
+        throw new Error("Failed to fetch turn data to determine owner");
+      }
+
+      const turnData = await turnResponse.json();
+      const turns = turnData.data || [];
+      console.log("Turns data:", turns);
+
+      const ownerTurn = turns.find(
+        (turn: any) => turn.idTurn === idturnPropietar
+      );
+      console.log("Owner turn value:", ownerTurn.valoareTurn);
+
+      if (!ownerTurn) {
+        console.error(`Could not find owner for turn ID: ${idturnPropietar}`);
+        displayNotification("Error determining property owner.");
+        setShowRentModal(false);
+        return;
+      }
+      console.log("Owner turn data:", ownerTurn);
+
+      const currentOwner = ownerTurn.username;
+      console.log(`Current owner of panel ${panelId} is: ${currentOwner}`);
+
+      // Check if ownership changed
+      if (currentOwner !== rentInfo.owner) {
+        console.log(
+          `Ownership changed from ${rentInfo.owner} to ${currentOwner}`
+        );
+      }
+      console.log(
+        `Current player: ${currentPlayer}, Owner: ${currentOwner}, Rent amount: ${rentInfo.amount}, Panel ID: ${panelId}`
+      );
+
+      // Make API call to pay rent to the current owner
       const response = await fetch(
-        `http://localhost:8080/api/jucatori/${rentInfo.owner}/platesteChirie`,
+        `http://localhost:8080/api/jucatori/${currentOwner}/platesteChirie`,
         {
           method: "PUT",
           headers: {
@@ -847,10 +928,9 @@ export default function GamePageComponent({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            proprietar: rentInfo.owner,
-            chirias: currentPlayer.name,
-            valoare: rentInfo.amount,
-            idPanou: parseInt(rentInfo.property?.id || "0"),
+            proprietar: currentOwner,
+            chirias: currentPlayer,
+            valoare: ownerTurn.valoareTurn,
           }),
         }
       );
@@ -859,19 +939,16 @@ export default function GamePageComponent({
         throw new Error("Failed to pay rent");
       }
 
-      // Update player money locally
+      // Update players' money locally
       setPlayers((prev) => {
         const newPlayers = [...prev];
-
         // Reduce current player's money
         const payingPlayer = { ...newPlayers[currentPlayerIndex] };
         payingPlayer.money -= rentInfo.amount;
         newPlayers[currentPlayerIndex] = payingPlayer;
 
         // Increase owner's money
-        const ownerIndex = newPlayers.findIndex(
-          (p) => p.name === rentInfo.owner
-        );
+        const ownerIndex = newPlayers.findIndex((p) => p.name === currentOwner);
         if (ownerIndex >= 0) {
           const ownerPlayer = { ...newPlayers[ownerIndex] };
           ownerPlayer.money += rentInfo.amount;
@@ -882,8 +959,15 @@ export default function GamePageComponent({
       });
 
       setShowRentModal(false);
+      displayNotification(
+        `Rent of $${rentInfo.amount} paid to ${currentOwner}`
+      );
+
+      // Refresh player data
+      fetchPlayerData();
     } catch (error) {
       console.error("Error paying rent:", error);
+      displayNotification("Failed to pay rent. Please try again.");
     }
   };
 
@@ -1124,18 +1208,55 @@ export default function GamePageComponent({
     }
   };
 
+  // Update handlePurchase function to always use current player's turn
   const handlePurchase = async (tile: Tile) => {
     try {
       const token = localStorage.getItem("token");
       const gameId = localStorage.getItem("gameId");
+      const realUser = localStorage.getItem("user");
+      const userName = realUser ? JSON.parse(realUser).name : null;
+
       if (!token || !gameId) return;
 
       const realGameId = Number(gameId) - 1000;
-      const currentPlayer = players[currentPlayerIndex];
 
-      // Get the turn ID for the current player
-      const turnId = await getTurnIdForPlayer(currentPlayer.name);
+      // Make sure we're getting the CURRENT active player
+      const currentPlayer = userName;
+      console.log("jucatorul curent:", currentPlayer);
 
+      // Always get the latest turn ID for the current player
+      const turnResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/turnuri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!turnResponse.ok) {
+        throw new Error("Failed to get turn information");
+      }
+
+      const turnData = await turnResponse.json();
+
+      console.log("Turn data fetched:", turnData);
+      const turns = turnData.data || [];
+      const playerTurn = turns.find(
+        (turn: any) => turn.username === currentPlayer
+      );
+
+      if (!playerTurn) {
+        throw new Error(`Turn not found for player ${currentPlayer}`);
+      }
+
+      const turnId = playerTurn.idTurn;
+
+      console.log(
+        `Purchasing ${tile.name} for player ${currentPlayer} with turn ID ${turnId}`
+      );
+
+      // Make purchase request with the verified turn ID
       const response = await fetch("http://localhost:8080/api/panou", {
         method: "POST",
         headers: {

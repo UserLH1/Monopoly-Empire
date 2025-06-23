@@ -54,6 +54,7 @@ public class JocServiceImpl implements JocService {
             String players = createGameDto.getUsername();
             joc.setJucatori(players);
             joc.setNrJucatori(createGameDto.getNumarJucatori());
+            joc.setJucatorulCurent(createGameDto.getUsername());
             joc.setStatus(GameStatus.valueOf("WAITING"));
             Joc jocCreat = jocRepository.save(joc);
             utilizator.setIdJoc(jocCreat.getIdJoc());
