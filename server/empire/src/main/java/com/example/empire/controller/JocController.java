@@ -12,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.empire.config.JwtService;
+import com.example.empire.controller.EventController;
+import com.example.empire.config.SSECommand;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -25,13 +28,17 @@ public class JocController {
     private final JwtService jwtService;
     private final JocRepository jocRepository;
     private final UtilizatorRepository utilizatorRepository;
+    private final EventController eventController;
 
     @Autowired
-    public JocController(JocService jocService, JwtService jwtService, JocRepository jocRepository, UtilizatorRepository utilizatorRepository) {
+    public JocController(JocService jocService, JwtService jwtService, 
+                        JocRepository jocRepository, UtilizatorRepository utilizatorRepository,
+                        EventController eventController) {
         this.jocService = jocService;
         this.jwtService = jwtService;
         this.jocRepository = jocRepository;
         this.utilizatorRepository = utilizatorRepository;
+        this.eventController = eventController;
     }
 
     @PostMapping("/jocuri")
@@ -239,16 +246,32 @@ public ResponseEntity<ApiResponse> parasireJocPost(@RequestHeader("Authorization
     }
 
     @GetMapping("/jocuri/{idJoc}/verificareCastig")
-    public ResponseEntity<ApiResponse>verificaCastigJoc(@PathVariable Long idJoc){
-
+    public ResponseEntity<ApiResponse> verificaCastigJoc(@PathVariable Long idJoc) {
         boolean jocFinalizat = jocService.verificaCastigJoc(idJoc);
-        if(jocFinalizat) {
+        if (jocFinalizat) {
             String jucatorCastigator = jocService.returneazaJucatorCastigator(idJoc);
+            
+            // Create the event data for broadcasting
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("winner", jucatorCastigator);
+            eventData.put("message", jucatorCastigator + " a câștigat jocul!");
+            
+            try {
+                // Create and send the gameEnd event to all players
+                SSECommand gameEndEvent = new SSECommand("gameEnd", eventData);
+                eventController.sendToGame(idJoc, gameEndEvent);
+                System.out.println("Game end event sent to all players for game " + idJoc);
+            } catch (Exception e) {
+                System.err.println("Failed to send game end event: " + e.getMessage());
+                e.printStackTrace();
+            }
+            
+            // End the game
             jocService.incheieJoc(idJoc);
-            return ResponseEntity.ok(ApiResponse.success("Jocul a fost incheiat: jucaotrul castigator este: ", jucatorCastigator));
+            
+            return ResponseEntity.ok(ApiResponse.success("Jocul a fost incheiat: jucătorul câștigător este: ", jucatorCastigator));
         }
-        return ResponseEntity.ok(ApiResponse.success("Jocul nu s-a incheiat",null));
-
+        return ResponseEntity.ok(ApiResponse.success("Jocul nu s-a încheiat", null));
     }
 
     @GetMapping("/jocuri/{idJoc}/verificareContinuitateJoc")

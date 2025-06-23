@@ -353,7 +353,34 @@ export default function GamePageComponent({
     loadTiles();
   }, []);
 
-  const fetchPlayerData = async () => {
+  // Define proper interfaces for API responses
+  interface PlayerApiResponse {
+    username: string;
+    sumaBani: number;
+    pozitiePion: number;
+  }
+
+  interface TurnApiResponse {
+    idTurn: number;
+    username: string;
+    valoareTurn: number;
+  }
+
+  interface PanelApiResponse {
+    idPanouCumparat: number;
+    idPanouGeneral: number;
+    idTurn: number;
+    nume: string;
+    pret: number;
+  }
+
+  interface ApiResponse<T> {
+    status: number;
+    message: string;
+    data: T;
+  }
+
+  const fetchPlayerData = async (): Promise<void> => {
     try {
       const token = localStorage.getItem("token");
       const gameId = localStorage.getItem("gameId");
@@ -361,9 +388,9 @@ export default function GamePageComponent({
 
       const realGameId = Number(gameId) - 1000;
 
+      // 1. First get basic player data
       const response = await fetch(
         `http://localhost:8080/api/jocuri/${realGameId}/jucatori`,
-
         {
           method: "GET",
           headers: {
@@ -376,26 +403,112 @@ export default function GamePageComponent({
         throw new Error("Failed to fetch player data");
       }
 
-      const result = await response.json();
+      const result = (await response.json()) as ApiResponse<
+        PlayerApiResponse[]
+      >;
+      console.log("Fetched player data:", result);
+
+      // 2. Get tower data
+      const turnResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/turnuri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!turnResponse.ok) {
+        throw new Error("Failed to fetch turn data");
+      }
+
+      const turnData = (await turnResponse.json()) as ApiResponse<
+        TurnApiResponse[]
+      >;
+      console.log("Fetched turn data:", turnData);
+      const turns = turnData.data || [];
+
+      // 3. Get panel/brand data
+      const panelsResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/panouri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!panelsResponse.ok) {
+        throw new Error("Failed to fetch panel data");
+      }
+
+      const panelsData = (await panelsResponse.json()) as ApiResponse<
+        PanelApiResponse[]
+      >;
+      console.log("Fetched panel data:", panelsData);
+      const panels = panelsData.data || [];
+
+      // 4. Create map of turn ID to player name
+      const turnIdToPlayer: Record<number, string> = {};
+      turns.forEach((turn) => {
+        turnIdToPlayer[turn.idTurn] = turn.username;
+      });
+
+      // 5. Create map of player name to brands
+      const playerBrands: Record<string, Brand[]> = {};
+      panels.forEach((panel) => {
+        const ownerName = turnIdToPlayer[panel.idTurn];
+        if (ownerName) {
+          if (!playerBrands[ownerName]) {
+            playerBrands[ownerName] = [];
+          }
+
+          // Find corresponding tile data for this panel
+          const tile = tiles.find(
+            (t) => parseInt(t.id.replace("t", "")) === panel.idPanouGeneral
+          );
+
+          if (tile) {
+            playerBrands[ownerName].push({
+              id: tile.id,
+              name: tile.name,
+              logo: tile.logo || "",
+              value: tile.value || 0,
+              color: tile.color || "#ffffff",
+            });
+          }
+        }
+      });
+
+      // 6. Create map of player name to tower value
+      const playerTowerValues: Record<string, number> = {};
+      turns.forEach((turn) => {
+        playerTowerValues[turn.username] = turn.valoareTurn || 0;
+      });
+
+      // 7. Build complete player objects
       if (result.data && Array.isArray(result.data)) {
         const formattedPlayers: Player[] = result.data.map(
-          (player: any, index: number) => ({
-            id: player.username || `p${index + 1}`,
-            name: player.username || `Player ${index + 1}`,
-            color: PLAYER_COLORS[index],
-            money: player.sumaBani || 1500,
-            position: player.pozitiePion || 1, // Changed default from 0 to 1
-            properties: [],
-            brands: [],
-            towerHeight: 0,
-          })
+          (player: PlayerApiResponse, index: number) => {
+            const brands = playerBrands[player.username] || [];
+            return {
+              id: player.username || `p${index + 1}`,
+              name: player.username || `Player ${index + 1}`,
+              color: PLAYER_COLORS[index],
+              money: player.sumaBani || 1500,
+              position: player.pozitiePion || 1,
+              properties: [],
+              brands: brands,
+              towerHeight: playerTowerValues[player.username] || 0,
+            };
+          }
         );
 
-        setPlayers(formattedPlayers);
         console.log(
-          "Player positions after fetch:",
-          formattedPlayers.map((p) => `${p.name}: position ${p.position}`)
+          "Complete player data with towers and brands:",
+          formattedPlayers
         );
+        setPlayers(formattedPlayers);
       }
 
       setLoading(false);
@@ -838,7 +951,56 @@ export default function GamePageComponent({
           handleDrawCard("chance");
         }, 1000);
       }
-      // Add other tile type handling as needed
+
+      // Special handling for "Go to Jail" tile
+      if (landedTile.position === 17) {
+        // Position 17 is "Go to Jail"
+        displayNotification(`${currentPlayer.name} was sent to Jail!`);
+
+        // Wait a moment so players see they landed on Go To Jail first
+        setTimeout(async () => {
+          // Move player to Jail (position 9)
+          const jailPosition = 9;
+
+          try {
+            // Update position in the database
+            const jailMoveResponse = await fetch(
+              `http://localhost:8080/api/jucatori/${currentPlayer.name}/pozitiePion`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  pozitiePion: jailPosition,
+                  oldPosition: newPosition, // The Go To Jail position
+                }),
+              }
+            );
+
+            if (jailMoveResponse.ok) {
+              // Update the local state to show player at jail
+              setPlayers((prevPlayers) =>
+                prevPlayers.map((player) =>
+                  player.id === currentPlayer.id
+                    ? { ...player, position: jailPosition }
+                    : player
+                )
+              );
+
+              displayNotification(`${currentPlayer.name} was moved to Jail!`);
+            }
+          } catch (error) {
+            console.error("Error moving player to jail:", error);
+          }
+        }, 1500); // Wait 1.5 seconds before moving to jail
+
+        // Return early to prevent other tile type processing
+        return;
+      }
+
+      // Your existing tile type handling continues...
     } catch (error) {
       console.error("Error processing move:", error);
     }
@@ -1518,7 +1680,77 @@ export default function GamePageComponent({
     eventSource.addEventListener("connect", (event) => {
       console.log("SSE connected:", event.data);
     });
+    // Add this event listener in your SSE connection section, after the other event listeners
+    eventSource.addEventListener("panelPurchase", (event) => {
+      console.log("Panel purchase event received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
 
+        // Find the purchased panel details
+        const panelId = data.idPanouGeneral;
+        const buyer = data.username;
+
+        // Get panel name from tiles
+        const purchasedTile = tiles.find(
+          (tile) => parseInt(tile.id.replace("t", "")) === panelId
+        );
+
+        // Create a descriptive message
+        const purchaseMessage = purchasedTile
+          ? `${buyer} purchased ${purchasedTile.name} for $${purchasedTile.value}!`
+          : `${buyer} purchased a new panel!`;
+
+        // Show notification to everyone
+        if (buyer !== user?.name) {
+          // If another player made the purchase
+          displayMoveAlert(purchaseMessage);
+        } else {
+          // If current user made the purchase
+          displayNotification(purchaseMessage);
+        }
+
+        // Refresh player data to update the UI
+        setTimeout(() => {
+          fetchPlayerData();
+        }, 1500);
+      } catch (error) {
+        console.error("Error processing panel purchase event:", error);
+      }
+    });
+    // Add new listener for game end events
+    eventSource.addEventListener("gameEnd", (event) => {
+      console.log("GAME END EVENT RECEIVED:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        if (data.winner) {
+          console.log(`Game over! ${data.winner} is the winner!`);
+
+          // Update game status
+          setGameStatus("finished");
+
+          // Set winner name and show modal
+          setWinnerName(data.winner);
+          setShowWinnerModal(true);
+
+          // Play victory sound if you have one
+          const victorySound = new Audio("/sounds/victory.mp3");
+          victorySound
+            .play()
+            .catch((e) => console.log("Could not play sound", e));
+
+          // Save game result in history
+          localStorage.setItem(
+            `game_${gameId}_result`,
+            JSON.stringify({
+              winner: data.winner,
+              endTime: new Date().toISOString(),
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Error processing game end event:", error);
+      }
+    });
     // 2. For player moves (keep existing one)
     eventSource.addEventListener("playerMove", (event) => {
       console.log("Player move event received:", event.data);
@@ -1767,7 +1999,7 @@ export default function GamePageComponent({
 
       // If a winner was returned, game is over
       if (result.data) {
-        displayNotification(`Game over! ${result.data} is the winner!`);
+        console.log(`Winner detected: ${result.data}`);
 
         // Update game status
         setGameStatus("finished");

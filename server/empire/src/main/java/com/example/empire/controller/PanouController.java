@@ -20,9 +20,13 @@ import com.example.empire.utils.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import com.example.empire.controller.EventController;
+import com.example.empire.config.SSECommand;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -31,19 +35,23 @@ import java.util.Optional;
 public class PanouController {
     private final PanouService panouService;
     private final PanouActivService panouActivService;
-
     private final PanouRepository panouRepository;
     private final TurnRepository turnRepository;
     private final JocRepository jocRepository;
     private final JwtService jwtService;
-
-    public PanouController(PanouService panouService, PanouActivService panouActivService, PanouRepository panouRepository, TurnRepository turnRepository, JocRepository jocRepository, JwtService jwtService) {
+    private final EventController eventController; // Add this field
+    
+    public PanouController(PanouService panouService, PanouActivService panouActivService, 
+                          PanouRepository panouRepository, TurnRepository turnRepository,
+                          JocRepository jocRepository, JwtService jwtService, 
+                          EventController eventController) {
         this.panouService = panouService;
         this.panouActivService = panouActivService;
         this.panouRepository = panouRepository;
         this.turnRepository = turnRepository;
         this.jocRepository = jocRepository;
         this.jwtService = jwtService;
+        this.eventController = eventController;
     }
 
     @GetMapping("/panouri/{status}")
@@ -86,7 +94,7 @@ public class PanouController {
     }
 
     @PostMapping("/panou")
-    ResponseEntity<ApiResponse>cumparaUnPanou(@RequestBody CumparaPanouDto cumparaPanouDto){
+    ResponseEntity<ApiResponse> cumparaUnPanou(@RequestBody CumparaPanouDto cumparaPanouDto) {
         Optional<Panou> optional = panouRepository.getPanouByIdPanou(cumparaPanouDto.getIdPanou());
         if(optional.isPresent())
         {
@@ -96,6 +104,31 @@ public class PanouController {
                 Optional<Joc> optionalJoc = jocRepository.getJocByIdJoc(cumparaPanouDto.getIdJoc());
                 if(optionalJoc.isPresent()) {
                     panouActivService.cumparaPanou(cumparaPanouDto);
+                    
+                    // After successful purchase, add this:
+                    try {
+                        // Get player username from the turn
+                        Optional<Turn> turn = turnRepository.findById(cumparaPanouDto.getIdTurn());
+                        if (turn.isPresent()) {
+                            String username = turn.get().getUsername();
+                            
+                            // Create event data
+                            Map<String, Object> eventData = new HashMap<>();
+                            eventData.put("username", username);
+                            eventData.put("idPanouGeneral", cumparaPanouDto.getIdPanou());
+                            eventData.put("idTurn", cumparaPanouDto.getIdTurn());
+                            
+                            // Create and send SSE event
+                            SSECommand panelPurchaseEvent = new SSECommand(
+                                "panelPurchase", 
+                                eventData
+                            );
+                            eventController.sendToGame(cumparaPanouDto.getIdJoc(), panelPurchaseEvent);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error sending panel purchase event: " + e.getMessage());
+                    }
+                    
                     return ResponseEntity.ok(ApiResponse.success("Panoul a fost cumparat cu succes", null));
                 }
                 return  ResponseEntity
