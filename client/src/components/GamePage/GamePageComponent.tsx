@@ -65,6 +65,13 @@ export default function GamePageComponent({
   const [notification, setNotification] = useState("");
   const [showMoveAlert, setShowMoveAlert] = useState(false);
   const [moveAlertMessage, setMoveAlertMessage] = useState("");
+  const userJson = localStorage.getItem("user");
+  const realUser = userJson ? JSON.parse(userJson).name : null;
+  const [currentUserMoney, setCurrentUserMoney] = useState<number | null>(null);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [winnerName, setWinnerName] = useState("");
+  const [valoareDeAfisat, setValoareDeAfisat] = useState(0);
+
   const displayNotification = (message: string) => {
     setNotification(message);
     setShowNotification(true);
@@ -88,6 +95,39 @@ export default function GamePageComponent({
   const [taxAmount, setTaxAmount] = useState(0);
 
   const USE_LOCAL_JSON = false; // Set to false to use the database
+
+  useEffect(() => {
+    const fetchPlayerMoney = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const userJson = localStorage.getItem("user");
+
+        if (!userJson || !token) return;
+
+        const userObject = JSON.parse(userJson);
+        const username = userObject.name;
+
+        const response = await fetch(
+          `http://localhost:8080/api/jucatori/${username}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUserMoney(data.data.sumaBani);
+          console.log("Got player money from API:", data.data.sumaBani);
+        }
+      } catch (error) {
+        console.error("Error fetching player money:", error);
+      }
+    };
+
+    fetchPlayerMoney();
+  }, [showRentModal, rentInfo.property]);
 
   useEffect(() => {
     const loadTiles = async () => {
@@ -590,6 +630,7 @@ export default function GamePageComponent({
           },
         }
       );
+      await checkForWin();
 
       // The next player will be updated via SSE event
     } catch (error) {
@@ -804,15 +845,117 @@ export default function GamePageComponent({
   };
 
   // Helper functions for rent and tax modals
-  const displayRentModal = (owner: string, property: Tile, amount: number) => {
-    console.log("Showing rent modal for:", property.name, "Owner:", owner);
+  // Updated displayRentModal function to fetch data first
+  const displayRentModal = async (
+    owner: string,
+    property: Tile,
+    amount: number
+  ) => {
+    try {
+      console.log(
+        "Starting to prepare rent modal for:",
+        property.name,
+        "Owner:",
+        owner
+      );
 
-    setRentInfo({
-      owner,
-      amount,
-      property,
-    });
-    setShowRentModal(true);
+      const token = localStorage.getItem("token");
+      const gameId = localStorage.getItem("gameId");
+
+      if (!token || !gameId) {
+        console.error("No token or gameId found");
+        return;
+      }
+
+      const realGameId = Number(gameId) - 1000;
+
+      // Get the latest panels data to determine the current owner
+      const panelsResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/panouri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!panelsResponse.ok) {
+        throw new Error("Failed to fetch current panel ownership data");
+      }
+
+      const panelsData = await panelsResponse.json();
+      const purchasedPanels = panelsData.data || [];
+      const panelId = parseInt(property.id.replace("t", "") || "0");
+
+      // Find the current owner from the panels list
+      const panelInfo = purchasedPanels.find(
+        (panel: any) => panel.idPanouGeneral === panelId
+      );
+
+      if (!panelInfo) {
+        console.log("Panel is no longer owned by anyone");
+        displayNotification("This property is not owned by anyone!");
+        return;
+      }
+
+      const idturnPropietar = panelInfo.idTurn;
+
+      // Fetch turns to find the owner's username based on turn ID
+      const turnResponse = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/turnuri`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!turnResponse.ok) {
+        throw new Error("Failed to fetch turn data to determine owner");
+      }
+
+      const turnData = await turnResponse.json();
+      const turns = turnData.data || [];
+
+      const ownerTurn = turns.find(
+        (turn: any) => turn.idTurn === idturnPropietar
+      );
+
+      if (!ownerTurn) {
+        console.error(`Could not find owner for turn ID: ${idturnPropietar}`);
+        displayNotification("Error determining property owner.");
+        return;
+      }
+
+      // Set the tower value for display in the modal
+      setValoareDeAfisat(ownerTurn.valoareTurn);
+
+      const currentOwner = ownerTurn.username;
+      console.log(
+        `Current owner of panel ${panelId} is: ${currentOwner} with tower value ${ownerTurn.valoareTurn}`
+      );
+      console.log(
+        `Real user: ${realUser}, Current owner: ${currentOwner}, Rent amount: ${amount}, Panel ID: ${panelId}`
+      );
+      if (realUser === currentOwner) {
+        console.log(`Player ${realUser} owns this property - no rent needed`);
+        displayNotification(`You own ${property.name}!`);
+        return; // Don't show modal
+      }
+
+      // Now that we have all the data, set rentInfo and show the modal
+      setRentInfo({
+        owner: currentOwner,
+        amount: ownerTurn.valoareTurn, // Use the actual tower value
+        property,
+      });
+
+      // Finally show the modal with all data prepared
+      setShowRentModal(true);
+    } catch (error) {
+      console.error("Error preparing rent modal:", error);
+      displayNotification("Error preparing rent payment. Please try again.");
+    }
   };
 
   const displayTaxModal = (amount: number) => {
@@ -896,6 +1039,7 @@ export default function GamePageComponent({
         (turn: any) => turn.idTurn === idturnPropietar
       );
       console.log("Owner turn value:", ownerTurn.valoareTurn);
+      setValoareDeAfisat(ownerTurn.valoareTurn);
 
       if (!ownerTurn) {
         console.error(`Could not find owner for turn ID: ${idturnPropietar}`);
@@ -1597,6 +1741,48 @@ export default function GamePageComponent({
       ? ["topLeft", "topRight", "bottomLeft"]
       : ["topLeft", "topRight", "bottomLeft", "bottomRight"];
 
+  // Add this function near the other utility functions in your component
+  const checkForWin = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const gameId = localStorage.getItem("gameId");
+      if (!gameId) return;
+
+      const realGameId = Number(gameId) - 1000;
+
+      const response = await fetch(
+        `http://localhost:8080/api/jocuri/${realGameId}/verificareCastig`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to check for win condition");
+      }
+
+      const result = await response.json();
+
+      // If a winner was returned, game is over
+      if (result.data) {
+        displayNotification(`Game over! ${result.data} is the winner!`);
+
+        // Update game status
+        setGameStatus("finished");
+
+        // Set winner name and show modal instead of alert
+        setWinnerName(result.data);
+        setShowWinnerModal(true);
+
+        // Don't redirect automatically - let user click button in modal
+      }
+    } catch (error) {
+      console.error("Error checking for win condition:", error);
+    }
+  };
+
   return (
     <div className={styles.gamePageContainer}>
       <div className={styles.gameContent}>
@@ -1684,37 +1870,89 @@ export default function GamePageComponent({
         </div>
       )}
 
-      {/* Rent Modal */}
+      {/* Rent Modal - Enhanced Version */}
       {showRentModal && rentInfo.property && (
         <div className={styles.modalOverlay}>
-          <div className={styles.rentModal}>
-            <h3>Pay Rent for {rentInfo.property.name}</h3>
-            <p>Owner: {rentInfo.owner}</p>
-            <p>Rent Amount: ${rentInfo.amount}</p>
-            <p>Your Money: ${players[currentPlayerIndex].money}</p>
+          <div className={`${styles.rentModal} ${styles.enhancedModal}`}>
+            <div
+              className={styles.modalHeader}
+              style={{
+                background: "linear-gradient(135deg, #3498db, #2980b9)",
+              }}
+            >
+              <h3>
+                <span className={styles.rentIcon}>🏢</span>
+                Pay Rent
+              </h3>
+            </div>
 
-            <div className={styles.buttonGroup}>
-              {players[currentPlayerIndex].money >= rentInfo.amount ? (
-                <button className={styles.payButton} onClick={handlePayRent}>
+            <div className={styles.modalBody}>
+              <div className={styles.rentDetails}>
+                <div className={styles.propertyInfo}>
+                  <img
+                    src={rentInfo.property.logo || "/assets/brands/default.png"}
+                    alt={rentInfo.property.name}
+                    className={styles.propertyLogo}
+                  />
+                  <h4>{rentInfo.property.name}</h4>
+                </div>
+
+                <div className={styles.rentInfo}>
+                  <p className={styles.rentDataRow}>
+                    <span className={styles.label}>Property Owner:</span>
+                    <span className={styles.value}>{rentInfo.owner}</span>
+                  </p>
+                  <p className={styles.rentDataRow}>
+                    <span className={styles.label}>Tenant:</span>
+                    <span className={styles.value}>{user?.name}</span>
+                  </p>
+                  <p className={styles.rentDataRow}>
+                    <span className={styles.label}>Tower Value:</span>
+                    <span className={styles.value}>${valoareDeAfisat}</span>
+                  </p>
+                  <p className={styles.playerBalance}>
+                    <span className={styles.label}>Your Balance:</span>
+                    <span className={styles.value}>
+                      $
+                      {currentUserMoney !== null
+                        ? currentUserMoney
+                        : "Loading..."}
+                    </span>
+                  </p>
+                  {currentUserMoney !== null &&
+                    currentUserMoney < taxAmount && (
+                      <p className={styles.insufficientFunds}>
+                        <span className={styles.warningIcon}>⚠️</span>
+                        Insufficient funds! You must pay with property.
+                      </p>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              {players[currentPlayerIndex]?.money >= valoareDeAfisat ? (
+                <button
+                  className={`${styles.payButton} ${styles.moneyButton}`}
+                  onClick={handlePayRent}
+                >
+                  <span className={styles.buttonIcon}>💵</span>
                   Pay Rent
                 </button>
               ) : (
-                <>
-                  <p className={styles.warningText}>
-                    You don't have enough money!
-                  </p>
-                  <button
-                    className={styles.offerButton}
-                    onClick={handlePayRentWithProperty}
-                  >
-                    Offer Property Instead
-                  </button>
-                </>
+                <button
+                  className={`${styles.payButton} ${styles.propertyButton}`}
+                  onClick={handlePayRentWithProperty}
+                >
+                  <span className={styles.buttonIcon}>🏢</span>
+                  Offer Property
+                </button>
               )}
               <button
                 className={styles.cancelButton}
                 onClick={() => setShowRentModal(false)}
               >
+                <span className={styles.buttonIcon}>✖️</span>
                 Close
               </button>
             </div>
@@ -1742,16 +1980,15 @@ export default function GamePageComponent({
                   </p>
                   <p className={styles.playerBalance}>
                     <span className={styles.label}>Your Balance:</span>
-                    <span className={styles.value}>
-                      ${players[currentPlayerIndex].money}
-                    </span>
+                    <span className={styles.value}>${currentUserMoney}</span>
                   </p>
-                  {players[currentPlayerIndex].money < taxAmount && (
-                    <p className={styles.insufficientFunds}>
-                      <span className={styles.warningIcon}>⚠️</span>
-                      Insufficient funds! You must pay with property.
-                    </p>
-                  )}
+                  {currentUserMoney !== null &&
+                    currentUserMoney < taxAmount && (
+                      <p className={styles.insufficientFunds}>
+                        <span className={styles.warningIcon}>⚠️</span>
+                        Insufficient funds! You must pay with property.
+                      </p>
+                    )}
                 </div>
 
                 <div className={styles.taxDescription}>
@@ -1815,6 +2052,54 @@ export default function GamePageComponent({
         onClose={() => setShowCardModal(false)}
         onUseCard={handleUseCard}
       />
+
+      {/* Winner Modal */}
+      {showWinnerModal && (
+        <div className={styles.modalOverlay}>
+          <div className={`${styles.winnerModal} ${styles.enhancedModal}`}>
+            <div
+              className={styles.modalHeader}
+              style={{
+                background: "linear-gradient(135deg, #f1c40f, #e67e22)",
+                padding: "20px",
+              }}
+            >
+              <h2>🎉 JOC TERMINAT 🎉</h2>
+            </div>
+
+            <div
+              className={styles.modalBody}
+              style={{ textAlign: "center", padding: "30px" }}
+            >
+              <div className={styles.confetti}>
+                {Array(20)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className={styles.confettiPiece}></div>
+                  ))}
+              </div>
+
+              <div className={styles.winnerInfo}>
+                <div className={styles.winnerTrophy}>🏆</div>
+                <h3 className={styles.winnerTitle}>Câștigătorul este:</h3>
+                <h1 className={styles.winnerName}>{winnerName}</h1>
+                <p className={styles.winnerCongrats}>
+                  Felicitări pentru victoria în Monopoly Empire!
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.lobbyButton}
+                onClick={() => (window.location.href = "/")}
+              >
+                Înapoi în Lobby
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

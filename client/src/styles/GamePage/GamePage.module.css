@@ -625,7 +625,93 @@
   min-width: 300px;
   animation: fadeIn 0.3s;
 }
+.winnerModal {
+  max-width: 500px;
+  text-align: center;
+  animation: appear 0.5s ease-out;
+}
 
+.confetti {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confettiPiece {
+  position: absolute;
+  width: 10px;
+  height: 20px;
+  background: linear-gradient(to bottom, #ff0000, #ffff00, #00ff00, #0000ff);
+  opacity: 0.8;
+  border-radius: 0 50% 50% 50%;
+  animation: confetti-fall 5s ease-in infinite;
+}
+
+@keyframes confetti-fall {
+  0% { 
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(500px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confettiPiece:nth-child(odd) {
+  background: linear-gradient(to bottom, #ff00ff, #00ffff, #ffff00);
+}
+
+.winnerTrophy {
+  font-size: 80px;
+  margin-bottom: 10px;
+  animation: trophy-bounce 2s infinite;
+}
+
+@keyframes trophy-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.winnerTitle {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+  color: #555;
+}
+
+.winnerName {
+  font-size: 2.5rem;
+  color: #e67e22;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+  margin: 15px 0;
+}
+
+.winnerCongrats {
+  font-size: 1.2rem;
+  color: #555;
+  margin-top: 20px;
+}
+
+.lobbyButton {
+  background: linear-gradient(to right, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.lobbyButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
 .moveAlertIcon {
   font-size: 36px;
   margin-bottom: 10px;

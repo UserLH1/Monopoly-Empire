@@ -259,3 +259,105 @@
   padding: 1px 8px;
   border-radius: 10px;
 }
+
+/* Enhanced tower visualization */
+.brandSegment {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.brandSegment:hover {
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+}
+
+.brandValue {
+  position: absolute;
+  right: -35px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.brandSegment:hover .brandValue {
+  opacity: 1;
+}
+
+.brandTooltip {
+  position: absolute;
+  left: 110%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 100;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(to right, #2ecc71, #27ae60);
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+
+.brandIcons {
+  display: flex;
+  justify-content: center;
+  margin-top: 3px;
+}
+
+.brandIcon {
+  font-size: 10px;
+  margin: 0 1px;
+}
+
+/* Improve stat boxes */
+.towerValueStat {
+  background: linear-gradient(to bottom right, #3498db11, #2980b922);
+}
+
+.brandCountStat {
+  background: linear-gradient(to bottom right, #e74c3c11, #c0392b22);
+}
+
+.statBox {
+  padding: 5px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.statBox:hover {
+  transform: translateY(-2px);
+}
+
+.statValue {
+  font-size: 1.2rem;
+  font-weight: bold;
+}

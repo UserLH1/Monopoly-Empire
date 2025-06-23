@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import styles from "../../styles/GamePage/PlayerPanel.module.css";
 
 interface Player {
@@ -31,9 +32,14 @@ export default function PlayerPanel({
   isCurrentPlayer,
   position,
 }: PlayerPanelProps) {
+  const [hoveredBrand, setHoveredBrand] = useState<Brand | null>(null);
+
   // Calculate tower percentage based on max value of 800
   const towerPercentage = Math.min((player.towerHeight / 800) * 100, 100);
   const brandCount = player.brands.length;
+
+  // Sort brands by value (highest value at bottom of tower)
+  const sortedBrands = [...player.brands].sort((a, b) => a.value - b.value);
 
   return (
     <motion.div
@@ -84,32 +90,79 @@ export default function PlayerPanel({
               animate={{ height: `${towerPercentage}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
             ></motion.div>
-            {player.brands.map((brand, index) => (
-              <motion.div
-                key={brand.id}
-                className={styles.brandLogo}
-                style={{
-                  bottom: `${(index / (player.brands.length || 1)) * 100}%`,
-                  backgroundImage: brand.logo ? `url(${brand.logo})` : "none",
-                  backgroundColor: brand.logo ? "transparent" : brand.color,
-                }}
-                title={brand.name}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: index * 0.1, type: "spring" }}
-              ></motion.div>
-            ))}
+
+            {/* Brand segments */}
+            {sortedBrands.map((brand, index) => {
+              // Calculate height percentage for this brand based on its value
+              const segmentHeight = (brand.value / 800) * 100;
+              // Calculate position from bottom
+              const bottomPosition = sortedBrands
+                .slice(0, index)
+                .reduce((sum, b) => sum + (b.value / 800) * 100, 0);
+
+              return (
+                <motion.div
+                  key={brand.id}
+                  className={styles.brandSegment}
+                  style={{
+                    bottom: `${bottomPosition}%`,
+                    height: `${segmentHeight}%`,
+                    backgroundColor: brand.color || player.color,
+                    backgroundImage: brand.logo ? `url(${brand.logo})` : "none",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    borderBottom: index > 0 ? "2px dashed white" : "none",
+                  }}
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: index * 0.1, type: "spring" }}
+                  onMouseEnter={() => setHoveredBrand(brand)}
+                  onMouseLeave={() => setHoveredBrand(null)}
+                >
+                  {/* Value indicator bubble */}
+                  <div className={styles.brandValue}>${brand.value}</div>
+                </motion.div>
+              );
+            })}
+
+            {/* Hover tooltip */}
+            {hoveredBrand && (
+              <div className={styles.brandTooltip}>
+                <strong>{hoveredBrand.name}</strong>
+                <span>${hoveredBrand.value}</span>
+              </div>
+            )}
           </div>
         </div>
 
         <div className={styles.statsContainer}>
-          <div className={styles.statBox}>
-            <div className={styles.statValue}>{player.towerHeight}</div>
+          <div className={`${styles.statBox} ${styles.towerValueStat}`}>
+            <div className={styles.statValue}>${player.towerHeight}</div>
             <div className={styles.statLabel}>Tower Value</div>
+            {/* Progress bar to show how close to winning */}
+            <div className={styles.progressBarContainer}>
+              <div
+                className={styles.progressBar}
+                style={{ width: `${(player.towerHeight / 800) * 100}%` }}
+              ></div>
+            </div>
           </div>
-          <div className={styles.statBox}>
+          <div className={`${styles.statBox} ${styles.brandCountStat}`}>
             <div className={styles.statValue}>{brandCount}</div>
             <div className={styles.statLabel}>Brands</div>
+            <div className={styles.brandIcons}>
+              {brandCount > 0 &&
+                Array(Math.min(brandCount, 5))
+                  .fill(0)
+                  .map((_, i) => (
+                    <span key={i} className={styles.brandIcon}>
+                      🏢
+                    </span>
+                  ))}
+              {brandCount > 5 && (
+                <span className={styles.brandIcon}>+{brandCount - 5}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

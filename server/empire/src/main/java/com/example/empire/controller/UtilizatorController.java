@@ -162,7 +162,10 @@ public class UtilizatorController {
             boolean plataEfectuata = utilizatorService.platesteChiria(solicitaChirieDto1);
             if(plataEfectuata)
             return ResponseEntity.ok(ApiResponse.success("Chiria a fost platita",  true));
-            else return ResponseEntity.ok(ApiResponse.success("Nu exista suficienți bani pentru a platii chiria",  false));
+            else {
+                jocService.scoateJucatorDinJoc(username, chirias.get().getIdJoc());
+                return ResponseEntity.ok(ApiResponse.success("Nu exista suficienți bani pentru a platii chiria",  false));
+            }
         }
         return ResponseEntity
                 .status(404)

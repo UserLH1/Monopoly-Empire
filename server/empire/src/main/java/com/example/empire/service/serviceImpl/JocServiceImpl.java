@@ -399,7 +399,7 @@ public class JocServiceImpl implements JocService {
     public boolean verificaCastigJoc(Long idJoc) {
         ArrayList<Turn>turnuri = turnRepository.getTurnByIdJoc(idJoc);
         for(Turn t: turnuri){
-            if(t.getValoareTurn()==800)
+            if(t.getValoareTurn()>=800)
                 return true;
         }
         return false;
@@ -410,7 +410,7 @@ public class JocServiceImpl implements JocService {
         ArrayList<Turn>turnuri = turnRepository.getTurnByIdJoc(idJoc);
         Turn turnCastigator = new Turn();
         for(Turn t: turnuri){
-            if(t.getValoareTurn()==800)
+            if(t.getValoareTurn()>=800)
                 turnCastigator = t;
         }
         Utilizator utilizator = utilizatorRepository.getUtilizatorByUsername(turnCastigator.getUsername()).get();
