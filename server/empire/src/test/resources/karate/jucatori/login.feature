@@ -5,8 +5,8 @@ Scenario: Login cu date corecte
   And request
     """
     {
-      "username": "viva",
-      "password": "123456"
+      "username": "horatiu",
+      "password": "abcd1234"
     }
     """
   When method POST
